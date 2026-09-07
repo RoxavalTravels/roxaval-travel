@@ -6,6 +6,7 @@ import { LockIcon, Loader2Icon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ApiRequestError } from '../lib/api';
 import { BackButton } from '../components/ui/BackButton';
+import { Seo } from '../components/seo/Seo';
 
 export function ResetPassword() {
   const { t } = useTranslation('auth');
@@ -41,6 +42,7 @@ export function ResetPassword() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-cream px-4 py-28">
+      <Seo title="Reset Password | Roxaval Travels" description="Set a new password for your Roxaval Travels account." noindex />
       <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}

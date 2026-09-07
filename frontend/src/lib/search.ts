@@ -21,6 +21,7 @@ export interface SearchResults {
 
 interface RawPackage {
   _id: string;
+  slug?: string;
   name: string;
   category: string;
   heroImage: string;
@@ -29,12 +30,14 @@ interface RawPackage {
 }
 interface RawDestination {
   _id: string;
+  slug?: string;
   name: string;
   tag?: string;
   heroImage?: string;
 }
 interface RawActivity {
   _id: string;
+  slug?: string;
   name: string;
   category: string;
   image: string;
@@ -71,7 +74,7 @@ export async function searchAll(query: string, limit = 5): Promise<SearchResults
     title: p.name,
     subtitle: p.category,
     image: p.heroImage,
-    href: `/packages/${p._id}`
+    href: `/packages/${p.slug || p._id}`
   }))).
   catch(() => []),
   apiGetList<RawDestination>('/destinations', { q, limit }).
@@ -81,7 +84,7 @@ export async function searchAll(query: string, limit = 5): Promise<SearchResults
     title: d.name,
     subtitle: d.tag,
     image: d.heroImage,
-    href: '/destinations'
+    href: `/destinations/${d.slug || d._id}`
   }))).
   catch(() => []),
   apiGetList<RawActivity>('/activities', { q, limit }).
@@ -91,7 +94,7 @@ export async function searchAll(query: string, limit = 5): Promise<SearchResults
     title: a.name,
     subtitle: a.category,
     image: a.image,
-    href: `/activity/${a._id}`
+    href: `/activity/${a.slug || a._id}`
   }))).
   catch(() => []),
   apiGetList<RawHotel>('/hotels', { q, limit }).

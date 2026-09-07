@@ -8,6 +8,7 @@ import { ApiRequestError } from '../lib/api';
 import { BackButton } from '../components/ui/BackButton';
 import { DateField } from '../components/ui/DateField';
 import { COUNTRY_DIAL_CODES, isoToFlag } from '../data/countryCodes';
+import { Seo } from '../components/seo/Seo';
 
 type Tab = 'login' | 'register';
 
@@ -129,6 +130,7 @@ export function Auth() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-cream px-4 py-28">
+      <Seo title="Login or Sign Up | Roxaval Travels" description="Log in or create a Roxaval Travels account to book and manage your Sri Lanka tours." noindex />
       <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-emerald/10 blur-3xl" />
       <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl" />
 

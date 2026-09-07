@@ -8,7 +8,7 @@ import { TextField, TextAreaField, NumberField, SelectField, CheckboxField, RefM
 
 const LEAD_SOURCE_OPTIONS = ['Website', 'Phone', 'Email', 'Walk-in', 'Referral', 'Agent', 'Other'];
 const HOTEL_CATEGORIES = ['Budget', 'Standard', 'Deluxe', 'Boutique', 'Luxury', 'Resort'];
-const TRAVEL_STYLES = ['Relaxed', 'Adventure', 'Cultural', 'Luxury', 'Family', 'Honeymoon', 'Backpacking'];
+const TRAVEL_STYLES = ['Relaxed', 'Adventure', 'Cultural', 'Luxury', 'Family', 'Honeymoon', 'Backpacking', 'Solo', 'Heritage', 'Discovery', 'Beach'];
 const TRANSPORT_OPTIONS = ['Private Car', 'Van', 'SUV', 'Minibus', 'No Preference'];
 const PRIORITY_OPTIONS = ['Low', 'Medium', 'High'];
 

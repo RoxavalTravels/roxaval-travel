@@ -21,6 +21,7 @@ import { MessagingPanel } from '../components/messaging/MessagingPanel';
 import { CustomerDashboardSummary } from '../components/dashboard/CustomerDashboardSummary';
 import { CountdownWidget } from '../components/dashboard/CountdownWidget';
 import { RecentActivityFeed } from '../components/dashboard/RecentActivityFeed';
+import { Seo } from '../components/seo/Seo';
 import type { Review } from '../types/review';
 
 interface BookingItem {
@@ -782,6 +783,7 @@ export function MyTours() {
 
   return (
     <main className="min-h-screen bg-cream pt-28 pb-20">
+      <Seo title="My Tours | Roxaval Travels" description="Manage your Sri Lanka tour bookings, quotations and requests with Roxaval Travels." noindex />
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <BackButton className="mb-6" />
         <h1 className="font-display text-3xl font-semibold text-forest sm:text-4xl">{t('myTours.title')}</h1>

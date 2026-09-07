@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema } from '../lib/seo';
 import { useApiList } from '../hooks/useApiList';
 import { ActivityCard } from '../components/activities/ActivityCard';
 import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
@@ -39,6 +41,12 @@ export function Activities() {
 
   return (
     <main className="min-h-screen bg-cream pt-24">
+      <Seo
+        title="Sri Lanka Activities & Excursions | Roxaval Travels"
+        description="From Sigiriya rock climbs to whale watching and safaris — browse things to do in Sri Lanka and add them to your private or custom Sri Lanka tour with Roxaval Travels."
+        keywords="Sri Lanka activities, things to do in Sri Lanka, wildlife tours Sri Lanka, Sri Lanka travel, custom Sri Lanka tours"
+        jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Activities', path: '/activities' }])} />
+
       <section className="relative overflow-hidden bg-forest py-20 text-center text-white">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald/30 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />

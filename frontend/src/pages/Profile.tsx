@@ -5,6 +5,7 @@ import { PageBanner } from '../components/layout/PageBanner';
 import { DateField } from '../components/ui/DateField';
 import { apiGetOne, apiPatch, ApiRequestError } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { Seo } from '../components/seo/Seo';
 
 interface CustomerProfile {
   fullName: string;
@@ -68,6 +69,7 @@ export function Profile() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo title="My Profile | Roxaval Travels" description="Manage your Roxaval Travels account profile." noindex />
       <PageBanner
         eyebrow={t('profile.eyebrow')}
         title={t('profile.title')}

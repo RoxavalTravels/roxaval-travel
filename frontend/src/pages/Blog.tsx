@@ -6,6 +6,8 @@ import { CalendarIcon, EyeIcon, FlameIcon, ClockIcon, ArrowRightIcon } from 'luc
 import { Pagination } from '../components/ui/Pagination';
 import { LoadingState, EmptyState, ErrorState } from '../components/ui/StatusState';
 import { BackButton } from '../components/ui/BackButton';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema } from '../lib/seo';
 import { useApiList } from '../hooks/useApiList';
 import { apiGetList, API_ORIGIN } from '../lib/api';
 import { formatDate } from '../lib/date';
@@ -74,6 +76,12 @@ export function Blog() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo
+        title="Sri Lanka Travel Blog | Tips & Guides | Roxaval Travels"
+        description="Sri Lanka travel guides, tips and stories - from best beaches and wildlife to honeymoon ideas - to help you plan your trip with Roxaval Travels."
+        keywords="Sri Lanka travel blog, Sri Lanka travel tips, Sri Lanka travel guide"
+        jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Blog', path: '/blog' }])} />
+
       <section className="border-b border-forest/10 bg-white py-14 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <BackButton className="mb-6" />

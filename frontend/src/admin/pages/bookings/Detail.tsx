@@ -28,10 +28,10 @@ interface BookingDetail {
 }
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  'Pending': ['Awaiting Approval', 'Cancelled'],
-  'Awaiting Approval': ['Approved', 'Cancelled'],
-  'Approved': ['Payment Pending', 'Cancelled'],
-  'Payment Pending': ['Payment Verification', 'Cancelled'],
+  'Pending': ['Awaiting Approval', 'Confirmed', 'Cancelled'],
+  'Awaiting Approval': ['Approved', 'Confirmed', 'Cancelled'],
+  'Approved': ['Payment Pending', 'Confirmed', 'Cancelled'],
+  'Payment Pending': ['Payment Verification', 'Confirmed', 'Cancelled'],
   'Payment Verification': ['Confirmed', 'Payment Pending', 'Cancelled'],
   'Confirmed': ['Completed', 'Cancelled'],
   'Completed': [],

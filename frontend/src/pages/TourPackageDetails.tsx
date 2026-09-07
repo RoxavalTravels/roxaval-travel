@@ -17,6 +17,8 @@ import {
   UtensilsIcon } from
 'lucide-react';
 import { apiGetOne, apiGetList } from '../lib/api';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema, tourPackageSchema, truncateDescription } from '../lib/seo';
 import { LoadingState, ErrorState } from '../components/ui/StatusState';
 import { PackageCard } from '../components/packages/PackageCard';
 import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
@@ -39,7 +41,7 @@ function parseDayDescription(description: string) {
 
 export function TourPackageDetails() {
   const { t } = useTranslation('packages');
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [pkg, setPkg] = useState<TourPackage | null>(null);
@@ -50,12 +52,12 @@ export function TourPackageDetails() {
   const [bookingOpen, setBookingOpen] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
+    if (!slug) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
 
-    apiGetOne<TourPackage>(`/packages/${id}`).
+    apiGetOne<TourPackage>(`/packages/slug/${slug}`).
     then((data) => {
       if (cancelled) return;
       setPkg(data);
@@ -70,15 +72,44 @@ export function TourPackageDetails() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [slug]);
 
   if (loading) return <main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main>;
   if (error || !pkg) return <main className="min-h-screen bg-cream pt-24"><ErrorState title={t('detail.notFoundTitle')} message={error || undefined} /></main>;
 
   const displayPrice = pkg.discountPrice ?? pkg.price;
 
+  const categoryKeyword: Record<string, string> = {
+    Honeymoon: 'honeymoon tours Sri Lanka',
+    Wildlife: 'wildlife tours Sri Lanka',
+    Luxury: 'luxury Sri Lanka tours',
+    Family: 'family tours Sri Lanka',
+    Adventure: 'adventure tours Sri Lanka'
+  };
+
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo
+        title={`${pkg.name} | ${pkg.durationDays}-Day Sri Lanka Tour | Roxaval Travels`}
+        description={truncateDescription(pkg.description || `${pkg.name} - a ${pkg.durationDays}-day, ${pkg.durationNights}-night ${pkg.tourType.toLowerCase()} Sri Lanka tour with Roxaval Travels.`)}
+        keywords={`Sri Lanka tour packages, ${categoryKeyword[pkg.category] || 'private tours Sri Lanka'}, custom Sri Lanka tours, ${pkg.name}`}
+        image={pkg.heroImage}
+        type="product"
+        jsonLd={[
+        breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Tour Packages', path: '/packages' }, { name: pkg.name, path: `/packages/${slug}` }]),
+        tourPackageSchema({
+          name: pkg.name,
+          description: pkg.description,
+          image: pkg.heroImage,
+          path: `/packages/${slug}`,
+          price: pkg.showPrice ? displayPrice : undefined,
+          currency: pkg.currency,
+          durationDays: pkg.durationDays,
+          rating: pkg.rating,
+          reviewsCount: pkg.reviewsCount
+        })]} />
+
+
       {/* Hero */}
       <section className="relative h-[65vh] min-h-[460px] w-full overflow-hidden">
         <img src={pkg.heroImage} alt={pkg.name} className="absolute inset-0 h-full w-full object-cover" />
@@ -312,7 +343,7 @@ export function TourPackageDetails() {
             <p className="font-display text-xl font-semibold">{t('detail.contactForPricing')}</p>
             }
             <button
-              onClick={() => user ? setBookingOpen(true) : navigate('/auth', { state: { from: { pathname: `/packages/${pkg._id}` } } })}
+              onClick={() => user ? setBookingOpen(true) : navigate('/auth', { state: { from: { pathname: `/packages/${slug}` } } })}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-forest transition-transform hover:scale-[1.03] active:scale-95">
 
               {t('detail.bookNow')} <ArrowRightIcon className="h-4 w-4" />

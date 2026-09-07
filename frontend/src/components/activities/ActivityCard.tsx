@@ -56,7 +56,7 @@ export function ActivityCard({ activity, index = 0 }: ActivityCardProps) {
             <p className="font-display text-2xl font-semibold text-forest">${activity.priceFrom}</p>
           </div>
           <Link
-            to={`/activity/${activity._id}`}
+            to={`/activity/${activity.slug || activity._id}`}
             className="group/btn inline-flex items-center gap-1.5 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-emerald">
 
             {tc('buttons.viewDetails')}

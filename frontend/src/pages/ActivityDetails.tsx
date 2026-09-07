@@ -13,6 +13,8 @@ import {
   ArrowRightIcon } from
 'lucide-react';
 import { apiGetOne, apiGetList } from '../lib/api';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema, touristAttractionSchema, truncateDescription } from '../lib/seo';
 import { LoadingState, ErrorState } from '../components/ui/StatusState';
 import { ActivityCard } from '../components/activities/ActivityCard';
 import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
@@ -21,19 +23,19 @@ import type { Activity } from '../types/activity';
 
 export function ActivityDetails() {
   const { t } = useTranslation('activities');
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [activity, setActivity] = useState<Activity | null>(null);
   const [related, setRelated] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!slug) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
 
-    apiGetOne<Activity>(`/activities/${id}`).
+    apiGetOne<Activity>(`/activities/slug/${slug}`).
     then((data) => {
       if (cancelled) return;
       setActivity(data);
@@ -49,7 +51,7 @@ export function ActivityDetails() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [slug]);
 
   if (loading) return <main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main>;
   if (error || !activity) return <main className="min-h-screen bg-cream pt-24"><ErrorState title={t('detail.notFoundTitle')} message={error || undefined} /></main>;
@@ -58,9 +60,19 @@ export function ActivityDetails() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo
+        title={`${activity.name} | Sri Lanka Activities | Roxaval Travels`}
+        description={truncateDescription(activity.description || `${activity.name} - book this Sri Lanka activity as part of a private or custom Sri Lanka tour with Roxaval Travels.`)}
+        keywords={`${activity.name}, Sri Lanka activities, things to do in Sri Lanka, Sri Lanka travel, custom Sri Lanka tours`}
+        image={activity.image}
+        jsonLd={[
+        breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Activities', path: '/activities' }, { name: activity.name, path: `/activity/${slug}` }]),
+        touristAttractionSchema({ name: activity.name, description: activity.description, image: activity.image, path: `/activity/${slug}` })]} />
+
+
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
-        <img src={activity.image} alt={activity.name} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={activity.image} alt={`${activity.name}, Sri Lanka${activity.category ? ` - ${activity.category}` : ''}`} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/40 to-forest/10" />
         <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-4 py-6 sm:px-6 lg:px-8">
           <BreadcrumbBackRow breadcrumbs={[{ label: t('breadcrumb.home'), href: '/' }, { label: t('breadcrumb.activities'), href: '/activities' }, { label: activity.name }]} />

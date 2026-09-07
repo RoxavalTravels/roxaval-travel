@@ -4,8 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon-dark.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Pre-hydration fallback for non-JS crawlers; every route overrides
+         this via <Seo> (react-helmet-async), which replaces <title> but
+         cannot dedupe a hand-written <meta> tag it didn't render itself --
+         so no static <meta name="description"> lives here anymore, it would
+         end up duplicated alongside each page's real one. -->
     <title>Roxaval Travels | Sri Lanka Tours &amp; Custom Itineraries</title>
-    <meta name="description" content="Roxaval Travels crafts fully personalized Sri Lanka tours — curated packages, custom itineraries, hotels, guides and transport, planned and booked in one place." />
   </head>
   <body>
     <div id="root"></div>

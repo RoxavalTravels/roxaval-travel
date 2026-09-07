@@ -14,6 +14,8 @@ import {
   TicketIcon } from
 'lucide-react';
 import { apiGetOne, apiGetList } from '../lib/api';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema, touristDestinationSchema, truncateDescription } from '../lib/seo';
 import { LoadingState, ErrorState } from '../components/ui/StatusState';
 import { PackageCard } from '../components/packages/PackageCard';
 import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
@@ -22,19 +24,19 @@ import type { TourPackage } from '../types/tourPackage';
 
 export function DestinationDetails() {
   const { t } = useTranslation('destinations');
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [packages, setPackages] = useState<TourPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!slug) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
 
-    apiGetOne<Destination>(`/destinations/${id}`).
+    apiGetOne<Destination>(`/destinations/slug/${slug}`).
     then((data) => {
       if (cancelled) return;
       setDestination(data);
@@ -47,7 +49,7 @@ export function DestinationDetails() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [slug]);
 
   if (loading) return <main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main>;
   if (error || !destination) return <main className="min-h-screen bg-cream pt-24"><ErrorState title={t('detail.notFoundTitle')} message={error || undefined} /></main>;
@@ -56,11 +58,21 @@ export function DestinationDetails() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo
+        title={`${d.name} Travel Guide | Sri Lanka | Roxaval Travels`}
+        description={truncateDescription(d.description || `Discover ${d.name}, Sri Lanka - things to do, best time to visit and how to include it in your Sri Lanka tour.`)}
+        keywords={`${d.name} Sri Lanka, Sri Lanka destinations, Sri Lanka travel, Sri Lanka tour packages, custom Sri Lanka tours`}
+        image={d.heroImage}
+        jsonLd={[
+        breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Destinations', path: '/destinations' }, { name: d.name, path: `/destinations/${slug}` }]),
+        touristDestinationSchema({ name: d.name, description: d.description, image: d.heroImage, path: `/destinations/${slug}` })]} />
+
+
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
         <img
           src={d.heroImage}
-          alt={d.name}
+          alt={`${d.name}, Sri Lanka${d.tag ? ` - ${d.tag} destination` : ''}`}
           onError={(e) => {
             const img = e.currentTarget;
             if (img.dataset.fallback) return;
@@ -256,7 +268,7 @@ export function DestinationDetails() {
                 {d.nearbyDestinations.map((n) =>
               <Link
                 key={n._id}
-                to={`/destinations/${n._id}`}
+                to={`/destinations/${n.slug}`}
                 className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-forest shadow-soft transition-colors hover:bg-emerald hover:text-white">
 
                     <MapPinIcon className="h-3.5 w-3.5" /> {n.name}

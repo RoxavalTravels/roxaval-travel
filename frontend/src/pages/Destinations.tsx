@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema } from '../lib/seo';
 import { useApiList } from '../hooks/useApiList';
 import { DestinationCapsule } from '../components/destinations/DestinationCapsule';
 import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
@@ -31,11 +33,17 @@ export function Destinations() {
 
   return (
     <main className="min-h-screen bg-cream pt-24">
+      <Seo
+        title="Sri Lanka Destinations | Places to Visit | Roxaval Travels"
+        description="Explore Sri Lanka's top destinations - from Sigiriya and Kandy to Ella, Mirissa and Yala - and build them into a private or custom Sri Lanka tour with Roxaval Travels."
+        keywords="Sri Lanka destinations, places to visit in Sri Lanka, Sri Lanka travel, Sri Lanka tour packages, custom Sri Lanka tours"
+        jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Destinations', path: '/destinations' }])} />
+
       {/* Hero Banner */}
       <section className="relative h-[50vh] min-h-[380px] w-full overflow-hidden">
         <img
           src="/f1dc4405-8788-4026-86f6-8dcd6433d54c.jpg"
-          alt="Sri Lanka"
+          alt="Sigiriya rock fortress and Sri Lanka's scenic landscape"
           className="absolute inset-0 h-full w-full object-cover" />
 
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/50 to-forest/20" />

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { XIcon } from 'lucide-react';
+import { Loader2Icon, LanguagesIcon, XIcon } from 'lucide-react';
+import { apiPost, ApiRequestError } from '../../../lib/api';
+import { useToast } from '../ToastProvider';
 
 export type LocalizedString = { en: string; de: string; fr: string };
 export const emptyLocalizedString = (): LocalizedString => ({ en: '', de: '', fr: '' });
@@ -35,6 +37,47 @@ function LangTabs({ active, onChange, missing }: { active: keyof LocalizedString
   );
 }
 
+// Calls the same DeepL account used to bulk-translate the catalog, but live
+// from the app -- fills DE/FR from the current EN text in one click instead
+// of admins needing to type all three languages, or someone running an
+// offline script later. Shared by every TranslatedInput/TranslatedTextarea,
+// so this one button covers every translatable field in the admin panel.
+function TranslateButton({ value, onChange }: { value: LocalizedString; onChange: (v: LocalizedString) => void }) {
+  const [busy, setBusy] = useState(false);
+  const toast = useToast();
+  // Some rows predate this field existing at all (an itinerary day saved
+  // before notes/title went translatable, an old record missing a key) and
+  // come back with `en` missing entirely rather than ''. Reading .trim()
+  // straight off that crashed the whole page's render, not just this button.
+  const en = value?.en || '';
+
+  const run = async () => {
+    if (!en.trim() || busy) return;
+    setBusy(true);
+    try {
+      const result = await apiPost<{ de: string; fr: string }>('/translate', { text: en });
+      onChange({ ...value, de: result.de, fr: result.fr });
+    } catch (err) {
+      toast(err instanceof ApiRequestError ? err.message : 'Translation failed. Please try again.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={run}
+      disabled={!en.trim() || busy}
+      title="Auto-translate the English text into German and French"
+      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald hover:bg-emerald/10 disabled:cursor-not-allowed disabled:text-forest/25 disabled:hover:bg-transparent">
+
+      {busy ? <Loader2Icon className="h-3 w-3 animate-spin" /> : <LanguagesIcon className="h-3 w-3" />}
+      Translate
+    </button>
+  );
+}
+
 interface TranslatedInputProps {
   label: string;
   value: LocalizedString;
@@ -50,7 +93,10 @@ export function TranslatedInput({ label, value, onChange, required, placeholder 
     <div>
       <div className="mb-1.5 flex items-center justify-between">
         <label className={labelClass}>{label}{required && <span className="text-red-500"> *</span>}</label>
-        <LangTabs active={lang} onChange={setLang} missing={{ de: !value.de, fr: !value.fr }} />
+        <div className="flex items-center gap-2">
+          <TranslateButton value={value} onChange={onChange} />
+          <LangTabs active={lang} onChange={setLang} missing={{ de: !value.de, fr: !value.fr }} />
+        </div>
       </div>
       <input
         value={value[lang] || ''}
@@ -78,7 +124,10 @@ export function TranslatedTextarea({ label, value, onChange, required, rows = 4 
     <div>
       <div className="mb-1.5 flex items-center justify-between">
         <label className={labelClass}>{label}{required && <span className="text-red-500"> *</span>}</label>
-        <LangTabs active={lang} onChange={setLang} missing={{ de: !value.de, fr: !value.fr }} />
+        <div className="flex items-center gap-2">
+          <TranslateButton value={value} onChange={onChange} />
+          <LangTabs active={lang} onChange={setLang} missing={{ de: !value.de, fr: !value.fr }} />
+        </div>
       </div>
       <textarea
         value={value[lang] || ''}
@@ -115,12 +164,48 @@ export function TranslatedTagListInput({ label, value, onChange, placeholder = '
   };
   const removeAt = (i: number) => onChange(value.filter((_, idx) => idx !== i));
   const updateAt = (i: number, text: string) => onChange(value.map((v, idx) => (idx === i ? { ...v, [lang]: text } : v)));
+  const [translatingAll, setTranslatingAll] = useState(false);
+  const toast = useToast();
+
+  const translateAll = async () => {
+    if (translatingAll) return;
+    setTranslatingAll(true);
+    try {
+      let next = value;
+      for (let i = 0; i < next.length; i += 1) {
+        const item = next[i];
+        const itemEn = item?.en || '';
+        if (!itemEn.trim() || (item.de && item.fr)) continue;
+        const result = await apiPost<{ de: string; fr: string }>('/translate', { text: itemEn });
+        next = next.map((v, idx) => (idx === i ? { ...v, de: result.de, fr: result.fr } : v));
+      }
+      onChange(next);
+    } catch (err) {
+      toast(err instanceof ApiRequestError ? err.message : 'Translation failed. Please try again.', 'error');
+    } finally {
+      setTranslatingAll(false);
+    }
+  };
 
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between">
         <label className={labelClass}>{label}</label>
-        <LangTabs active={lang} onChange={setLang} missing={{ de: value.some((v) => !v.de), fr: value.some((v) => !v.fr) }} />
+        <div className="flex items-center gap-2">
+          {value.length > 0 &&
+          <button
+            type="button"
+            onClick={translateAll}
+            disabled={translatingAll}
+            title="Auto-translate every item's English text into German and French"
+            className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald hover:bg-emerald/10 disabled:cursor-not-allowed disabled:text-forest/25 disabled:hover:bg-transparent">
+
+              {translatingAll ? <Loader2Icon className="h-3 w-3 animate-spin" /> : <LanguagesIcon className="h-3 w-3" />}
+              Translate All
+            </button>
+          }
+          <LangTabs active={lang} onChange={setLang} missing={{ de: value.some((v) => !v.de), fr: value.some((v) => !v.fr) }} />
+        </div>
       </div>
       {lang === 'en' ? (
         <div className="flex flex-wrap gap-2 rounded-xl border border-forest/15 bg-white p-2.5">

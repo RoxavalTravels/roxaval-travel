@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BanIcon, CheckCircle2Icon, EyeIcon, PlusIcon } from 'lucide-react';
+import { BanIcon, CheckCircle2Icon, EyeIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { useAdminList } from '../../hooks/useAdminList';
 import { DataTable, Column } from '../../components/DataTable';
 import { PageHeader } from '../../components/PageHeader';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { useToast } from '../../components/ToastProvider';
-import { apiPatch, ApiRequestError } from '../../../lib/api';
+import { apiDelete, apiPatch, ApiRequestError } from '../../../lib/api';
 
 interface AdminCustomer {
   _id: string;
@@ -40,6 +40,24 @@ export function AdminCustomersList() {
     });
   };
 
+  const remove = (c: AdminCustomer) => {
+    confirm({
+      title: 'Delete customer?',
+      message: `"${c.user?.fullName || 'This customer'}" will be permanently removed. Customers with bookings, payments or requests on file can't be deleted — block them instead.`,
+      confirmLabel: 'Delete',
+      tone: 'danger',
+      onConfirm: async () => {
+        try {
+          await apiDelete(`/customers/${c._id}`);
+          toast('Customer deleted.');
+          refetch();
+        } catch (err) {
+          toast(err instanceof ApiRequestError ? err.message : 'Failed to delete customer.', 'error');
+        }
+      }
+    });
+  };
+
   const columns: Column<AdminCustomer>[] = [
   { header: 'Customer', render: (c) => <span className="font-medium">{c.user?.fullName || '-'}</span> },
   { header: 'Email', render: (c) => c.user?.email || '-' },
@@ -54,6 +72,9 @@ export function AdminCustomersList() {
           <Link to={`/admin/customers/${c._id}`} className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-cream hover:text-forest"><EyeIcon className="h-4 w-4" /></Link>
           <button onClick={() => toggleActive(c)} className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-cream hover:text-forest">
             {c.user?.active === false ? <CheckCircle2Icon className="h-4 w-4" /> : <BanIcon className="h-4 w-4" />}
+          </button>
+          <button onClick={() => remove(c)} className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-red-50 hover:text-red-600">
+            <Trash2Icon className="h-4 w-4" />
           </button>
         </div>
 

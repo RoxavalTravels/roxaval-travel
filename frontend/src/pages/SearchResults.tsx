@@ -7,6 +7,7 @@ import { searchAll, totalResultCount, EMPTY_RESULTS } from '../lib/search';
 import type { SearchResults as SearchResultsData, SearchResultItem, SearchCategory } from '../lib/search';
 import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
 import { LoadingState, EmptyState } from '../components/ui/StatusState';
+import { Seo } from '../components/seo/Seo';
 
 
 function ResultCard({ item }: {item: SearchResultItem;}) {
@@ -74,6 +75,9 @@ export function SearchResults() {
 
   return (
     <main className="min-h-screen bg-cream pt-24">
+      {/* Query-dependent results page - not canonical content, so it's kept
+          out of the index to avoid thin/duplicate-content pages. */}
+      <Seo title="Search Results | Roxaval Travels" description="Search Roxaval Travels for tour packages, destinations and activities in Sri Lanka." noindex />
       <section className="bg-forest py-16 text-center text-white">
         <div className="mx-auto mb-8 max-w-7xl px-4 text-left sm:px-6 lg:px-8">
           <BreadcrumbBackRow breadcrumbs={[{ label: t('nav.home'), href: '/' }, { label: t('search.breadcrumb') }]} />

@@ -2,6 +2,7 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ScrollToTop } from './components/layout/ScrollToTop';
@@ -56,6 +57,7 @@ const AdminVehicleForm = lazy(() => import('./admin/pages/vehicles/Form').then((
 const AdminTransfersList = lazy(() => import('./admin/pages/transfers/List').then((m) => ({ default: m.AdminTransfersList })));
 const AdminTransferForm = lazy(() => import('./admin/pages/transfers/Form').then((m) => ({ default: m.AdminTransferForm })));
 const AdminBookingsList = lazy(() => import('./admin/pages/bookings/List').then((m) => ({ default: m.AdminBookingsList })));
+const AdminBookingNew = lazy(() => import('./admin/pages/bookings/New').then((m) => ({ default: m.AdminBookingNew })));
 const AdminBookingDetail = lazy(() => import('./admin/pages/bookings/Detail').then((m) => ({ default: m.AdminBookingDetail })));
 const AdminPaymentsList = lazy(() => import('./admin/pages/payments/List').then((m) => ({ default: m.AdminPaymentsList })));
 const AdminCustomersList = lazy(() => import('./admin/pages/customers/List').then((m) => ({ default: m.AdminCustomersList })));
@@ -96,6 +98,7 @@ export function App() {
   // fresh, correctly-localized fetch) on every switch.
   const { i18n } = useTranslation();
   return (
+    <HelmetProvider>
     <BrowserRouter>
       <AuthProvider>
       <ToastProvider>
@@ -106,10 +109,10 @@ export function App() {
           <Route path="/" element={<Home />} />
           <Route path="/packages" element={<TourPackages />} />
           <Route path="/destinations" element={<Destinations />} />
-          <Route path="/destinations/:id" element={<DestinationDetails />} />
+          <Route path="/destinations/:slug" element={<DestinationDetails />} />
           <Route path="/activities" element={<Activities />} />
-          <Route path="/activity/:id" element={<ActivityDetails />} />
-          <Route path="/packages/:id" element={<TourPackageDetails />} />
+          <Route path="/activity/:slug" element={<ActivityDetails />} />
+          <Route path="/packages/:slug" element={<TourPackageDetails />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/forgot-password" element={<ForgotPassword />} />
@@ -167,6 +170,7 @@ export function App() {
             <Route path="transfers/:id/edit" element={<AdminTransferForm />} />
 
             <Route path="bookings" element={<AdminBookingsList />} />
+            <Route path="bookings/new" element={<AdminBookingNew />} />
             <Route path="bookings/:id" element={<AdminBookingDetail />} />
 
             <Route path="payments" element={<AdminPaymentsList />} />
@@ -201,6 +205,7 @@ export function App() {
         </Suspense>
       </ToastProvider>
       </AuthProvider>
-    </BrowserRouter>);
+    </BrowserRouter>
+    </HelmetProvider>);
 
 }

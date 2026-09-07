@@ -80,7 +80,7 @@ export function AdminTransferForm() {
       supplier,
       type,
       transferFor,
-      vehicle: vehicle || undefined,
+      vehicle: vehicle || null,
       costWithDriver,
       costWithoutDriver,
       currency,

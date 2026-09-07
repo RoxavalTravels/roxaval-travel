@@ -69,8 +69,10 @@ function VoucherCard({
   const save = async () => {
     setSaving(true);
     try {
-      await onSave({ roomType, numberOfRooms, mealPlan: mealPlan as HotelVoucherItem['mealPlan'], ratePerNight: ratePerNight || undefined, specialRequests, arrivalTime, departureTime, emergencyContact });
+      await onSave({ roomType, numberOfRooms, mealPlan: mealPlan as HotelVoucherItem['mealPlan'], ratePerNight, specialRequests, arrivalTime, departureTime, emergencyContact });
       setEditing(false);
+    } catch {
+      // The parent displays the error; keep the draft open for correction.
     } finally {
       setSaving(false);
     }
@@ -197,6 +199,7 @@ export function HotelVouchersPanel({ bookingId, bookingStatus }: {bookingId: str
       loadVouchers();
     } catch (err) {
       toast(err instanceof ApiRequestError ? err.message : 'Failed to update voucher.', 'error');
+      throw err;
     }
   };
 

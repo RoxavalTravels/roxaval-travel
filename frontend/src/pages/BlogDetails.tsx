@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { CalendarIcon, EyeIcon, FacebookIcon, LinkIcon, TwitterIcon, CheckIcon, HeartIcon, MapPinIcon, ArrowLeftIcon } from 'lucide-react';
 import { PageBanner } from '../components/layout/PageBanner';
 import { LoadingState, ErrorState } from '../components/ui/StatusState';
+import { Seo } from '../components/seo/Seo';
+import { blogPostingSchema, breadcrumbSchema, truncateDescription } from '../lib/seo';
 import { apiGetOne, apiGetList, API_ORIGIN } from '../lib/api';
 import { formatDateLong as formatDate } from '../lib/date';
 import { CommentsSection } from '../components/blog/CommentsSection';
@@ -60,6 +62,23 @@ export function BlogDetails() {
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
+  const seoNode = (
+    <Seo
+      title={`${post.title} | Roxaval Travels Blog`}
+      description={truncateDescription(post.excerpt || post.content || `${post.title} - a Sri Lanka travel guide from Roxaval Travels.`)}
+      keywords={`${post.title}, Sri Lanka travel blog, Sri Lanka travel tips`}
+      image={post.featuredImage}
+      type="article"
+      jsonLd={[
+      breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Blog', path: '/blog' }, { name: post.title, path: `/blog/${slug}` }]),
+      blogPostingSchema({
+        title: post.title,
+        description: post.excerpt || post.content,
+        image: post.featuredImage,
+        path: `/blog/${slug}`,
+        publishedAt: post.publishedAt || post.createdAt
+      })]} />);
+
   const share = async () => {
     if (navigator.share) {
       try {
@@ -77,6 +96,7 @@ export function BlogDetails() {
   if (post.template === 'romantic') {
     return (
       <main className="min-h-screen bg-[#faf3e8]">
+        {seoNode}
         <div className="px-4 pt-8 sm:pt-10">
           <button onClick={goBack} className="inline-flex items-center gap-1.5 rounded-full border border-[#3a2b1f]/15 bg-white/70 px-3.5 py-2 text-xs font-semibold text-[#3a2b1f] shadow-soft backdrop-blur transition-colors hover:bg-white">
             <ArrowLeftIcon className="h-3.5 w-3.5" /> {t('details.back')}
@@ -183,6 +203,7 @@ export function BlogDetails() {
     const infoSections = post.sections.filter((s) => !s.image);
     return (
       <main className="min-h-screen bg-[#0a1e38]">
+        {seoNode}
         <div className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-sky-100 to-[#0a1e38] pb-24 pt-8 sm:pb-32 sm:pt-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <button onClick={goBack} className="inline-flex items-center gap-1.5 rounded-full border border-[#0a1e38]/15 bg-white/70 px-3.5 py-2 text-xs font-semibold text-[#0a1e38] shadow-soft backdrop-blur transition-colors hover:bg-white">
@@ -296,6 +317,7 @@ export function BlogDetails() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      {seoNode}
       <PageBanner
         eyebrow={post.category}
         title={post.title}
@@ -364,7 +386,7 @@ export function BlogDetails() {
 
         {post.gallery?.length > 0 &&
         <div className="grid gap-4 sm:grid-cols-3">
-            {post.gallery.map((img, i) => <img key={i} src={resolveImage(img)} alt="" loading="lazy" className="h-48 w-full rounded-2xl object-cover" />)}
+            {post.gallery.map((img, i) => <img key={i} src={resolveImage(img)} alt={`${post.title} - photo ${i + 1}`} loading="lazy" className="h-48 w-full rounded-2xl object-cover" />)}
           </div>
         }
 

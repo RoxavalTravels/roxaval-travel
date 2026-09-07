@@ -9,6 +9,8 @@ import {
 import { TikTokIcon } from '../components/icons/BrandIcons';
 import { PageBanner } from '../components/layout/PageBanner';
 import { SectionHeading } from '../components/ui/SectionHeading';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema, faqSchema } from '../lib/seo';
 import { apiGetOne, apiPost, ApiRequestError } from '../lib/api';
 import {
   whatsAppLink, WHATSAPP_NUMBER, WHATSAPP_DISPLAY, WHATSAPP_NUMBER_SL, WHATSAPP_DISPLAY_SL,
@@ -84,6 +86,15 @@ export function ContactUs() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo
+        title="Contact Roxaval Travels | Plan Your Sri Lanka Tour"
+        description="Get in touch with Roxaval Travels to plan your Sri Lanka tour - private tours, honeymoon escapes, wildlife safaris or a fully custom itinerary. We reply fast on WhatsApp and email."
+        keywords="contact Roxaval Travels, Sri Lanka tour operator, plan Sri Lanka trip, custom Sri Lanka tours"
+        jsonLd={[
+        breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Contact Us', path: '/contact' }]),
+        faqSchema(FAQS.filter((f) => f.q && f.a))]} />
+
+
       <PageBanner
         eyebrow={t('eyebrow')}
         title={t('title')}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2Icon, SearchIcon } from 'lucide-react';
+import { CalendarIcon, Loader2Icon, SearchIcon, TriangleAlertIcon } from 'lucide-react';
 import { apiGetList } from '../../../lib/api';
+import { formatDate } from '../../../lib/date';
 import { Modal } from '../Modal';
 
 export interface RoomOccupancy {
@@ -18,6 +19,8 @@ export interface HotelSelection {
   hotel: string;
   hotelName: string;
   roomType: string;
+  roomTypeId: string;
+  mealPlan: string;
   numberOfRooms: number;
   roomOccupancy: RoomOccupancy;
   roomCost: number;
@@ -137,6 +140,8 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
       hotel: pickedHotel._id,
       hotelName: pickedHotel.name,
       roomType: pickedRoomType.name,
+      roomTypeId: pickedRoomType._id,
+      mealPlan: pickedRoomType.mealPlan || '',
       numberOfRooms: Math.max(1, roomCount),
       roomOccupancy: occupancy,
       roomCost: subtotal
@@ -146,6 +151,17 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
 
   return (
     <Modal open={open} onClose={onClose} title="Select Hotel & Room" maxWidth="max-w-4xl">
+      {travelDate ?
+      <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald/10 px-4 py-2.5 text-sm font-semibold text-emerald">
+          <CalendarIcon className="h-4 w-4 shrink-0" />
+          Showing rates for {formatDate(travelDate)} — rows tagged SEASON are matched to this date.
+        </div> :
+
+      <div className="mb-4 flex items-center gap-2 rounded-xl bg-gold/15 px-4 py-2.5 text-sm font-semibold text-forest">
+          <TriangleAlertIcon className="h-4 w-4 shrink-0" />
+          This day has no date set — showing default rates, not season-matched. Set a date on the day first.
+        </div>
+      }
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <select value={destination} onChange={(e) => setDestination(e.target.value)} className="rounded-xl border border-forest/15 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald">
           <option value="">All Destinations</option>

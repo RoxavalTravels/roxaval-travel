@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon, Loader2Icon, PlusIcon, UploadCloudIcon, XIcon } from 'lucide-react';
-import { apiUploadImage, apiUploadImages } from '../../../lib/api';
+import { apiUploadImage, apiUploadImages, ApiRequestError } from '../../../lib/api';
+import { COUNTRY_DIAL_CODES, isoToFlag } from '../../../data/countryCodes';
+import { useToast } from '../ToastProvider';
 
 const baseInput = 'w-full rounded-xl border border-forest/15 bg-white px-3.5 py-2.5 text-sm text-forest outline-none transition-colors focus:border-emerald placeholder:text-forest/35';
 const labelClass = 'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-forest/60';
@@ -42,6 +44,69 @@ export function TextField({ label, value, onChange, type = 'text', placeholder, 
   return (
     <FieldWrap label={label} required={required} error={error}>
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required} minLength={minLength} min={min} max={max} list={list} className={baseInput} />
+    </FieldWrap>);
+
+}
+
+interface PhoneFieldProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+  error?: string;
+}
+
+const DEFAULT_DIAL = '+94';
+
+// Splits a stored "+94 771234567" style value into its dial code (matched
+// against the known list, defaulting to Sri Lanka) and the local number, so
+// this can be a drop-in replacement for a plain phone TextField without
+// changing what's persisted -- still a single "+94 771234567" string.
+function splitPhone(value: string): { dial: string; number: string } {
+  const trimmed = value.trim();
+  const match = COUNTRY_DIAL_CODES
+    .slice()
+    .sort((a, b) => b.dial.length - a.dial.length)
+    .find((c) => trimmed.startsWith(c.dial));
+  if (match) return { dial: match.dial, number: trimmed.slice(match.dial.length).trim() };
+  return { dial: DEFAULT_DIAL, number: trimmed };
+}
+
+export function PhoneField({ label, value, onChange, required, error }: PhoneFieldProps) {
+  const { dial, number } = splitPhone(value);
+
+  const update = (nextDial: string, nextNumber: string) => {
+    // Picking a country before typing any digits used to collapse the
+    // whole value to '' (since the number was empty) -- splitPhone('') then
+    // parses back to the +94 default, so the dropdown visibly snapped back
+    // and looked like it couldn't be changed. Keeping the dial code alone
+    // still round-trips correctly through splitPhone (it startsWith-matches).
+    onChange(nextNumber.trim() ? `${nextDial} ${nextNumber.trim()}` : nextDial);
+  };
+
+  return (
+    <FieldWrap label={label} required={required} error={error}>
+      <div className="flex items-center gap-2 rounded-xl border border-forest/15 bg-white pl-1 pr-3 focus-within:border-emerald">
+        <select
+          value={dial}
+          onChange={(e) => update(e.target.value, number)}
+          aria-label="Country code"
+          className="shrink-0 appearance-none rounded-lg bg-transparent py-2.5 pl-2 pr-5 text-sm text-forest outline-none">
+
+          {COUNTRY_DIAL_CODES.map((c) =>
+          <option key={c.iso2} value={c.dial}>{isoToFlag(c.iso2)} {c.dial}</option>
+          )}
+        </select>
+        <div className="h-5 w-px shrink-0 bg-forest/10" />
+        <input
+          type="tel"
+          value={number}
+          onChange={(e) => update(dial, e.target.value)}
+          required={required}
+          placeholder="77 123 4567"
+          className="w-full bg-transparent py-2.5 text-sm text-forest outline-none placeholder:text-forest/35" />
+
+      </div>
     </FieldWrap>);
 
 }
@@ -269,6 +334,7 @@ interface ImageUploaderProps {
 export function ImageUploader({ label, value, onChange, multiple = true }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -281,6 +347,12 @@ export function ImageUploader({ label, value, onChange, multiple = true }: Image
         const { url } = await apiUploadImage(files[0]);
         onChange([url]);
       }
+    } catch (err) {
+      // This previously failed silently -- no catch at all, so a too-large
+      // file, a network blip, or an expired session left the gallery just
+      // sitting empty with zero indication anything had gone wrong.
+      const detail = err instanceof ApiRequestError ? err.errors?.[0]?.message || err.message : null;
+      toast(detail || 'Failed to upload image. Please try again.', 'error');
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';

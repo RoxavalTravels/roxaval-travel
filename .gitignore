@@ -11,6 +11,11 @@ node_modules/
 !**/.env.example
 
 # Build output
+/frontend/dist-admin-fixes/
+/frontend/frontend_dist*.zip
+/release/
+# Laravel is maintained in its own Git repository.
+/backend-php/
 dist/
 dist-ssr/
 build/

@@ -16,7 +16,7 @@ export function DestinationCapsule({ destination, index = 0 }: DestinationCapsul
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.5, delay: index % 8 * 0.05, ease: [0.22, 1, 0.36, 1] }}>
 
-      <Link to={`/destinations/${destination._id}`} className="group block">
+      <Link to={`/destinations/${destination.slug}`} className="group block">
         <motion.div
           whileHover={{ scale: 1.045, y: -6 }}
           whileTap={{ scale: 0.98 }}

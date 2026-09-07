@@ -4,7 +4,7 @@ import { Loader2Icon, SaveIcon } from 'lucide-react';
 import { apiPost, ApiRequestError } from '../../../lib/api';
 import { useToast } from '../../components/ToastProvider';
 import { PageHeader } from '../../components/PageHeader';
-import { TextField, TextAreaField } from '../../components/fields/Fields';
+import { TextField, TextAreaField, PhoneField } from '../../components/fields/Fields';
 
 export function AdminCustomerNew() {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export function AdminCustomerNew() {
             <TextField label="First Name" value={firstName} onChange={setFirstName} required />
             <TextField label="Last Name" value={lastName} onChange={setLastName} required />
             <TextField label="Email" value={email} onChange={setEmail} type="email" required />
-            <TextField label="Phone" value={phone} onChange={setPhone} />
+            <PhoneField label="Phone" value={phone} onChange={setPhone} />
             <TextField label="Date of Birth" type="date" value={dateOfBirth} onChange={setDateOfBirth} />
             <TextField label="Passport Number" value={passportNumber} onChange={setPassportNumber} />
             <TextField label="Nationality" value={nationality} onChange={setNationality} />

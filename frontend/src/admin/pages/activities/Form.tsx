@@ -117,7 +117,7 @@ export function AdminActivityForm() {
       highlights,
       thingsIncluded,
       thingsToBring,
-      mapLocation: lat !== '' && lng !== '' ? { lat, lng } : undefined,
+      mapLocation: lat !== '' && lng !== '' ? { lat, lng } : { lat: null, lng: null },
       isFeatured,
       status
     };

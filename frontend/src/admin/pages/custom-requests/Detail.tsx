@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AlertTriangleIcon, ChevronDownIcon, ChevronUpIcon, DownloadIcon, EyeIcon, Loader2Icon, MessageCircleIcon, PencilIcon, PlusIcon, SendIcon, TrashIcon, UserCheckIcon, WandSparklesIcon, XIcon } from 'lucide-react';
+import { AlertTriangleIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, DownloadIcon, EyeIcon, Loader2Icon, MessageCircleIcon, PencilIcon, PlusIcon, SaveIcon, SendIcon, TrashIcon, UserCheckIcon, WandSparklesIcon, XIcon } from 'lucide-react';
 import { apiGetList, apiGetOne, apiPatch, apiPost, ApiRequestError, API_ORIGIN } from '../../../lib/api';
 import { whatsAppLink } from '../../../lib/contact';
 import { formatDate, formatDateTime } from '../../../lib/date';
 import { useToast } from '../../components/ToastProvider';
+import { useConfirm } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { PriorityBadge } from '../../components/PriorityBadge';
@@ -13,6 +14,7 @@ import { resolveRequestStage } from '../../../lib/tourTimeline';
 import { MessagingPanel } from '../../../components/messaging/MessagingPanel';
 import { NotesBlock } from '../../../components/quotation/NotesBlock';
 import { TranslatedTextarea, emptyLocalizedString, type LocalizedString } from '../../components/fields/TranslatedFields';
+import { ImageUploader } from '../../components/fields/Fields';
 import {
   TextField,
   TextAreaField,
@@ -257,6 +259,8 @@ interface HotelOptionEntry {
   hotel: string;
   hotelName?: string;
   roomType: string;
+  roomTypeId: string;
+  mealPlan: string;
   numberOfRooms: number;
   roomOccupancy: RoomOccupancy;
   roomCost: number;
@@ -280,6 +284,8 @@ interface ItineraryDayForm {
   customActivities: string[];
   hotel: string;
   roomType: string;
+  roomTypeId: string;
+  mealPlan: string;
   numberOfRooms: number;
   roomOccupancy: RoomOccupancy;
   roomCost: number;
@@ -293,7 +299,7 @@ interface ItineraryDayForm {
   arrivalTime: string;
   departureTime: string;
   travelTime: string;
-  notes: string;
+  notes: LocalizedString;
 }
 
 interface RouteLeg {
@@ -316,7 +322,8 @@ interface ItineraryDetail {
   _id: string;
   title: string;
   summary: string;
-  days: { dayNumber: number; date?: string; title: string; schedule: string; destinations?: { _id: string; name: string }[]; activities?: { _id: string; name: string }[]; customDestinations?: string[]; customActivities?: string[]; hotel?: { _id: string; name: string }; roomType?: string; numberOfRooms?: number; roomOccupancy?: RoomOccupancy; roomCost?: number; hotelOptions?: { hotel?: { _id: string; name: string }; roomType?: string; numberOfRooms?: number; roomOccupancy?: RoomOccupancy; roomCost?: number; selected?: boolean }[]; meals: string[]; transport: string; activityPricing?: { activity?: { _id: string; name: string }; adultCount: number; childCount: number; infantCount: number; cost: number; selected?: boolean }[]; transfers?: { transfer?: { _id: string; name: string; supplier?: string }; withDriver: boolean; vehicleCount: number; cost: number; selected?: boolean }[]; flights?: { airline?: string; flightNumber?: string; from?: string; to?: string; departureTime?: string; arrivalTime?: string; cost?: number; selected?: boolean }[]; dayCost?: number; arrivalTime?: string; departureTime?: string; travelTime?: string; notes: string }[];
+  bannerImage?: string;
+  days: { dayNumber: number; date?: string; title: string; schedule: string; destinations?: { _id: string; name: string }[]; activities?: { _id: string; name: string }[]; customDestinations?: string[]; customActivities?: string[]; hotel?: { _id: string; name: string }; roomType?: string; roomTypeRef?: { _id: string; name: string }; mealPlan?: string; numberOfRooms?: number; roomOccupancy?: RoomOccupancy; roomCost?: number; hotelOptions?: { hotel?: { _id: string; name: string }; roomType?: string; roomTypeRef?: { _id: string; name: string }; mealPlan?: string; numberOfRooms?: number; roomOccupancy?: RoomOccupancy; roomCost?: number; selected?: boolean }[]; meals: string[]; transport: string; activityPricing?: { activity?: { _id: string; name: string }; adultCount: number; childCount: number; infantCount: number; cost: number; selected?: boolean }[]; transfers?: { transfer?: { _id: string; name: string; supplier?: string }; withDriver: boolean; vehicleCount: number; cost: number; selected?: boolean }[]; flights?: { airline?: string; flightNumber?: string; from?: string; to?: string; departureTime?: string; arrivalTime?: string; cost?: number; selected?: boolean }[]; dayCost?: number; arrivalTime?: string; departureTime?: string; travelTime?: string; notes: string }[];
   hotels: { _id: string; name: string }[];
   tourGuide?: { _id: string; name: string };
   vehicle?: { _id: string; name: string };
@@ -341,7 +348,7 @@ interface ItineraryDetail {
 // {en,de,fr} objects, fetched once via ?raw=true and used only to seed the
 // form state, never to replace the localized `request` object itself.
 interface RawItineraryFields {
-  days: { dayNumber: number; title: LocalizedString }[];
+  days: { dayNumber: number; title: LocalizedString; notes?: LocalizedString }[];
   customerFacingNotes?: LocalizedString;
   visaRequirements?: LocalizedString;
   travelInsurance?: LocalizedString;
@@ -385,15 +392,25 @@ interface RequestDetail {
   linkedBooking?: { _id: string; bookingReference: string; status: string } | null;
 }
 
+// Mirrors QuotationView's own auto-pick set exactly -- picking one of these
+// here overrides that automatic guess with the admin's explicit choice.
+const BANNER_PRESETS = [
+  { label: 'Couple', url: '/banner-images/couple-banner.jpg' },
+  { label: 'Family', url: '/banner-images/family-banner.jpg' },
+  { label: 'Nature', url: '/banner-images/nature-banner.jpg' },
+  { label: 'Traditional', url: '/banner-images/anuradhapura-banner.jpg' },
+  { label: 'Default', url: '/banner-images/default-banner.jpg' },
+];
+
 const makeKey = () => Math.random().toString(36).slice(2);
 
 const emptyOccupancy = (): RoomOccupancy => ({ single: 0, double: 0, triple: 0, quad: 0, extraBed: 0, childWithBed: 0, childNoBed: 0, infant: 0 });
 
 const emptyDay = (n: number): ItineraryDayForm => ({
   _key: makeKey(), legId: '', dayNumber: n, date: '', title: emptyLocalizedString(), schedule: '', destinations: [], activities: [], customDestinations: [], customActivities: [],
-  hotel: '', roomType: '', numberOfRooms: 1, roomOccupancy: emptyOccupancy(), roomCost: 0, hotelOptions: [], meals: [], transport: '',
+  hotel: '', roomType: '', roomTypeId: '', mealPlan: '', numberOfRooms: 1, roomOccupancy: emptyOccupancy(), roomCost: 0, hotelOptions: [], meals: [], transport: '',
   activityPricing: [], transfers: [], flights: [], dayCost: 0,
-  arrivalTime: '', departureTime: '', travelTime: '', notes: ''
+  arrivalTime: '', departureTime: '', travelTime: '', notes: emptyLocalizedString()
 });
 
 const shiftDateString = (iso: string, days: number) => {
@@ -457,7 +474,7 @@ const deriveDaysFromLegs = (legs: RouteLeg[], prevDays: ItineraryDayForm[], dest
           title: { ...emptyLocalizedString(), en: title },
           destinations: matchedDestId ? [matchedDestId] : [],
           ...(carryFrom && night > 0 ? {
-            hotel: carryFrom.hotel, roomType: carryFrom.roomType, numberOfRooms: carryFrom.numberOfRooms,
+            hotel: carryFrom.hotel, roomType: carryFrom.roomType, roomTypeId: carryFrom.roomTypeId, mealPlan: carryFrom.mealPlan, numberOfRooms: carryFrom.numberOfRooms,
             roomOccupancy: { ...carryFrom.roomOccupancy }, roomCost: carryFrom.roomCost,
             hotelOptions: carryFrom.hotelOptions.map((h) => ({ ...h })), meals: [...carryFrom.meals], transport: carryFrom.transport,
           } : {}),
@@ -513,12 +530,14 @@ export function AdminCustomRequestDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [request, setRequest] = useState<RequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [sending, setSending] = useState(false);
   const [previewing, setPreviewing] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   // Manually re-opens the builder over an already-sent itinerary so admins
   // can tweak and resend it, without the customer having to request changes first.
   const [forceEdit, setForceEdit] = useState(false);
@@ -544,6 +563,7 @@ export function AdminCustomRequestDetail() {
   const [sightseeingIncluded, setSightseeingIncluded] = useState(true);
   const [adminNotes, setAdminNotes] = useState('');
   const [customerFacingNotes, setCustomerFacingNotes] = useState<LocalizedString>(DEFAULT_CUSTOMER_FACING_NOTES);
+  const [bannerImage, setBannerImage] = useState(''); // '' = auto-pick by travelers/style
   const [visaRequirements, setVisaRequirements] = useState<LocalizedString>(emptyLocalizedString());
   const [travelInsurance, setTravelInsurance] = useState<LocalizedString>(emptyLocalizedString());
   const [cancellationPolicy, setCancellationPolicy] = useState<LocalizedString>(DEFAULT_CANCELLATION_POLICY);
@@ -561,6 +581,10 @@ export function AdminCustomRequestDetail() {
   const [pickerKind, setPickerKind] = useState<'hotel' | 'activity' | 'transfer' | null>(null);
 
   const [savingPriority, setSavingPriority] = useState(false);
+  const [editingDates, setEditingDates] = useState(false);
+  const [savingDates, setSavingDates] = useState(false);
+  const [draftStartDate, setDraftStartDate] = useState('');
+  const [draftEndDate, setDraftEndDate] = useState('');
   const [cannotModifyOpen, setCannotModifyOpen] = useState(false);
   const [cannotModifyNote, setCannotModifyNote] = useState('');
   const [cannotModifySubmitting, setCannotModifySubmitting] = useState(false);
@@ -614,6 +638,10 @@ export function AdminCustomRequestDetail() {
         customActivities: d.customActivities || [],
         hotel: d.hotel?._id || '',
         roomType: d.roomType || '',
+        // Prefer the live room type reference's name over the frozen string
+        // when both exist -- the reference is what stays translatable.
+        roomTypeId: d.roomTypeRef?._id || '',
+        mealPlan: d.mealPlan || '',
         numberOfRooms: d.numberOfRooms || 1,
         roomOccupancy: { ...emptyOccupancy(), ...d.roomOccupancy },
         roomCost: d.roomCost || 0,
@@ -621,6 +649,8 @@ export function AdminCustomRequestDetail() {
           hotel: ho.hotel?._id || '',
           hotelName: ho.hotel?.name,
           roomType: ho.roomType || '',
+          roomTypeId: ho.roomTypeRef?._id || '',
+          mealPlan: ho.mealPlan || '',
           numberOfRooms: ho.numberOfRooms || 1,
           roomOccupancy: { ...emptyOccupancy(), ...ho.roomOccupancy },
           roomCost: ho.roomCost || 0,
@@ -659,7 +689,7 @@ export function AdminCustomRequestDetail() {
         arrivalTime: d.arrivalTime || '',
         departureTime: d.departureTime || '',
         travelTime: d.travelTime || '',
-        notes: d.notes || ''
+        notes: rawItinerary?.days.find((rd) => rd.dayNumber === d.dayNumber)?.notes || emptyLocalizedString()
       })));
       setHotels(itin.hotels.map((h) => h._id));
       setTourGuide(itin.tourGuide?._id || '');
@@ -671,6 +701,7 @@ export function AdminCustomRequestDetail() {
       setCurrency(itin.pricing.currency);
       setSightseeingIncluded(itin.sightseeingIncluded ?? true);
       setAdminNotes(itin.adminNotes);
+      setBannerImage(itin.bannerImage || '');
       // If the saved English text is still exactly the untouched boilerplate
       // (common — most quotations never customize these), pick up the full
       // DE/FR translation instead of re-using old EN-only saved data, so
@@ -683,8 +714,16 @@ export function AdminCustomRequestDetail() {
       setExclusions(rawItinerary?.exclusions?.en === DEFAULT_EXCLUSIONS.en ? DEFAULT_EXCLUSIONS : rawItinerary?.exclusions?.en ? rawItinerary.exclusions : DEFAULT_EXCLUSIONS);
       setRouteLegs([]);
       setExpandedDays(new Set());
+      const firstDayDate = itin.days.find((d) => d.date)?.date;
+      setLegDeparture('Colombo');
+      setLegFromDate((firstDayDate || request.travelDates.startDate || '').slice(0, 10));
     } else {
-      setTitle(`Custom Itinerary for ${request.referenceNumber}`);
+      // Left blank here (not the old "Custom Itinerary for CTR-XXX" literal)
+      // so the auto-title effect below fills in something the client
+      // actually finds useful ("12 Days Family Tour for John Doe") the
+      // moment enough days exist to count -- days aren't built yet at this
+      // exact point in a brand-new request.
+      setTitle('');
       // Deliberately not pre-filled from anywhere (customer budget, a Tour
       // Package price, etc.) — the admin sets this from current season
       // rates once hotels/transport/guide are actually picked below.
@@ -693,6 +732,7 @@ export function AdminCustomRequestDetail() {
       setSightseeingIncluded(request.sightseeingPreference !== 'Exclude');
       setTourGuide('');
       setVehicle('');
+      setBannerImage('');
       setVisaRequirements(emptyLocalizedString());
       setTravelInsurance(emptyLocalizedString());
       setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
@@ -700,12 +740,78 @@ export function AdminCustomRequestDetail() {
       setExclusions(DEFAULT_EXCLUSIONS);
       setCustomerFacingNotes(DEFAULT_CUSTOMER_FACING_NOTES);
       setRouteLegs([]);
+      // Route Builder's first leg needs a real start date before any day
+      // gets one — without it every day.date stays '', so hotel picks never
+      // resolve seasonal rates. The customer already told us both of these;
+      // still fully editable, just no longer forces the admin to retype
+      // what's already on screen in the Request Details panel.
+      setLegDeparture('Colombo');
+      setLegFromDate(request.travelDates.startDate ? request.travelDates.startDate.slice(0, 10) : '');
       if (request.roomTypePreference) {
         setDays([{ ...emptyDay(1), roomType: request.roomTypePreference }]);
       }
     }
+    needsBaselineRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request, rawItinerary, forceEdit]);
+
+  // Client feedback: the quotation's heading was just repeating the query ID
+  // ("Custom Itinerary for CTR-260826-38D0", already shown small underneath
+  // as "Quotation No.") instead of saying anything useful. Keeps the title
+  // in sync with the day count and customer name as the itinerary is built
+  // -- but only while it still looks auto-generated (blank, the old literal
+  // default, or the previous auto value), so an admin who's actually typed
+  // a custom title never has it silently overwritten.
+  const lastAutoTitleRef = useRef('');
+  useEffect(() => {
+    if (!request || days.length === 0) return;
+    const customerName = request.customer?.user?.fullName || 'Guest';
+    const auto = `${days.length} Day${days.length === 1 ? '' : 's'} ${request.travelStyle} Tour for ${customerName}`;
+    const looksAutoGenerated = title === '' || title === lastAutoTitleRef.current || title === `Custom Itinerary for ${request.referenceNumber}`;
+    if (looksAutoGenerated && title !== auto) {
+      setTitle(auto);
+    }
+    lastAutoTitleRef.current = auto;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days.length, request?.travelStyle, request?.customer?.user?.fullName]);
+
+  // Builder state clicking "Back" while mid-edit used to discard silently
+  // (PageHeader's default back button is a plain navigate(-1), no check) --
+  // this snapshots the form right after it's loaded (or reset after a
+  // successful save) so `dirty` can tell a real unsaved edit from a page
+  // that just re-rendered.
+  const buildFormSnapshot = () => JSON.stringify({
+    title, summary, bannerImage,
+    days: days.map(({ _key, ...d }) => d),
+    hotels, tourGuide, vehicle,
+    basePrice, markupAmount, discount, totalPrice, currency,
+    sightseeingIncluded, adminNotes, customerFacingNotes,
+    visaRequirements, travelInsurance, cancellationPolicy, inclusions, exclusions,
+  });
+  const needsBaselineRef = useRef(true);
+  const baselineSnapshotRef = useRef('');
+  useEffect(() => {
+    if (needsBaselineRef.current) {
+      baselineSnapshotRef.current = buildFormSnapshot();
+      needsBaselineRef.current = false;
+    }
+  });
+  const hasUnsavedChanges = !loading && baselineSnapshotRef.current !== '' && buildFormSnapshot() !== baselineSnapshotRef.current;
+
+  const handleBack = (to: string | null = null) => {
+    const go = () => to ? navigate(to) : navigate(-1);
+    if (!hasUnsavedChanges) {
+      go();
+      return;
+    }
+    confirm({
+      title: 'Discard unsaved changes?',
+      message: 'This itinerary has edits that haven\'t been sent or saved as a draft yet. Going back now will lose them.',
+      confirmLabel: 'Discard & Go Back',
+      tone: 'danger',
+      onConfirm: go,
+    });
+  };
 
   const updateDay = (index: number, patch: Partial<ItineraryDayForm>) => {
     setDays((prev) => prev.map((d, i) => i === index ? { ...d, ...patch } : d));
@@ -713,6 +819,8 @@ export function AdminCustomRequestDetail() {
   const addDay = () => {
     setDays((prev) => {
       const newDay = emptyDay(prev.length + 1);
+      const lastDate = [...prev].reverse().find((d) => d.date)?.date;
+      if (lastDate) newDay.date = shiftDateString(lastDate, 1);
       setExpandedDays((exp) => new Set(exp).add(newDay._key));
       return [...prev, newDay];
     });
@@ -739,6 +847,25 @@ export function AdminCustomRequestDetail() {
       return shifted.map((d, i) => ({ ...d, dayNumber: i + 1 }));
     });
   };
+  // For a mid-trip change ("customer wants to add Ella between Kandy and
+  // Nuwara Eliya") -- inserts a blank day right after `index` without
+  // touching Route Builder (which would regenerate the whole route from its
+  // legs and lose any by-hand edits on the days around it). Every day after
+  // the insertion point shifts its date forward a day to make room, exactly
+  // like removeDay() shifts them back when a day is deleted, then the whole
+  // list is renumbered so dayNumber stays sequential.
+  const insertDayAfter = (index: number) => {
+    setDays((prev) => {
+      const afterDay = prev[index];
+      const newDay = emptyDay(0);
+      newDay.date = afterDay?.date ? shiftDateString(afterDay.date, 1) : '';
+      const result = prev.map((d, i) => (i <= index || !d.date ? d : { ...d, date: shiftDateString(d.date, 1) }));
+      result.splice(index + 1, 0, newDay);
+      setExpandedDays((exp) => new Set(exp).add(newDay._key));
+      return result.map((d, i) => ({ ...d, dayNumber: i + 1 }));
+    });
+  };
+
   const moveDay = (index: number, dir: -1 | 1) => {
     setDays((prev) => {
       const target = index + dir;
@@ -772,11 +899,11 @@ export function AdminCustomRequestDetail() {
   const mirrorPrimaryHotel = (day: Pick<ItineraryDayForm, 'hotelOptions'>) => {
     const primary = day.hotelOptions.find((h) => h.selected);
     return primary ?
-    { hotel: primary.hotel, roomType: primary.roomType, numberOfRooms: primary.numberOfRooms, roomOccupancy: primary.roomOccupancy, roomCost: primary.roomCost } :
-    { hotel: '', roomType: '', numberOfRooms: 1, roomOccupancy: emptyOccupancy(), roomCost: 0 };
+    { hotel: primary.hotel, roomType: primary.roomType, roomTypeId: primary.roomTypeId, mealPlan: primary.mealPlan, numberOfRooms: primary.numberOfRooms, roomOccupancy: primary.roomOccupancy, roomCost: primary.roomCost } :
+    { hotel: '', roomType: '', roomTypeId: '', mealPlan: '', numberOfRooms: 1, roomOccupancy: emptyOccupancy(), roomCost: 0 };
   };
 
-  const applyHotelSelection = (sel: { hotel: string; hotelName: string; roomType: string; numberOfRooms: number; roomOccupancy: RoomOccupancy; roomCost: number }) => {
+  const applyHotelSelection = (sel: { hotel: string; hotelName: string; roomType: string; roomTypeId: string; mealPlan: string; numberOfRooms: number; roomOccupancy: RoomOccupancy; roomCost: number }) => {
     if (pickerDayIndex === null) return;
     const day = days[pickerDayIndex];
     const option: HotelOptionEntry = { ...sel, selected: day.hotelOptions.length === 0 };
@@ -952,6 +1079,39 @@ export function AdminCustomRequestDetail() {
     }
   };
 
+  const startEditingDates = () => {
+    if (!request) return;
+    setDraftStartDate(request.travelDates.startDate.slice(0, 10));
+    setDraftEndDate(request.travelDates.endDate.slice(0, 10));
+    setEditingDates(true);
+  };
+
+  // Shifts every day of the already-built itinerary (draft or already sent)
+  // by the same number of days on the backend, so the quotation's day-by-day
+  // dates and hotel check-in/out stay in sync automatically -- no separate
+  // step needed here beyond saving the new request-level dates.
+  const saveTravelDates = async () => {
+    if (!draftStartDate || !draftEndDate) {
+      toast('Please set both dates.', 'error');
+      return;
+    }
+    if (draftEndDate < draftStartDate) {
+      toast('Departure date can\'t be before the arrival date.', 'error');
+      return;
+    }
+    setSavingDates(true);
+    try {
+      await apiPatch(`/custom-tours/${id}/travel-dates`, { startDate: draftStartDate, endDate: draftEndDate });
+      toast('Travel dates updated.');
+      setEditingDates(false);
+      load();
+    } catch (err) {
+      toast(err instanceof ApiRequestError ? err.message : 'Failed to update travel dates.', 'error');
+    } finally {
+      setSavingDates(false);
+    }
+  };
+
   const submitCannotModify = async () => {
     if (!cannotModifyNote.trim()) return;
     setCannotModifySubmitting(true);
@@ -983,6 +1143,7 @@ export function AdminCustomRequestDetail() {
   const buildItineraryPayload = () => ({
     title,
     summary,
+    bannerImage,
     days: days.map(({ _key, ...d }) => ({ ...d, date: d.date || undefined })),
     hotels,
     tourGuide: tourGuide || undefined,
@@ -1005,11 +1166,16 @@ export function AdminCustomRequestDetail() {
       toast(`Please select a hotel for Day ${missingHotelDay.dayNumber}.`, 'error');
       return;
     }
+    if (!totalPrice || totalPrice <= 0) {
+      toast('Please set a total price before sending — use "Use this amount" in the pricing calculator or enter it manually.', 'error');
+      return;
+    }
     setSending(true);
     try {
       await apiPost(`/custom-tours/${id}/itinerary`, buildItineraryPayload());
       toast('Itinerary sent to customer.');
       setForceEdit(false);
+      needsBaselineRef.current = true;
       load();
     } catch (err) {
       toast(err instanceof ApiRequestError ? err.message : 'Failed to send itinerary.', 'error');
@@ -1028,14 +1194,40 @@ export function AdminCustomRequestDetail() {
   // guaranteed-accurate preview.
   const previewQuotation = async () => {
     setPreviewing(true);
+    // Opened synchronously, in direct response to the click, and pointed
+    // at the destination only once the draft save succeeds -- a window.open()
+    // called after an `await` no longer counts as user-initiated to most
+    // browsers' popup blockers, so it was getting silently blocked and the
+    // preview just never appeared with no visible error.
+    const previewTab = window.open('', '_blank');
     try {
       await apiPost(`/custom-tours/${id}/itinerary/draft`, buildItineraryPayload());
-      window.open(`/admin/custom-requests/${id}/quotation`, '_blank');
+      if (previewTab) previewTab.location.href = `/admin/custom-requests/${id}/quotation`;
+      needsBaselineRef.current = true;
       load();
     } catch (err) {
+      previewTab?.close();
       toast(err instanceof ApiRequestError ? err.message : 'Failed to save draft for preview.', 'error');
     } finally {
       setPreviewing(false);
+    }
+  };
+
+  // Same draft endpoint "View Quotation" already saves through, minus the
+  // popup tab -- lets the admin save progress on a long-in-progress
+  // itinerary (hotels/activities/notes/pricing...) without either sending it
+  // to the customer or having a preview tab pop open every time.
+  const saveDraft = async () => {
+    setSavingDraft(true);
+    try {
+      await apiPost(`/custom-tours/${id}/itinerary/draft`, buildItineraryPayload());
+      toast('Draft saved.');
+      needsBaselineRef.current = true;
+      load();
+    } catch (err) {
+      toast(err instanceof ApiRequestError ? err.message : 'Failed to save draft.', 'error');
+    } finally {
+      setSavingDraft(false);
     }
   };
 
@@ -1071,7 +1263,8 @@ export function AdminCustomRequestDetail() {
       <PageHeader
         title={`Request ${request.referenceNumber}`}
         subtitle={`Submitted ${formatDate(request.travelDates.startDate)}`}
-        action={<button onClick={() => navigate('/admin/custom-requests')} className="rounded-full border border-forest/15 px-5 py-2.5 text-sm font-semibold text-forest hover:bg-cream">Back to list</button>} />
+        onBack={() => handleBack()}
+        action={<button onClick={() => handleBack('/admin/custom-requests')} className="rounded-full border border-forest/15 px-5 py-2.5 text-sm font-semibold text-forest hover:bg-cream">Back to list</button>} />
 
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -1116,7 +1309,35 @@ export function AdminCustomRequestDetail() {
               {request.company &&
               <div className="flex justify-between"><dt className="text-forest/50">Company</dt><dd className="text-forest">{request.company}</dd></div>
               }
-              <div className="flex justify-between"><dt className="text-forest/50">Travel Dates</dt><dd className="text-forest">{formatDate(request.travelDates.startDate)} – {formatDate(request.travelDates.endDate)}</dd></div>
+              {editingDates ?
+              <div className="space-y-2 rounded-xl border border-emerald/30 bg-emerald/5 p-3">
+                  <div className="flex items-center justify-between">
+                    <dt className="text-forest/50">Travel Dates</dt>
+                    <dd className="flex items-center gap-1.5">
+                      <input type="date" value={draftStartDate} onChange={(e) => setDraftStartDate(e.target.value)} className="rounded-lg border border-forest/15 bg-white px-2 py-1 text-xs text-forest outline-none focus:border-emerald" />
+                      <span className="text-forest/40">–</span>
+                      <input type="date" value={draftEndDate} onChange={(e) => setDraftEndDate(e.target.value)} className="rounded-lg border border-forest/15 bg-white px-2 py-1 text-xs text-forest outline-none focus:border-emerald" />
+                    </dd>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button type="button" disabled={savingDates} onClick={() => setEditingDates(false)} className="rounded-full px-3 py-1 text-xs font-semibold text-forest/60 hover:bg-forest/5 disabled:opacity-60">Cancel</button>
+                    <button type="button" disabled={savingDates} onClick={saveTravelDates} className="flex items-center gap-1.5 rounded-full bg-forest px-3 py-1 text-xs font-semibold text-cream hover:bg-emerald disabled:opacity-60">
+                      {savingDates && <Loader2Icon className="h-3 w-3 animate-spin" />} Save
+                    </button>
+                  </div>
+                  {request.itinerary &&
+                <p className="text-[11px] text-forest/40">The day-by-day plan's dates will shift by the same amount automatically.</p>
+                }
+                </div> :
+
+              <div className="flex justify-between">
+                  <dt className="text-forest/50">Travel Dates</dt>
+                  <dd className="flex items-center gap-2 text-forest">
+                    {formatDate(request.travelDates.startDate)} – {formatDate(request.travelDates.endDate)}
+                    <button type="button" onClick={startEditingDates} className="text-[11px] font-semibold text-emerald hover:underline">Edit</button>
+                  </dd>
+                </div>
+              }
               <div className="flex justify-between"><dt className="text-forest/50">Travelers</dt><dd className="text-forest">{request.travelers.adults} Adults, {request.travelers.children} Children, {request.travelers.infants} Infants</dd></div>
               {(request.travelers.childAges?.length ?? 0) > 0 &&
               <div className="flex justify-between"><dt className="text-forest/50">Child Ages</dt><dd className="text-forest">{request.travelers.childAges?.join(', ')}</dd></div>
@@ -1452,6 +1673,7 @@ export function AdminCustomRequestDetail() {
                         {/* Order for leg-derived days comes entirely from Route Builder now — reordering here would just get overwritten by the next leg edit, so only plain manual days can be moved. */}
                         <button type="button" disabled={i === 0 || !!day.legId} onClick={() => moveDay(i, -1)} title={day.legId ? 'Reorder this from Route Builder' : undefined} className="text-forest/40 hover:text-forest disabled:opacity-20"><ChevronUpIcon className="h-4 w-4" /></button>
                         <button type="button" disabled={i === days.length - 1 || !!day.legId} onClick={() => moveDay(i, 1)} title={day.legId ? 'Reorder this from Route Builder' : undefined} className="text-forest/40 hover:text-forest disabled:opacity-20"><ChevronDownIcon className="h-4 w-4" /></button>
+                        <button type="button" title="Insert a new day after this one (e.g. a destination the customer asked to add mid-trip) — later days shift automatically" onClick={() => insertDayAfter(i)} className="ml-1 text-emerald hover:text-emerald-light"><PlusIcon className="h-4 w-4" /></button>
                         {days.length > 1 &&
                     <button type="button" title={day.legId ? 'Remove this night (also removes it from Route Builder)' : 'Remove this day'} onClick={() => removeDay(i)} className="ml-1 text-red-500 hover:text-red-700"><TrashIcon className="h-4 w-4" /></button>
                     }
@@ -1472,7 +1694,7 @@ export function AdminCustomRequestDetail() {
                           <div key={hi} className={`flex items-center justify-between rounded-lg p-2 text-sm ${ho.selected ? 'bg-emerald/10 text-forest' : 'text-forest/60'}`}>
                                   <label className="flex flex-1 cursor-pointer items-center gap-2">
                                     <input type="radio" checked={ho.selected} onChange={() => setPrimaryHotelOption(i, hi)} className="h-3.5 w-3.5 text-emerald focus:ring-emerald" />
-                                    <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} - {ho.roomType} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''}){ho.selected ? '' : ' · alternate'}</span>
+                                    <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} - {ho.roomType}{ho.mealPlan ? ` (${ho.mealPlan})` : ''} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''}){ho.selected ? '' : ' · alternate'}</span>
                                   </label>
                                   <span className="flex items-center gap-2">
                                     <span>${ho.roomCost.toLocaleString()}</span>
@@ -1570,7 +1792,7 @@ export function AdminCustomRequestDetail() {
                           </div>
                         </FieldWrap>
                         <div className="sm:col-span-2">
-                          <TextAreaField label="Notes" value={day.notes} onChange={(v) => updateDay(i, { notes: v })} rows={2} />
+                          <TranslatedTextarea label="Notes (shown to the customer at the top of this day)" value={day.notes} onChange={(v) => updateDay(i, { notes: v })} rows={2} />
                         </div>
                       </div>
                     </CollapsibleRow>
@@ -1645,13 +1867,57 @@ export function AdminCustomRequestDetail() {
               </div>
 
               <div className="rounded-2xl bg-white p-6 shadow-soft">
+                <p className="font-display text-sm font-semibold text-forest">Quotation Banner</p>
+                <p className="mt-1 text-xs text-forest/45">
+                  By default the banner is picked automatically from who's travelling (couple, family, etc.). Pick one below to override it, or upload your own.
+                </p>
+                <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
+                  <button
+                    type="button"
+                    onClick={() => setBannerImage('')}
+                    className={`relative flex h-20 flex-col items-center justify-center gap-1 rounded-xl border-2 text-[11px] font-semibold text-forest/60 ${!bannerImage ? 'border-emerald bg-emerald/5 text-emerald' : 'border-forest/10 hover:border-forest/25'}`}>
+
+                    {!bannerImage && <CheckIcon className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-emerald" />}
+                    Automatic
+                  </button>
+                  {BANNER_PRESETS.map((p) =>
+                  <button
+                    key={p.url}
+                    type="button"
+                    onClick={() => setBannerImage(p.url)}
+                    className={`relative h-20 overflow-hidden rounded-xl border-2 ${bannerImage === p.url ? 'border-emerald' : 'border-transparent hover:border-forest/25'}`}>
+
+                      <img src={p.url} alt={p.label} className="h-full w-full object-cover" />
+                      <span className="absolute inset-x-0 bottom-0 bg-forest/70 py-0.5 text-[10px] font-semibold text-white">{p.label}</span>
+                      {bannerImage === p.url && <CheckIcon className="absolute right-1.5 top-1.5 h-3.5 w-3.5 rounded-full bg-emerald p-0.5 text-white" />}
+                    </button>
+                  )}
+                  {bannerImage && !BANNER_PRESETS.some((p) => p.url === bannerImage) &&
+                  <div className="relative h-20 overflow-hidden rounded-xl border-2 border-emerald">
+                      <img src={bannerImage} alt="Custom banner" className="h-full w-full object-cover" />
+                      <span className="absolute inset-x-0 bottom-0 bg-forest/70 py-0.5 text-[10px] font-semibold text-white">Custom</span>
+                      <CheckIcon className="absolute right-1.5 top-1.5 h-3.5 w-3.5 rounded-full bg-emerald p-0.5 text-white" />
+                    </div>
+                  }
+                </div>
+                <div className="mt-3 max-w-xs">
+                  <ImageUploader label="Or upload your own" value={bannerImage ? [bannerImage] : []} onChange={(v) => setBannerImage(v[0] || '')} multiple={false} />
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-white p-6 shadow-soft">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <TextAreaField label="Admin Notes (internal)" value={adminNotes} onChange={setAdminNotes} rows={3} />
                   <TranslatedTextarea label="Customer-Facing Notes" value={customerFacingNotes} onChange={setCustomerFacingNotes} rows={3} />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3">
+              <div className="flex items-center justify-end gap-3">
+                {hasUnsavedChanges && <span className="text-xs text-forest/40">Unsaved changes</span>}
+                <button type="button" disabled={savingDraft} onClick={saveDraft} className="flex items-center gap-2 rounded-full border border-forest/15 px-6 py-3 text-sm font-semibold text-forest hover:bg-cream disabled:opacity-70">
+                  {savingDraft ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <SaveIcon className="h-4 w-4" />}
+                  Save
+                </button>
                 <button type="button" disabled={previewing} onClick={previewQuotation} className="flex items-center gap-2 rounded-full border border-forest/15 px-6 py-3 text-sm font-semibold text-forest hover:bg-cream disabled:opacity-70">
                   {previewing ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <EyeIcon className="h-4 w-4" />}
                   View Quotation

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /my-tours
+Disallow: /profile
+Disallow: /account-settings
+Disallow: /notifications
+Disallow: /auth
+Disallow: /reset-password
+Disallow: /search
+
+Sitemap: https://api.roxavaltravels.com/sitemap.xml

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { SparklesIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema } from '../lib/seo';
 import { CustomTourWizard } from '../components/packages/CustomTourWizard';
 import { useApiList } from '../hooks/useApiList';
 import { PackageCard } from '../components/packages/PackageCard';
@@ -38,6 +40,12 @@ export function TourPackages() {
 
   return (
     <main className="min-h-screen bg-cream pt-24">
+      <Seo
+        title="Sri Lanka Tour Packages | Private, Honeymoon & Wildlife Tours | Roxaval Travels"
+        description="Browse Sri Lanka tour packages built for every kind of traveller — private tours, honeymoon escapes, wildlife safaris and beach holidays, or build a fully custom Sri Lanka tour."
+        keywords="Sri Lanka tour packages, private tours Sri Lanka, honeymoon tours Sri Lanka, wildlife tours Sri Lanka, beach holidays Sri Lanka, custom Sri Lanka tours"
+        jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Tour Packages', path: '/packages' }])} />
+
       {/* Hero Banner */}
       <section className="relative bg-forest py-20 text-center text-white overflow-hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald/30 blur-3xl" />

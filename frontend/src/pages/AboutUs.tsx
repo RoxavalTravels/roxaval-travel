@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { SparklesIcon, StarIcon, MessageCircleIcon, MapIcon, ShieldCheckIcon, AwardIcon } from 'lucide-react';
+import { SparklesIcon, StarIcon, MessageCircleIcon, MapIcon } from 'lucide-react';
 import { PageBanner } from '../components/layout/PageBanner';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Stats } from '../components/sections/Stats';
 import { WhyChoose } from '../components/sections/WhyChoose';
 import { CoreValues } from '../components/sections/CoreValues';
 import { HotelPartners } from '../components/sections/HotelPartners';
+import { TripAdvisorIcon } from '../components/icons/BrandIcons';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema } from '../lib/seo';
 import { apiGetList } from '../lib/api';
 import type { Review } from '../types/review';
 
@@ -16,9 +19,9 @@ export function AboutUs() {
   const { t } = useTranslation('about');
   const { t: tc } = useTranslation('common');
   const CREDENTIALS = [
-    { icon: ShieldCheckIcon, label: t('credential1Label'), desc: t('credential1Desc') },
-    { icon: StarIcon, label: t('credential2Label'), desc: t('credential2Desc') },
-    { icon: AwardIcon, label: t('credential3Label'), desc: t('credential3Desc') },
+    { image: '/sltda-logo.png', label: t('credential1Label'), desc: t('credential1Desc') },
+    { icon: TripAdvisorIcon, label: t('credential2Label'), desc: t('credential2Desc') },
+    { image: '/slito-logo.png', label: t('credential3Label'), desc: t('credential3Desc') },
   ];
   const [testimonials, setTestimonials] = useState<Review[]>([]);
 
@@ -30,6 +33,12 @@ export function AboutUs() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo
+        title="About Roxaval Travels | Sri Lanka Travel Experts"
+        description="Roxaval Travels is a Sri Lanka-based travel agency crafting private tours, honeymoon escapes, wildlife safaris and custom Sri Lanka itineraries with local, on-the-ground expertise."
+        keywords="Roxaval Travels, Sri Lanka travel agency, Sri Lanka tour operator, custom Sri Lanka tours"
+        jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'About Us', path: '/about' }])} />
+
       <PageBanner
         eyebrow={t('eyebrow')}
         title={t('title')}
@@ -136,8 +145,12 @@ export function AboutUs() {
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className="rounded-3xl bg-cream p-7 text-center shadow-soft">
 
-                <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-forest text-white">
-                  <c.icon className="h-7 w-7 text-gold" />
+                <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white p-2.5 shadow-soft ring-1 ring-forest/10">
+                  {'image' in c ?
+                  <img src={c.image} alt={c.label} className="h-full w-full object-contain" /> :
+
+                  <c.icon className="h-7 w-7 text-forest" />
+                  }
                 </div>
                 <h3 className="mt-5 font-display text-base font-semibold text-forest">{c.label}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-forest/60">{c.desc}</p>

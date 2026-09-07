@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { EyeIcon, SearchIcon } from 'lucide-react';
+import { EyeIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { useAdminList } from '../../hooks/useAdminList';
 import { DataTable, Column } from '../../components/DataTable';
 import { PageHeader } from '../../components/PageHeader';
@@ -40,7 +40,14 @@ export function AdminBookingsList() {
 
   return (
     <div>
-      <PageHeader title="Bookings" subtitle="Review, confirm and track every trip" />
+      <PageHeader
+        title="Bookings"
+        subtitle="Review, confirm and track every trip"
+        action={
+        <Link to="/admin/bookings/new" className="inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream hover:bg-emerald">
+            <PlusIcon className="h-4 w-4" /> New Booking
+          </Link>
+        } />
 
       <div className="mb-4 flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[220px]">

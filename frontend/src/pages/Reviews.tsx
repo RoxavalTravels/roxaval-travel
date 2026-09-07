@@ -6,6 +6,8 @@ import { StarIcon, PackageIcon, CalendarIcon, ExternalLinkIcon } from 'lucide-re
 import { PageBanner } from '../components/layout/PageBanner';
 import { Pagination } from '../components/ui/Pagination';
 import { LoadingState, EmptyState, ErrorState } from '../components/ui/StatusState';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema } from '../lib/seo';
 import { useApiList } from '../hooks/useApiList';
 import { apiGetOne } from '../lib/api';
 import { formatDate } from '../lib/date';
@@ -77,6 +79,12 @@ export function Reviews() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo
+        title="Traveller Reviews | Roxaval Travels Sri Lanka"
+        description="Read verified reviews from travellers who booked private tours, honeymoon escapes, wildlife safaris and custom Sri Lanka tours with Roxaval Travels."
+        keywords="Roxaval Travels reviews, Sri Lanka tour reviews, Sri Lanka travel agency reviews"
+        jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Reviews', path: '/reviews' }])} />
+
       <PageBanner
         eyebrow={t('eyebrow')}
         title={t('title')}

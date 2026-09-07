@@ -159,6 +159,6 @@ export function apiUploadImage(file: File): Promise<{ url: string }> {
 
 export function apiUploadImages(files: File[]): Promise<{ urls: string[] }> {
   const formData = new FormData();
-  files.forEach((f) => formData.append('images', f));
+  files.forEach((f) => formData.append('images[]', f));
   return request<{ urls: string[] }>('/uploads/images', { method: 'POST', formData }).then((r) => r.data);
 }

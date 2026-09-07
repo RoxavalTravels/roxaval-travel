@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRightIcon, BookmarkIcon, StarIcon } from 'lucide-react';
+import { ArrowRightIcon, BookmarkIcon, ChevronLeftIcon, ChevronRightIcon, StarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { destinations } from '../../data/content';
 
@@ -9,6 +9,56 @@ export function Destinations() {
   const { t } = useTranslation('home');
   const [activeIndex, setActiveIndex] = useState(0);
   const activeDest = destinations[activeIndex];
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  // A plain scroll-wheel only emits vertical delta, so a mouse user (no
+  // trackpad, no touch) had no way to move this horizontal strip at all —
+  // route that vertical scroll into horizontal movement here, and back it
+  // up with visible arrow buttons for discoverability.
+  const scrollByCards = (dir: -1 | 1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const cardWidth = el.querySelector('[data-card]')?.clientWidth || 240;
+    el.scrollBy({ left: dir * (cardWidth + 16), behavior: 'smooth' });
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    if (el.scrollWidth <= el.clientWidth) return;
+    el.scrollLeft += e.deltaY;
+    e.preventDefault();
+  };
+
+  // Click-and-drag panning for mouse users (touch already gets native swipe).
+  // Tracks whether the pointer actually moved so a plain click still selects
+  // a thumbnail instead of being swallowed as a "drag".
+  const drag = useRef({ active: false, moved: false, startX: 0, startScroll: 0 });
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    drag.current = { active: true, moved: false, startX: e.clientX, startScroll: el.scrollLeft };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el || !drag.current.active) return;
+    const delta = e.clientX - drag.current.startX;
+    if (Math.abs(delta) > 3) drag.current.moved = true;
+    el.scrollLeft = drag.current.startScroll - delta;
+  };
+
+  const endDrag = () => {
+    drag.current.active = false;
+  };
+
+  // Runs before each thumbnail's own onClick (capture phase) and blocks it
+  // only when that click was actually the end of a drag.
+  const handleClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (drag.current.moved) e.stopPropagation();
+  };
 
   // Filter out the active destination to show the rest as thumbnails
   const thumbnails = destinations.filter((d) => d.id !== activeDest.id);
@@ -71,19 +121,30 @@ export function Destinations() {
         </div>
 
         {/* Right Content: Thumbnails Carousel */}
-        <div className="flex w-full gap-4 overflow-x-auto px-4 pb-12 pt-4 no-scrollbar snap-x snap-mandatory sm:px-6 lg:w-1/2 lg:px-8 lg:pb-0 lg:pt-0">
-          <AnimatePresence mode="popLayout">
-            {thumbnails.map((d) =>
-            <motion.div
-              layout
-              initial={{ opacity: 0, scale: 0.8, x: 40 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.8, x: -40 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              key={d.id}
-              onClick={() => setActiveIndex(destinations.findIndex((x) => x.id === d.id))}
-              className="group relative h-64 w-44 shrink-0 snap-start cursor-pointer overflow-hidden rounded-3xl shadow-2xl sm:h-80 sm:w-56">
-              
+        <div className="group/carousel relative w-full lg:w-1/2">
+          <div
+            ref={scrollerRef}
+            onWheel={handleWheel}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={endDrag}
+            onPointerLeave={endDrag}
+            onClickCapture={handleClickCapture}
+            onDragStart={(e) => e.preventDefault()}
+            className="flex w-full select-none gap-4 overflow-x-auto px-4 pb-12 pt-4 no-scrollbar snap-x snap-mandatory cursor-grab active:cursor-grabbing sm:px-6 lg:px-8 lg:pb-0 lg:pt-0">
+            <AnimatePresence mode="popLayout">
+              {thumbnails.map((d) =>
+              <motion.div
+                data-card
+                layout
+                initial={{ opacity: 0, scale: 0.8, x: 40 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.8, x: -40 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                key={d.id}
+                onClick={() => setActiveIndex(destinations.findIndex((x) => x.id === d.id))}
+                className="group relative h-64 w-44 shrink-0 snap-start cursor-pointer overflow-hidden rounded-3xl shadow-2xl sm:h-80 sm:w-56">
+
                 <img
                 src={d.image}
                 alt={d.name}
@@ -115,7 +176,28 @@ export function Destinations() {
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
+            </AnimatePresence>
+          </div>
+
+          {/* Scroll arrows -- a plain mouse has no horizontal scroll gesture
+              of its own, so these (plus the onWheel handler above) are the
+              only way those users can reach the later cards. */}
+          <button
+            type="button"
+            aria-label="Scroll destinations left"
+            onClick={() => scrollByCards(-1)}
+            className="absolute left-1 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-white/90 p-2.5 text-forest shadow-lift opacity-0 transition-opacity hover:bg-white group-hover/carousel:opacity-100 lg:grid lg:place-items-center">
+
+            <ChevronLeftIcon className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Scroll destinations right"
+            onClick={() => scrollByCards(1)}
+            className="absolute right-1 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-white/90 p-2.5 text-forest shadow-lift opacity-0 transition-opacity hover:bg-white group-hover/carousel:opacity-100 lg:grid lg:place-items-center">
+
+            <ChevronRightIcon className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </section>);

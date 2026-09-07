@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeftIcon, CheckCircle2Icon, Loader2Icon, MailIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ApiRequestError } from '../lib/api';
+import { Seo } from '../components/seo/Seo';
 
 export function ForgotPassword() {
   const { t } = useTranslation('auth');
@@ -30,6 +31,7 @@ export function ForgotPassword() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-cream px-4 py-28">
+      <Seo title="Forgot Password | Roxaval Travels" description="Reset your Roxaval Travels account password." noindex />
       <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-emerald/10 blur-3xl" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}

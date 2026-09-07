@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageBanner } from '../components/layout/PageBanner';
+import { Seo } from '../components/seo/Seo';
+import { breadcrumbSchema } from '../lib/seo';
 
 interface Section {
   id: string;
@@ -65,6 +67,11 @@ export function TermsConditions() {
 
   return (
     <main className="min-h-screen bg-cream pt-16">
+      <Seo
+        title="Terms & Conditions | Roxaval Travels"
+        description="Booking, payment, cancellation and refund policies for Sri Lanka tours booked with Roxaval Travels."
+        jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Terms & Conditions', path: '/terms' }])} />
+
       <PageBanner
         eyebrow={t('eyebrow')}
         title={t('pageTitle')}

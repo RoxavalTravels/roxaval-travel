@@ -210,7 +210,7 @@ export function AdminPackageForm() {
       description,
       highlights,
       price,
-      discountPrice: discountPrice === '' ? undefined : discountPrice,
+      discountPrice: discountPrice === '' ? null : discountPrice,
       childPricePercent,
       minTravelers,
       maxTravelers,
