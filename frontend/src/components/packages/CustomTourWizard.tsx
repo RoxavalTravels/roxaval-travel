@@ -1,3 +1,4 @@
+import { copy } from '../../i18n';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -207,7 +208,7 @@ export function CustomTourWizard() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.arrivalDate || !formData.days) {
-      setError('Please fill in travel dates and duration before submitting.');
+      setError(copy("Please fill in travel dates and duration before submitting."));
       return;
     }
     setSubmitting(true);
@@ -215,9 +216,9 @@ export function CustomTourWizard() {
     try {
       await apiPost('/custom-tours', buildPreferencesPayload());
       setSubmitted(true);
-      toast('Your custom tour request has been submitted!');
+      toast(copy("Your custom tour request has been submitted!"));
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Something went wrong. Please try again.');
+      setError(err instanceof ApiRequestError ? err.message : copy("Something went wrong. Please try again."));
     } finally {
       setSubmitting(false);
     }
@@ -229,10 +230,10 @@ export function CustomTourWizard() {
         <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald/10 text-emerald">
           <LockIcon className="h-8 w-8" />
         </div>
-        <h3 className="mt-6 font-display text-2xl font-semibold text-forest">Sign In to Design Your Trip</h3>
-        <p className="mt-3 text-forest/70">Please sign in so our travel experts can reach you with a personalized itinerary.</p>
+        <h3 className="mt-6 font-display text-2xl font-semibold text-forest">{copy("Sign In to Design Your Trip")}</h3>
+        <p className="mt-3 text-forest/70">{copy("Please sign in so our travel experts can reach you with a personalized itinerary.")}</p>
         <Link to="/auth" className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold px-8 py-3.5 font-semibold text-forest transition-transform hover:scale-105">
-          Sign In / Register
+          {copy("Sign In / Register")}
         </Link>
       </div>);
 
@@ -244,10 +245,10 @@ export function CustomTourWizard() {
         <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-emerald/10 text-emerald">
           <CheckIcon className="h-10 w-10" />
         </div>
-        <h3 className="mt-6 font-display text-3xl font-semibold text-forest">Inquiry Submitted Successfully!</h3>
-        <p className="mt-4 text-forest/70">Our travel experts are reviewing your preferences and will craft a personalized itinerary for you shortly. You'll be notified as soon as it's ready.</p>
+        <h3 className="mt-6 font-display text-3xl font-semibold text-forest">{copy("Inquiry Submitted Successfully!")}</h3>
+        <p className="mt-4 text-forest/70">{copy("Our travel experts are reviewing your preferences and will craft a personalized itinerary for you shortly. You'll be notified as soon as it's ready.")}</p>
         <button onClick={() => navigate('/my-tours')} className="mt-8 rounded-full bg-forest px-8 py-3.5 font-semibold text-white hover:bg-emerald transition-colors">
-          View in My Tours
+          {copy("View in My Tours")}
         </button>
       </motion.div>);
 
@@ -257,7 +258,7 @@ export function CustomTourWizard() {
     <div ref={wizardRef} className="rounded-3xl bg-white shadow-lift overflow-hidden max-w-5xl mx-auto">
       {/* Progress Header */}
       <div className="bg-forest px-8 py-6 text-white">
-        <h2 className="font-display text-2xl font-semibold">Design Your Dream Tour</h2>
+        <h2 className="font-display text-2xl font-semibold">{copy("Design Your Dream Tour")}</h2>
         <div className="mt-6 flex items-center gap-2 overflow-x-auto no-scrollbar">
           {steps.map((s, i) =>
           <React.Fragment key={s}>
@@ -270,7 +271,7 @@ export function CustomTourWizard() {
                 <span className={`grid h-6 w-6 place-items-center rounded-full text-xs ${i === step ? 'bg-gold text-forest' : i < step ? 'bg-white text-forest' : 'border border-white/40'}`}>
                   {i < step ? <CheckIcon className="h-3.5 w-3.5" /> : i + 1}
                 </span>
-                {s}
+                {copy(s)}
               </button>
               {i < steps.length - 1 && <div className={`h-px w-8 shrink-0 ${i < step ? 'bg-white' : 'bg-white/20'}`} />}
             </React.Fragment>
@@ -282,9 +283,9 @@ export function CustomTourWizard() {
       <div className="flex items-center justify-between gap-3 bg-emerald/10 px-8 py-3 text-sm text-emerald">
           <span className="flex items-center gap-2">
             <SparklesIcon className="h-4 w-4 shrink-0" />
-            Pre-filled from <strong className="font-semibold">{prefillPackage.name}</strong> - feel free to adjust anything below.
+            {copy("Pre-filled from")} <strong className="font-semibold">{prefillPackage.name}</strong> {copy("- feel free to adjust anything below.")}
           </span>
-          <button type="button" onClick={() => setPrefillPackage(null)} aria-label="Dismiss" className="shrink-0 text-emerald/60 hover:text-emerald">
+          <button type="button" onClick={() => setPrefillPackage(null)} aria-label={copy("Dismiss")} className="shrink-0 text-emerald/60 hover:text-emerald">
             <XIcon className="h-4 w-4" />
           </button>
         </div>
@@ -294,9 +295,9 @@ export function CustomTourWizard() {
       <div className="flex items-center justify-between gap-3 bg-emerald/10 px-8 py-3 text-sm text-emerald">
           <span className="flex items-center gap-2">
             <SparklesIcon className="h-4 w-4 shrink-0" />
-            <strong className="font-semibold">{prefillDestinationName}</strong> has been added to your destinations - feel free to adjust anything below.
+            <strong className="font-semibold">{prefillDestinationName}</strong> {copy("has been added to your destinations - feel free to adjust anything below.")}
           </span>
-          <button type="button" onClick={() => setPrefillDestinationName(null)} aria-label="Dismiss" className="shrink-0 text-emerald/60 hover:text-emerald">
+          <button type="button" onClick={() => setPrefillDestinationName(null)} aria-label={copy("Dismiss")} className="shrink-0 text-emerald/60 hover:text-emerald">
             <XIcon className="h-4 w-4" />
           </button>
         </div>
@@ -314,16 +315,16 @@ export function CustomTourWizard() {
 
             {step === 0 &&
             <div className="grid gap-6 sm:grid-cols-2">
-                <div><label className="mb-2 block text-sm font-medium text-forest">Arrival Date</label><DateField value={formData.arrivalDate} onChange={(v) => setFormData({ ...formData, arrivalDate: v })} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
-                <div><label className="mb-2 block text-sm font-medium text-forest">Number of Days</label><input type="number" min={1} value={formData.days} onChange={(e) => setFormData({ ...formData, days: e.target.value })} placeholder="e.g. 10" className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
+                <div><label className="mb-2 block text-sm font-medium text-forest">{copy("Arrival Date")}</label><DateField value={formData.arrivalDate} onChange={(v) => setFormData({ ...formData, arrivalDate: v })} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
+                <div><label className="mb-2 block text-sm font-medium text-forest">{copy("Number of Days")}</label><input type="number" min={1} value={formData.days} onChange={(e) => setFormData({ ...formData, days: e.target.value })} placeholder={copy("e.g. 10")} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
                 <div className="grid grid-cols-3 gap-4">
-                  <div><label className="mb-2 block text-sm font-medium text-forest">Adults</label><input type="number" min={1} value={formData.adults} onChange={(e) => setFormData({ ...formData, adults: Number(e.target.value) })} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
-                  <div><label className="mb-2 block text-sm font-medium text-forest">Children <span className="font-normal text-forest/40">(5-11)</span></label><input type="number" min={0} value={formData.children} onChange={(e) => setFormData({ ...formData, children: Number(e.target.value) })} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
-                  <div><label className="mb-2 block text-sm font-medium text-forest">Infants <span className="font-normal text-forest/40">(under 5)</span></label><input type="number" min={0} value={formData.infants} onChange={(e) => setFormData({ ...formData, infants: Number(e.target.value) })} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
+                  <div><label className="mb-2 block text-sm font-medium text-forest">{copy("Adults")}</label><input type="number" min={1} value={formData.adults} onChange={(e) => setFormData({ ...formData, adults: Number(e.target.value) })} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
+                  <div><label className="mb-2 block text-sm font-medium text-forest">{copy("Children")} <span className="font-normal text-forest/40">(5-11)</span></label><input type="number" min={0} value={formData.children} onChange={(e) => setFormData({ ...formData, children: Number(e.target.value) })} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
+                  <div><label className="mb-2 block text-sm font-medium text-forest">{copy("Infants")} <span className="font-normal text-forest/40">{copy("(under 5)")}</span></label><input type="number" min={0} value={formData.infants} onChange={(e) => setFormData({ ...formData, infants: Number(e.target.value) })} className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" /></div>
                 </div>
                 {formData.childAges.length > 0 &&
                 <div className="sm:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-forest">Children's Ages <span className="font-normal text-forest/50">(helps us set up the right room & bed configuration)</span></label>
+                    <label className="mb-2 block text-sm font-medium text-forest">{copy("Children's Ages")} <span className="font-normal text-forest/50">{copy("(helps us set up the right room & bed configuration)")}</span></label>
                     <div className="flex flex-wrap gap-2">
                       {formData.childAges.map((age, i) =>
                     <input
@@ -341,7 +342,7 @@ export function CustomTourWizard() {
                 }
                 {formData.infantAges.length > 0 &&
                 <div className="sm:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-forest">Infants' Ages <span className="font-normal text-forest/50">(in years)</span></label>
+                    <label className="mb-2 block text-sm font-medium text-forest">{copy("Infants' Ages")} <span className="font-normal text-forest/50">{copy("(in years)")}</span></label>
                     <div className="flex flex-wrap gap-2">
                       {formData.infantAges.map((age, i) =>
                     <input
@@ -359,18 +360,18 @@ export function CustomTourWizard() {
                 }
                 <label className="flex items-center gap-2 text-sm font-medium text-forest">
                   <input type="checkbox" checked={formData.isFlexible} onChange={(e) => setFormData({ ...formData, isFlexible: e.target.checked })} className="h-4 w-4 rounded border-forest/20 text-emerald focus:ring-emerald" />
-                  My travel dates are flexible
+                  {copy("My travel dates are flexible")}
                 </label>
               </div>
             }
 
             {step === 1 &&
             <div>
-                <p className="mb-6 text-forest/70">Select the destinations you'd love to visit.</p>
+                <p className="mb-6 text-forest/70">{copy("Select the destinations you'd love to visit.")}</p>
                 <div className="mb-6">
                   <AutocompleteTagInput
-                  label="Search or add a destination"
-                  placeholder="e.g. Sigiriya, or type a place not listed…"
+                  label={copy("Search or add a destination")}
+                  placeholder={copy("e.g. Sigiriya, or type a place not listed…")}
                   options={destinations.map((d) => ({ id: d._id, label: d.name }))}
                   selectedIds={formData.selectedDestinations}
                   onSelectedIdsChange={(ids) => setFormData((prev) => ({ ...prev, selectedDestinations: ids }))}
@@ -378,7 +379,7 @@ export function CustomTourWizard() {
                   onCustomValuesChange={(values) => setFormData((prev) => ({ ...prev, customDestinations: values }))} />
 
                 </div>
-                {destinationsLoading ? <p className="text-sm text-forest/50">Loading destinations…</p> :
+                {destinationsLoading ? <p className="text-sm text-forest/50">{copy("Loading destinations…")}</p> :
               <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
                   {destinations.map((d) =>
                 <div key={d._id} onClick={() => toggleSelection('selectedDestinations', d._id)} className={`group relative cursor-pointer overflow-hidden rounded-2xl border-2 transition-all ${formData.selectedDestinations.includes(d._id) ? 'border-emerald shadow-md' : 'border-transparent'}`}>
@@ -396,16 +397,16 @@ export function CustomTourWizard() {
 
             {step === 2 &&
             <div>
-                <p className="text-forest/70">What kind of experiences are you looking for?</p>
+                <p className="text-forest/70">{copy("What kind of experiences are you looking for?")}</p>
                 <p className="mb-6 text-xs text-forest/45">
                   {formData.selectedDestinations.length > 0 ?
-                'Showing activities available in your selected destinations.' :
-                'Pick destinations in the previous step to narrow this list down.'}
+                copy("Showing activities available in your selected destinations.") :
+                copy("Pick destinations in the previous step to narrow this list down.")}
                 </p>
                 <div className="mb-6">
                   <AutocompleteTagInput
-                  label="Search or add an activity"
-                  placeholder="e.g. Whale Watching, or type one not listed…"
+                  label={copy("Search or add an activity")}
+                  placeholder={copy("e.g. Whale Watching, or type one not listed…")}
                   options={activitiesForSelectedDestinations.map((a) => ({ id: a._id, label: a.name }))}
                   selectedIds={formData.selectedActivities}
                   onSelectedIdsChange={(ids) => setFormData((prev) => ({ ...prev, selectedActivities: ids }))}
@@ -413,9 +414,9 @@ export function CustomTourWizard() {
                   onCustomValuesChange={(values) => setFormData((prev) => ({ ...prev, customActivities: values }))} />
 
                 </div>
-                {activitiesLoading ? <p className="text-sm text-forest/50">Loading activities…</p> :
+                {activitiesLoading ? <p className="text-sm text-forest/50">{copy("Loading activities…")}</p> :
               activitiesForSelectedDestinations.length === 0 ?
-              <p className="text-sm text-forest/50">No catalog activities found for your selected destinations yet - you can still add one by typing its name above.</p> :
+              <p className="text-sm text-forest/50">{copy("No catalog activities found for your selected destinations yet - you can still add one by typing its name above.")}</p> :
 
               <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
                   {activitiesForSelectedDestinations.map((a) =>
@@ -435,42 +436,42 @@ export function CustomTourWizard() {
             {step === 3 &&
             <div className="space-y-8">
                 <div>
-                  <label className="mb-3 block font-semibold text-forest">Preferred Hotel Category</label>
+                  <label className="mb-3 block font-semibold text-forest">{copy("Preferred Hotel Category")}</label>
                   <div className="flex flex-wrap gap-3">
                     {HOTEL_CATEGORIES.map((opt) =>
-                  <button type="button" key={opt.value} onClick={() => setFormData({ ...formData, hotelCategory: opt.value })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.hotelCategory === opt.value ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{opt.label}</button>
+                  <button type="button" key={opt.value} onClick={() => setFormData({ ...formData, hotelCategory: opt.value })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.hotelCategory === opt.value ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{copy(opt.label)}</button>
                   )}
                   </div>
                 </div>
                 <div>
-                  <label className="mb-3 block font-semibold text-forest">Meal Preferences</label>
+                  <label className="mb-3 block font-semibold text-forest">{copy("Meal Preferences")}</label>
                   <div className="flex flex-wrap gap-3">
                     {MEAL_PREFERENCES.map((opt) =>
-                  <button type="button" key={opt} onClick={() => toggleMeal(opt)} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.mealPreferences.includes(opt) ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{opt}</button>
+                  <button type="button" key={opt} onClick={() => toggleMeal(opt)} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.mealPreferences.includes(opt) ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{copy(opt)}</button>
                   )}
                   </div>
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-forest">Room Type</label>
+                  <label className="mb-2 block text-sm font-medium text-forest">{copy("Room Type")}</label>
                   <select value={formData.roomTypePreference} onChange={(e) => setFormData({ ...formData, roomTypePreference: e.target.value })} className="w-full max-w-sm rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald">
-                    <option value="">Select a room type…</option>
-                    {ROOM_TYPE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                    <option value="">{copy("Select a room type…")}</option>
+                    {ROOM_TYPE_OPTIONS.map((opt) => <option key={opt} value={opt}>{copy(opt)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="mb-3 block font-semibold text-forest">Would you like sightseeing &amp; activities included in your quote?</label>
-                  <p className="mb-3 text-sm text-forest/50">This helps us quote you accurately - you can arrange your own sightseeing to lower the cost, or have us include it all.</p>
+                  <label className="mb-3 block font-semibold text-forest">{copy("Would you like sightseeing & activities included in your quote?")}</label>
+                  <p className="mb-3 text-sm text-forest/50">{copy("This helps us quote you accurately - you can arrange your own sightseeing to lower the cost, or have us include it all.")}</p>
                   <div className="flex flex-wrap gap-3">
                     {SIGHTSEEING_PREFERENCE_OPTIONS.map((opt) =>
-                  <button type="button" key={opt} onClick={() => setFormData({ ...formData, sightseeingPreference: opt })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.sightseeingPreference === opt ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{opt}</button>
+                  <button type="button" key={opt} onClick={() => setFormData({ ...formData, sightseeingPreference: opt })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.sightseeingPreference === opt ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{copy(opt)}</button>
                   )}
                   </div>
                 </div>
                 <div>
-                  <label className="mb-3 block font-semibold text-forest">Travel Style</label>
+                  <label className="mb-3 block font-semibold text-forest">{copy("Travel Style")}</label>
                   <div className="flex flex-wrap gap-3">
                     {TRAVEL_STYLES.map((opt) =>
-                  <button type="button" key={opt} onClick={() => setFormData({ ...formData, travelStyle: opt })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.travelStyle === opt ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{opt}</button>
+                  <button type="button" key={opt} onClick={() => setFormData({ ...formData, travelStyle: opt })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.travelStyle === opt ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{copy(opt)}</button>
                   )}
                   </div>
                 </div>
@@ -480,18 +481,18 @@ export function CustomTourWizard() {
             {step === 4 &&
             <div className="space-y-8">
                 <div>
-                  <label className="mb-3 block font-semibold text-forest">Vehicle Type</label>
+                  <label className="mb-3 block font-semibold text-forest">{copy("Vehicle Type")}</label>
                   <div className="flex flex-wrap gap-3">
                     {TRANSPORT_OPTIONS.map((opt) =>
-                  <button type="button" key={opt} onClick={() => setFormData({ ...formData, transportPreference: opt })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.transportPreference === opt ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{opt}</button>
+                  <button type="button" key={opt} onClick={() => setFormData({ ...formData, transportPreference: opt })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.transportPreference === opt ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{copy(opt)}</button>
                   )}
                   </div>
                 </div>
                 <div>
-                  <label className="mb-3 block font-semibold text-forest">Guide Required?</label>
+                  <label className="mb-3 block font-semibold text-forest">{copy("Guide Required?")}</label>
                   <div className="flex flex-wrap gap-3">
                     {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map((opt) =>
-                  <button type="button" key={opt.label} onClick={() => setFormData({ ...formData, guideRequired: opt.value })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.guideRequired === opt.value ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{opt.label}</button>
+                  <button type="button" key={opt.label} onClick={() => setFormData({ ...formData, guideRequired: opt.value })} className={`rounded-full px-6 py-2.5 text-sm font-medium transition-colors ${formData.guideRequired === opt.value ? 'bg-emerald text-white' : 'bg-cream text-forest hover:bg-emerald/10'}`}>{copy(opt.label)}</button>
                   )}
                   </div>
                 </div>
@@ -501,27 +502,27 @@ export function CustomTourWizard() {
             {step === 5 &&
             <div className="space-y-5">
                 <div className="rounded-2xl bg-cream/60 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-forest/40">Submitting as</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-forest/40">{copy("Submitting as")}</p>
                   <p className="mt-1 font-semibold text-forest">{user.fullName}</p>
                   <p className="text-sm text-forest/60">{user.email}</p>
                 </div>
                 <dl className="grid gap-3 sm:grid-cols-2 text-sm">
-                  <div><dt className="text-forest/50">Arrival</dt><dd className="font-medium text-forest">{formData.arrivalDate || '-'} · {formData.days} days</dd></div>
-                  <div><dt className="text-forest/50">Travelers</dt><dd className="font-medium text-forest">{formData.adults} adults, {formData.children} children, {formData.infants} infants</dd></div>
-                  <div><dt className="text-forest/50">Destinations</dt><dd className="font-medium text-forest">{formData.selectedDestinations.length + formData.customDestinations.length} selected</dd></div>
-                  <div><dt className="text-forest/50">Activities</dt><dd className="font-medium text-forest">{formData.selectedActivities.length + formData.customActivities.length} selected</dd></div>
-                  <div><dt className="text-forest/50">Hotel Category</dt><dd className="font-medium text-forest">{HOTEL_CATEGORIES.find((c) => c.value === formData.hotelCategory)?.label || formData.hotelCategory}</dd></div>
-                  <div><dt className="text-forest/50">Room Type</dt><dd className="font-medium text-forest">{formData.roomTypePreference || '-'}</dd></div>
-                  <div><dt className="text-forest/50">Travel Style</dt><dd className="font-medium text-forest">{formData.travelStyle}</dd></div>
-                  <div><dt className="text-forest/50">Vehicle Type</dt><dd className="font-medium text-forest">{formData.transportPreference}</dd></div>
-                  <div><dt className="text-forest/50">Guide Required</dt><dd className="font-medium text-forest">{formData.guideRequired ? 'Yes' : 'No'}</dd></div>
-                  <div><dt className="text-forest/50">Sightseeing Included</dt><dd className="font-medium text-forest">{formData.sightseeingPreference}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Arrival")}</dt><dd className="font-medium text-forest">{formData.arrivalDate || '-'} · {formData.days} {copy("days")}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Travelers")}</dt><dd className="font-medium text-forest">{formData.adults} {copy("adults,")} {formData.children} {copy("children,")} {formData.infants} {copy("infants")}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Destinations")}</dt><dd className="font-medium text-forest">{formData.selectedDestinations.length + formData.customDestinations.length} {copy("selected")}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Activities")}</dt><dd className="font-medium text-forest">{formData.selectedActivities.length + formData.customActivities.length} {copy("selected")}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Hotel Category")}</dt><dd className="font-medium text-forest">{copy(HOTEL_CATEGORIES.find((c) => c.value === formData.hotelCategory)?.label || formData.hotelCategory)}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Room Type")}</dt><dd className="font-medium text-forest">{copy(formData.roomTypePreference || '-')}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Travel Style")}</dt><dd className="font-medium text-forest">{copy(formData.travelStyle)}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Vehicle Type")}</dt><dd className="font-medium text-forest">{copy(formData.transportPreference)}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Guide Required")}</dt><dd className="font-medium text-forest">{copy(formData.guideRequired ? 'Yes' : 'No')}</dd></div>
+                  <div><dt className="text-forest/50">{copy("Sightseeing Included")}</dt><dd className="font-medium text-forest">{copy(formData.sightseeingPreference)}</dd></div>
                 </dl>
 
                 <div>
-                  <label className="mb-3 block font-semibold text-forest">Special Requests & Notes</label>
-                  <p className="mb-4 text-sm text-forest/60">Dietary requirements, special occasions, wheelchair access, or any specific places you want to ensure are included.</p>
-                  <textarea rows={4} value={formData.specialRequests} onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })} className="w-full rounded-2xl border border-forest/10 bg-cream/50 p-4 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" placeholder="Tell us more about your dream trip..."></textarea>
+                  <label className="mb-3 block font-semibold text-forest">{copy("Special Requests & Notes")}</label>
+                  <p className="mb-4 text-sm text-forest/60">{copy("Dietary requirements, special occasions, wheelchair access, or any specific places you want to ensure are included.")}</p>
+                  <textarea rows={4} value={formData.specialRequests} onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })} className="w-full rounded-2xl border border-forest/10 bg-cream/50 p-4 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" placeholder={copy("Tell us more about your dream trip...")}></textarea>
                 </div>
 
                 {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</p>}
@@ -534,16 +535,16 @@ export function CustomTourWizard() {
       {/* Footer Actions */}
       <div className="flex items-center justify-between border-t border-forest/5 bg-cream/30 px-8 py-6">
         <button onClick={prevStep} disabled={step === 0} className={`flex items-center gap-2 text-sm font-semibold transition-colors ${step === 0 ? 'text-forest/20 cursor-not-allowed' : 'text-forest hover:text-emerald'}`}>
-          <ChevronLeftIcon className="h-4 w-4" /> Back
+          <ChevronLeftIcon className="h-4 w-4" /> {copy("Back")}
         </button>
         {step < steps.length - 1 ?
         <button onClick={nextStep} className="flex items-center gap-2 rounded-full bg-forest px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald">
-            Next Step <ChevronRightIcon className="h-4 w-4" />
+            {copy("Next Step")} <ChevronRightIcon className="h-4 w-4" />
           </button> :
 
         <button onClick={handleSubmit} disabled={submitting} className="flex items-center gap-2 rounded-full bg-gold px-8 py-3 text-sm font-semibold text-forest transition-transform hover:scale-105 disabled:opacity-70">
             {submitting ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <SendIcon className="h-4 w-4" />}
-            Submit Inquiry
+            {copy("Submit Inquiry")}
           </button>
         }
       </div>

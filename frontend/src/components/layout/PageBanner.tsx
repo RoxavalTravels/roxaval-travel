@@ -1,3 +1,4 @@
+import { LocalizedHeading } from '../seo/LocalizedHeading';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BreadcrumbBackRow } from './BreadcrumbBackRow';
@@ -42,7 +43,7 @@ export function PageBanner({ eyebrow, title, subtitle, breadcrumbs }: PageBanner
             {eyebrow}
           </span>
         }
-        <h1 className="font-display mt-4 text-4xl font-semibold sm:text-6xl">{title}</h1>
+        <LocalizedHeading className="font-display mt-4 text-4xl font-semibold sm:text-6xl">{title}</LocalizedHeading>
         {subtitle && <p className="mt-4 text-cream/80">{subtitle}</p>}
       </motion.div>
     </section>);

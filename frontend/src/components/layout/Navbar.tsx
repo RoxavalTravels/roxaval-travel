@@ -332,7 +332,7 @@ export function Navbar() {
                   </Link>
                 }
                 <button onClick={() => { setMobileOpen(false); setSearchOpen(true); }} aria-label={t('nav.search')} className="p-3 rounded-full bg-white/10 text-white"><SearchIcon className="h-5 w-5" /></button>
-                <LanguageSwitcher variant="dark" className="[&>button]:bg-white/10 [&>button]:p-3" />
+                <LanguageSwitcher variant="dark" placement="up" className="[&>button]:bg-white/10 [&>button]:p-3" />
               </div>
             </div>
           </motion.div>

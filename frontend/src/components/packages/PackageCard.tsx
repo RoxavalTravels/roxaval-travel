@@ -1,3 +1,4 @@
+import { copy } from '../../i18n';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -23,7 +24,7 @@ export function PackageCard({ pkg, index = 0, compact = false }: PackageCardProp
       <Link to={`/packages/${pkg.slug || pkg._id}`} className="flex flex-1 flex-col">
         <div className={`relative overflow-hidden ${compact ? 'h-60' : 'h-52'}`}>
           <img src={pkg.heroImage} alt={pkg.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
-          <span className={`absolute top-3 left-3 rounded-full bg-gold font-bold uppercase tracking-wide text-forest ${compact ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-[11px]'}`}>{pkg.category}</span>
+          <span className={`absolute top-3 left-3 rounded-full bg-gold font-bold uppercase tracking-wide text-forest ${compact ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-[11px]'}`}>{copy(pkg.category)}</span>
           <span className={`absolute top-3 right-3 flex items-center gap-1 rounded-full bg-forest/85 backdrop-blur font-semibold text-white ${compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs'}`}>
             <StarIcon className="h-3 w-3 fill-gold text-gold" /> {pkg.rating.toFixed(1)}
           </span>
@@ -32,7 +33,7 @@ export function PackageCard({ pkg, index = 0, compact = false }: PackageCardProp
         <div className={`flex flex-1 flex-col ${compact ? 'px-4 pt-3 pb-3' : 'p-6'}`}>
           {!compact &&
           <span className="inline-flex w-fit items-center gap-1 rounded-full bg-cream px-2.5 py-1 text-[10px] font-semibold text-forest/70">
-              {pkg.tourType === 'Private' ? <UserIcon className="h-3 w-3" /> : <Users2Icon className="h-3 w-3" />} {pkg.tourType}
+              {pkg.tourType === 'Private' ? <UserIcon className="h-3 w-3" /> : <Users2Icon className="h-3 w-3" />} {copy(pkg.tourType)}
             </span>
           }
           <h3 className={`font-display font-semibold text-forest ${compact ? 'text-sm' : 'mt-2.5 text-xl'}`}>{pkg.name}</h3>
@@ -43,11 +44,11 @@ export function PackageCard({ pkg, index = 0, compact = false }: PackageCardProp
           <div className={`flex items-end justify-end border-t border-forest/10 ${compact ? 'mt-2 pt-2' : 'mt-5 pt-4'}`}>
             {compact ?
             <span className="inline-flex items-center gap-1 rounded-full bg-forest px-3 py-1.5 text-xs font-semibold text-cream transition-colors group-hover:bg-emerald">
-                View <ArrowRightIcon className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                {copy("View")} <ArrowRightIcon className="h-3 w-3 transition-transform group-hover:translate-x-1" />
               </span> :
 
             <span className="group/btn inline-flex items-center gap-1.5 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream transition-colors group-hover:bg-emerald">
-                View Details
+                {copy("View Details")}
                 <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             }

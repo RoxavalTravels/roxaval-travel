@@ -1,3 +1,4 @@
+import { LanguageWelcome } from './LanguageWelcome';
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -18,6 +19,7 @@ export function PublicLayout() {
       </Helmet>
       <Loader />
       <Navbar />
+      <LanguageWelcome />
       <div className="flex-1">
         <Outlet />
       </div>

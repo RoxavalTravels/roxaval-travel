@@ -1,3 +1,4 @@
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -144,9 +145,9 @@ export function Auth() {
 
         <div className="flex flex-col items-center text-center">
           <img src="/roxaval-icon-dark.png" alt="" className="h-12 w-12 object-contain" />
-          <h1 className="font-display mt-4 text-2xl font-semibold text-forest">
+          <LocalizedHeading className="font-display mt-4 text-2xl font-semibold text-forest">
             {tab === 'login' ? t('welcomeBack') : t('createAccount')}
-          </h1>
+          </LocalizedHeading>
           <p className="mt-1.5 text-sm text-forest/55">
             {tab === 'login' ? t('loginSubtitle') : t('registerSubtitle')}
           </p>

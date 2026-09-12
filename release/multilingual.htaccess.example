@@ -1,0 +1,11 @@
+# Merge these rules into the FRONTEND document root .htaccess, BEFORE
+# the existing SPA index.html fallback. Preserve HTTPS, www, API and host PHP rules.
+# Update this path to the actual Laravel root (the directory containing artisan).
+SetEnv ROXAVAL_BACKEND_PATH /home2/zlwoctte/public_html/website_91fe39e6/roxaval-backend-php
+
+RewriteEngine On
+# Root needs an explicit rule because it is a real directory.
+RewriteRule ^$ multilingual.php [END,QSA]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ multilingual.php [END,QSA]

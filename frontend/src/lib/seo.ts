@@ -3,6 +3,9 @@
 // domain/name/default image in one place avoids nine different pages
 // drifting out of sync with each other.
 
+import { getCurrentLanguage } from '../i18n';
+import { localizedPath, pathLanguage } from '../i18n/routing';
+
 export const SITE_URL = 'https://www.roxavaltravels.com';
 export const SITE_NAME = 'Roxaval Travels';
 export const DEFAULT_TITLE = 'Roxaval Travels | Sri Lanka Tours & Custom Itineraries';
@@ -13,7 +16,7 @@ export const TWITTER_HANDLE = '@roxavaltravels';
 
 export const absoluteUrl = (path: string): string => {
   if (/^https?:\/\//i.test(path)) return path;
-  return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  return `${SITE_URL}${pathLanguage(path) ? path : localizedPath(path, getCurrentLanguage())}`;
 };
 
 export const absoluteImage = (url?: string): string => {

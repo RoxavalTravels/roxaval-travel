@@ -1,3 +1,5 @@
+import { copy } from '../i18n';
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -63,7 +65,7 @@ export function Activities() {
             <span className="h-px w-8 bg-gold" />
             {t('eyebrow')}
           </span>
-          <h1 className="font-display mt-4 text-4xl font-semibold sm:text-6xl">{t('title')}</h1>
+          <LocalizedHeading className="font-display mt-4 text-4xl font-semibold sm:text-6xl">{t('title')}</LocalizedHeading>
           <p className="mt-4 text-cream/80">{t('subtitle')}</p>
         </motion.div>
       </section>
@@ -74,9 +76,9 @@ export function Activities() {
           onSearchChange={setSearch}
           searchPlaceholder={t('searchPlaceholder')}
           filters={[
-          { key: 'category', label: t('filters.categories'), options: CATEGORY_OPTIONS },
+          { key: 'category', label: t('filters.categories'), options: CATEGORY_OPTIONS.map(option => ({ ...option, label: copy(option.label) })) },
           { key: 'location', label: t('filters.locations'), options: LOCATION_OPTIONS },
-          { key: 'difficulty', label: t('filters.difficulty'), options: DIFFICULTY_OPTIONS }]}
+          { key: 'difficulty', label: t('filters.difficulty'), options: DIFFICULTY_OPTIONS.map(option => ({ ...option, label: copy(option.label) })) }]}
 
           values={{ category, location, difficulty }}
           onFilterChange={(key, value) => {

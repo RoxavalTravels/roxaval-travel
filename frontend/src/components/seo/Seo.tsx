@@ -1,3 +1,5 @@
+import { getCurrentLanguage } from '../../i18n';
+import { localizedPath, pageTranslation, languages } from '../../i18n/routing';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { absoluteImage, absoluteUrl, SITE_NAME } from '../../lib/seo';
@@ -19,30 +21,40 @@ interface SeoProps {
 // each page hand-rolling <head> tags differently.
 export function Seo({ title, description, keywords, image, type = 'website', noindex = false, jsonLd, canonicalPath }: SeoProps) {
   const location = useLocation();
-  const canonical = absoluteUrl(canonicalPath || location.pathname);
+  const locale = getCurrentLanguage();
+  const page = pageTranslation(location.pathname, locale);
+  title = page?.metaTitle || title;
+  description = page?.metaDescription || description;
+  const socialTitle = page?.socialTitle || title;
+  const socialDescription = page?.socialDescription || description;
+  const canonical = absoluteUrl(localizedPath(canonicalPath || location.pathname, locale));
   const ogImage = absoluteImage(image);
   const jsonLdList = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
   return (
     <Helmet>
+      <html lang={locale} />
       <title>{title}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
       <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
       <link rel="canonical" href={canonical} />
+      {!noindex && languages.filter(language => pageTranslation(location.pathname, language)).map(language => <link key={language} rel="alternate" hrefLang={language} href={absoluteUrl(localizedPath(location.pathname, language))} />)}
+      {!noindex && page && <link rel="alternate" hrefLang="x-default" href={absoluteUrl(localizedPath(location.pathname, 'en'))} />}
+      <meta property="og:locale" content={{ en: 'en_GB', de: 'de_DE', fr: 'fr_FR' }[locale]} />
 
       {/* Open Graph */}
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:type" content={type} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
+      <meta property="og:title" content={socialTitle} />
+      <meta property="og:description" content={socialDescription} />
       <meta property="og:url" content={canonical} />
       <meta property="og:image" content={ogImage} />
 
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:title" content={socialTitle} />
+      <meta name="twitter:description" content={socialDescription} />
       <meta name="twitter:image" content={ogImage} />
 
       {jsonLdList.map((schema, i) =>

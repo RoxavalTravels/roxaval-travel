@@ -1,3 +1,4 @@
+import { copy } from '../../i18n';
 import React, { useState } from 'react';
 import { CheckCircle2Icon, CreditCardIcon, Loader2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -140,7 +141,7 @@ export function BookingModal({ open, onClose, source, onSuccess }: BookingModalP
           </div>
         </div>
         {source.type === 'itinerary' &&
-        <p className="text-xs text-forest/50">Travelers match your accepted quotation and can't be changed here - contact us if this needs to change.</p>
+        <p className="text-xs text-forest/50">{copy("Travelers match your accepted quotation and can't be changed here - contact us if this needs to change.")}</p>
         }
         <div>
           <label className="mb-1.5 block text-sm font-medium text-forest">{t('modal.specialRequests')}</label>
@@ -152,14 +153,14 @@ export function BookingModal({ open, onClose, source, onSuccess }: BookingModalP
             {source.type === 'package' &&
             <>
                 {source.pricePerPerson === false ?
-              <div className="flex justify-between"><span>Package price (for {source.maxTravelers ?? adults})</span><span>{source.currency} {source.price.toLocaleString()}</span></div> :
+              <div className="flex justify-between"><span>{copy('Package price (for {{count}})', { count: source.maxTravelers ?? adults })}</span><span>{source.currency} {source.price.toLocaleString()}</span></div> :
 
-              <div className="flex justify-between"><span>{adults} Adult{adults === 1 ? '' : 's'} × {source.currency} {source.price.toLocaleString()}</span><span>{source.currency} {(source.price * Math.max(adults, 1)).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>{adults} {copy('Adults')} × {source.currency} {source.price.toLocaleString()}</span><span>{source.currency} {(source.price * Math.max(adults, 1)).toLocaleString()}</span></div>
               }
                 {children > 0 &&
-              <div className="flex justify-between"><span>{children} Child{children === 1 ? '' : 'ren'} × {source.currency} {(source.price * ((source.childPricePercent ?? 50) / 100)).toLocaleString()} ({source.childPricePercent ?? 50}%)</span><span>{source.currency} {(source.price * ((source.childPricePercent ?? 50) / 100) * children).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>{children} {copy('Children')} × {source.currency} {(source.price * ((source.childPricePercent ?? 50) / 100)).toLocaleString()} ({source.childPricePercent ?? 50}%)</span><span>{source.currency} {(source.price * ((source.childPricePercent ?? 50) / 100) * children).toLocaleString()}</span></div>
               }
-                {infants > 0 && <div className="flex justify-between"><span>{infants} Infant{infants === 1 ? '' : 's'}</span><span>Free</span></div>}
+                {infants > 0 && <div className="flex justify-between"><span>{infants} {copy('Infants')}</span><span>{copy('Free')}</span></div>}
               </>
             }
             {source.type === 'itinerary' && source.pricePerPerson &&

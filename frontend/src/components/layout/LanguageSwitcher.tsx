@@ -1,3 +1,5 @@
+import { useLocation } from 'react-router-dom';
+import { localizedPath, rememberLanguage } from '../../i18n/routing';
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GlobeIcon, CheckIcon } from 'lucide-react';
@@ -6,10 +8,12 @@ import { SUPPORTED_LANGUAGES } from '../../i18n';
 
 interface LanguageSwitcherProps {
   variant?: 'dark' | 'light';
+  placement?: 'up' | 'down';
   className?: string;
 }
 
-export function LanguageSwitcher({ variant = 'dark', className = '' }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ variant = 'dark', placement = 'down', className = '' }: LanguageSwitcherProps) {
+  const location = useLocation();
   const { i18n, t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -29,14 +33,14 @@ export function LanguageSwitcher({ variant = 'dark', className = '' }: LanguageS
       : 'p-2.5 rounded-full text-forest/70 hover:bg-forest/5 hover:text-forest transition-colors';
 
   return (
-    <div className={`relative ${className}`} ref={ref}>
+    <div className={`relative ${className}`} ref={ref} onKeyDown={event => { if (event.key === 'Escape') { setOpen(false); ref.current?.querySelector('button')?.focus(); } }}>
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={t('nav.changeLanguage')}
         aria-expanded={open}
         className={iconClasses}
       >
-        <GlobeIcon className="h-5 w-5" />
+        <span className="text-xs font-semibold">{current.toUpperCase()}</span><GlobeIcon className="inline ml-1 h-4 w-4" />
       </button>
       <AnimatePresence>
         {open && (
@@ -45,13 +49,14 @@ export function LanguageSwitcher({ variant = 'dark', className = '' }: LanguageS
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.97 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-44 rounded-2xl bg-white shadow-lift p-2 overflow-hidden z-50"
+            className={`absolute right-0 ${placement === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'} w-44 rounded-2xl bg-white shadow-lift p-2 overflow-hidden z-50`}
           >
             {SUPPORTED_LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => {
-                  i18n.changeLanguage(lang.code);
+                  rememberLanguage(lang.code);
+                  window.location.assign(localizedPath(location.pathname, lang.code) + location.search + location.hash);
                   setOpen(false);
                 }}
                 className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-sm text-forest/80 rounded-xl hover:bg-cream hover:text-emerald transition-colors"

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { copy } from '../../i18n';
 import { CalendarIcon } from 'lucide-react';
 
 interface DateFieldProps {
@@ -89,7 +90,7 @@ export function DateField({ value, onChange, min, max, required, placeholder = '
       */}
       <input
         type="date"
-        aria-label="Open calendar"
+        aria-label={copy('Open calendar')}
         value={value || ''}
         min={min}
         max={max}

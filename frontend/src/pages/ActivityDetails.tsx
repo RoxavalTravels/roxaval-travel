@@ -1,6 +1,8 @@
+import { copy } from '../i18n';
+import { LocalizedMotionHeading } from '../components/seo/LocalizedHeading';
+import { LocalizedImage } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   ClockIcon,
@@ -72,20 +74,20 @@ export function ActivityDetails() {
 
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
-        <img src={activity.image} alt={`${activity.name}, Sri Lanka${activity.category ? ` - ${activity.category}` : ''}`} className="absolute inset-0 h-full w-full object-cover" />
+        <LocalizedImage src={activity.image} alt={`${activity.name}, Sri Lanka${activity.category ? ` - ${copy(activity.category)}` : ''}`} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/40 to-forest/10" />
         <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-4 py-6 sm:px-6 lg:px-8">
           <BreadcrumbBackRow breadcrumbs={[{ label: t('breadcrumb.home'), href: '/' }, { label: t('breadcrumb.activities'), href: '/activities' }, { label: activity.name }]} />
           <div className="pb-6">
-            <span className="w-fit rounded-full bg-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-forest">{activity.category}</span>
-            <motion.h1
+            <span className="w-fit rounded-full bg-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-forest">{copy(activity.category)}</span>
+            <LocalizedMotionHeading
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="font-display mt-4 max-w-3xl text-4xl font-semibold text-white sm:text-6xl">
 
               {activity.name}
-            </motion.h1>
+            </LocalizedMotionHeading>
           </div>
         </div>
       </section>
@@ -103,7 +105,7 @@ export function ActivityDetails() {
             <div className="flex flex-col items-center gap-1.5 text-center">
               <GaugeIcon className="h-5 w-5 text-emerald" />
               <p className="text-xs text-forest/50">{t('detail.difficulty')}</p>
-              <p className="text-sm font-semibold text-forest">{activity.difficultyLevel}</p>
+              <p className="text-sm font-semibold text-forest">{copy(activity.difficultyLevel)}</p>
             </div>
             <div className="flex flex-col items-center gap-1.5 text-center">
               <CalendarIcon className="h-5 w-5 text-emerald" />

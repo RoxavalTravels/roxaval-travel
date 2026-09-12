@@ -1,6 +1,8 @@
+import { copy } from '../i18n';
+import { LocalizedMotionHeading } from '../components/seo/LocalizedHeading';
+import { LocalizedImage } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   ClockIcon,
@@ -112,28 +114,28 @@ export function TourPackageDetails() {
 
       {/* Hero */}
       <section className="relative h-[65vh] min-h-[460px] w-full overflow-hidden">
-        <img src={pkg.heroImage} alt={pkg.name} className="absolute inset-0 h-full w-full object-cover" />
+        <LocalizedImage src={pkg.heroImage} alt={pkg.name} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/40 to-forest/10" />
         <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-4 py-6 sm:px-6 lg:px-8">
           <BreadcrumbBackRow breadcrumbs={[{ label: t('breadcrumb.home'), href: '/' }, { label: t('breadcrumb.packages'), href: '/packages' }, { label: pkg.name }]} />
           <div className="pb-6">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-forest">{pkg.category}</span>
+              <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-forest">{copy(pkg.category)}</span>
               <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-semibold text-white">
-                {pkg.tourType === 'Private' ? <UserIcon className="h-3.5 w-3.5" /> : <Users2Icon className="h-3.5 w-3.5" />} {pkg.tourType}
+                {pkg.tourType === 'Private' ? <UserIcon className="h-3.5 w-3.5" /> : <Users2Icon className="h-3.5 w-3.5" />} {copy(pkg.tourType)}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-semibold text-white">
                 <StarIcon className="h-3.5 w-3.5 fill-gold text-gold" /> {pkg.rating.toFixed(1)} ({pkg.reviewsCount})
               </span>
             </div>
-            <motion.h1
+            <LocalizedMotionHeading
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="font-display mt-4 max-w-3xl text-4xl font-semibold text-white sm:text-6xl">
 
               {pkg.name}
-            </motion.h1>
+            </LocalizedMotionHeading>
             <p className="mt-3 flex items-center gap-2 text-cream/80">
               <ClockIcon className="h-4 w-4" /> {t('detail.durationLabel', { days: pkg.durationDays, nights: pkg.durationNights })}
               {pkg.destinations.length > 0 && <span>• {pkg.destinations.map((d) => d.name).join(', ')}</span>}

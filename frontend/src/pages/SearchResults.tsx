@@ -1,3 +1,4 @@
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -83,7 +84,7 @@ export function SearchResults() {
           <BreadcrumbBackRow breadcrumbs={[{ label: t('nav.home'), href: '/' }, { label: t('search.breadcrumb') }]} />
         </div>
         <div className="mx-auto max-w-2xl px-4">
-          <h1 className="font-display text-3xl font-semibold sm:text-4xl">{t('search.title')}</h1>
+          <LocalizedHeading className="font-display text-3xl font-semibold sm:text-4xl">{t('search.title')}</LocalizedHeading>
           <form onSubmit={submit} className="mt-6 flex items-center gap-2 rounded-full bg-white p-1.5 pl-5 shadow-lift">
             <SearchIcon className="h-5 w-5 shrink-0 text-forest/40" />
             <input

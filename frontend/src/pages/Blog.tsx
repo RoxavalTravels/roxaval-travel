@@ -1,3 +1,4 @@
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -86,7 +87,7 @@ export function Blog() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <BackButton className="mb-6" />
           <p className="text-center text-xs font-semibold uppercase tracking-[0.35em] text-gold">{t('list.storiesGuides')}</p>
-          <h1 className="mt-3 text-center font-display text-4xl font-semibold text-forest sm:text-5xl">{t('list.pageTitle')}</h1>
+          <LocalizedHeading className="mt-3 text-center font-display text-4xl font-semibold text-forest sm:text-5xl">{t('list.pageTitle')}</LocalizedHeading>
           <p className="mx-auto mt-3 max-w-xl text-center font-display text-base italic text-forest/55">{t('list.pageSubtitle')}</p>
 
           {featured &&

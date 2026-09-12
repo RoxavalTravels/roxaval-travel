@@ -1,3 +1,5 @@
+import { LocalizedImage } from '../components/seo/LocalizedHeading';
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -106,7 +108,7 @@ export function BlogDetails() {
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.4em] text-gold">
             <MapPinIcon className="h-3.5 w-3.5" /> {t('details.sriLanka')}
           </span>
-          <h1 className="mx-auto mt-4 max-w-3xl font-display text-3xl font-bold uppercase leading-tight tracking-wide text-[#3a2b1f] sm:text-5xl">{post.title}</h1>
+          <LocalizedHeading className="mx-auto mt-4 max-w-3xl font-display text-3xl font-bold uppercase leading-tight tracking-wide text-[#3a2b1f] sm:text-5xl">{post.title}</LocalizedHeading>
           <p className="mt-3 font-display text-xl italic text-gold sm:text-2xl">{t('details.honeymoonGuideTagline')}</p>
           <div className="mx-auto mt-5 flex items-center justify-center gap-3 text-gold/70">
             <span className="h-px w-10 bg-gold/40" />
@@ -117,7 +119,7 @@ export function BlogDetails() {
 
         <div className="mx-auto max-w-md px-4 sm:max-w-lg sm:px-6">
           <div className="overflow-hidden rounded-t-[5rem] rounded-b-[2rem] shadow-2xl ring-8 ring-white sm:rounded-t-[7rem]">
-            <img src={resolveImage(post.featuredImage)} alt={post.title} className="h-[26rem] w-full object-cover sm:h-[32rem]" />
+            <LocalizedImage src={resolveImage(post.featuredImage)} alt={post.title} className="h-[26rem] w-full object-cover sm:h-[32rem]" />
           </div>
         </div>
 
@@ -212,14 +214,14 @@ export function BlogDetails() {
           </div>
           <div className="mx-auto max-w-2xl px-4 pt-20 text-center sm:px-6 sm:pt-24">
             <span className="text-xs font-semibold uppercase tracking-[0.35em] text-sky-700">{post.category}</span>
-            <h1 className="mt-4 font-display text-3xl font-bold leading-tight text-[#0a1e38] sm:text-5xl">{post.title}</h1>
+            <LocalizedHeading className="mt-4 font-display text-3xl font-bold leading-tight text-[#0a1e38] sm:text-5xl">{post.title}</LocalizedHeading>
             {post.excerpt &&
             <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-[#0a1e38]/60">{post.excerpt}</p>
             }
           </div>
           <div className="mx-auto mt-10 max-w-4xl px-4 sm:px-6">
             <div className="overflow-hidden rounded-[2rem] shadow-2xl ring-[10px] ring-white/50 sm:rounded-[2.5rem]">
-              <img src={resolveImage(post.featuredImage)} alt={post.title} className="h-60 w-full object-cover sm:h-[26rem]" />
+              <LocalizedImage src={resolveImage(post.featuredImage)} alt={post.title} className="h-60 w-full object-cover sm:h-[26rem]" />
             </div>
           </div>
         </div>
@@ -326,7 +328,7 @@ export function BlogDetails() {
 
       <article className="mx-auto grid max-w-5xl gap-10 px-4 py-14 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="overflow-hidden rounded-[2rem] shadow-lift">
-          <img src={resolveImage(post.featuredImage)} alt={post.title} className="h-72 w-full object-cover sm:h-[420px]" />
+          <LocalizedImage src={resolveImage(post.featuredImage)} alt={post.title} className="h-72 w-full object-cover sm:h-[420px]" />
         </motion.div>
 
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-forest/10 pb-6">

@@ -62,6 +62,7 @@ export function AdminSettings() {
     <div>
       <PageHeader title="Settings" subtitle="Company details, contact info, socials and payment settings" />
 
+      <a href="/admin/translations" className="mb-6 inline-block rounded-xl bg-forest px-5 py-3 text-white">Manage languages &amp; SEO</a>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-2xl bg-white p-6 shadow-soft">
           <p className="mb-4 font-display text-sm font-semibold text-forest">Company Details</p>

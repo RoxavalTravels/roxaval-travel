@@ -1,3 +1,4 @@
+import { copy } from '../../i18n';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -37,7 +38,7 @@ export function DestinationCapsule({ destination, index = 0 }: DestinationCapsul
 
           <div className="absolute inset-0 bg-gradient-to-t from-forest/70 via-forest/0 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           <span className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-forest shadow-soft backdrop-blur">
-            {destination.tag}
+            {copy(destination.tag)}
           </span>
         </motion.div>
 

@@ -56,6 +56,7 @@ const navGroups = [
   label: 'Content',
   items: [
   { to: '/admin/reviews', label: 'Reviews', icon: StarIcon },
+  { to: '/admin/translations', label: 'Languages & SEO', icon: FileTextIcon },
   { to: '/admin/blog', label: 'Blog', icon: NewspaperIcon }]
 
 },

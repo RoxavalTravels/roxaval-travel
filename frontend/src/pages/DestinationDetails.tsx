@@ -1,6 +1,8 @@
+import { copy } from '../i18n';
+import { LocalizedMotionHeading } from '../components/seo/LocalizedHeading';
+import { LocalizedImage } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowRightIcon,
@@ -70,9 +72,9 @@ export function DestinationDetails() {
 
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
-        <img
+        <LocalizedImage
           src={d.heroImage}
-          alt={`${d.name}, Sri Lanka${d.tag ? ` - ${d.tag} destination` : ''}`}
+          alt={`${d.name}, Sri Lanka${d.tag ? ` - ${copy(d.tag)} destination` : ''}`}
           onError={(e) => {
             const img = e.currentTarget;
             if (img.dataset.fallback) return;
@@ -86,15 +88,15 @@ export function DestinationDetails() {
           <BreadcrumbBackRow breadcrumbs={[{ label: t('breadcrumb.home'), href: '/' }, { label: t('breadcrumb.destinations'), href: '/destinations' }, { label: d.name }]} />
 
           <div className="pb-4">
-            <span className="w-fit rounded-full bg-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-forest">{d.tag}</span>
-            <motion.h1
+            <span className="w-fit rounded-full bg-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-forest">{copy(d.tag)}</span>
+            <LocalizedMotionHeading
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="font-display mt-4 max-w-3xl text-4xl font-semibold text-white sm:text-6xl">
 
               {d.name}
-            </motion.h1>
+            </LocalizedMotionHeading>
             {d.region && <p className="mt-2 flex items-center gap-1.5 text-sm text-cream/80"><MapPinIcon className="h-4 w-4" /> {d.region}</p>}
           </div>
         </div>

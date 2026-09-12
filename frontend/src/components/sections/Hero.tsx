@@ -1,3 +1,6 @@
+import { useLocation } from 'react-router-dom';
+import { pageTranslation } from '../../i18n/routing';
+import { getCurrentLanguage } from '../../i18n';
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -13,6 +16,8 @@ const slides = [
 
 
 export function Hero() {
+  const location = useLocation();
+  const page = pageTranslation(location.pathname, getCurrentLanguage());
   const { t } = useTranslation('home');
   const [index, setIndex] = useState(0);
 
@@ -33,7 +38,7 @@ export function Hero() {
           transition={{ opacity: { duration: 1.2 }, scale: { duration: 7, ease: 'linear' } }}
           className="absolute inset-0">
           
-          <img src={slides[index].image} alt={`${slides[index].name}, Sri Lanka`} className="h-full w-full object-cover" />
+          <img src={slides[index].image} alt={page?.imageAlt || `${slides[index].name}, Sri Lanka`} className="h-full w-full object-cover" />
         </motion.div>
       </AnimatePresence>
       <div className="absolute inset-0 bg-gradient-to-b from-forest/70 via-forest/40 to-forest/85" />
@@ -46,8 +51,8 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="font-display mt-6 max-w-3xl text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.05] text-white">
           
-          {t('hero.titleLine1')}
-          <span className="block text-gold">{t('hero.titleLine2')}</span>
+          {page?.h1 || t('hero.titleLine1')}
+          {!page?.h1 && <span className="block text-gold">{t('hero.titleLine2')}</span>}
         </motion.h1>
 
         <motion.div

@@ -1,5 +1,15 @@
 import i18n from 'i18next';
+import { pathLanguage } from './routing';
 import { initReactI18next } from 'react-i18next';
+import customerCopy from './customer-copy.json';
+
+function copyKey(text: string): string {
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index++) hash = Math.imul(hash ^ text.charCodeAt(index), 16777619);
+  return `text_${(hash >>> 0).toString(16)}`;
+}
+const copyResources = (language: SupportedLanguageCode) => Object.fromEntries(customerCopy.map(row => [copyKey(row[0]), row[['en', 'de', 'fr'].indexOf(language)]]));
+export const copy = (text: string, values: Record<string, string | number> = {}) => i18n.t(`copy.${copyKey(text)}`, { ...values, ns: 'common', defaultValue: text });
 
 import commonEn from './locales/en/common.json';
 import commonDe from './locales/de/common.json';
@@ -52,23 +62,17 @@ export const SUPPORTED_LANGUAGES = [
 
 export type SupportedLanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code'];
 
-const STORAGE_KEY = 'roxaval_lang';
+
 
 function detectInitialLanguage(): SupportedLanguageCode {
-  const stored = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null;
-  if (stored && SUPPORTED_LANGUAGES.some((l) => l.code === stored)) return stored as SupportedLanguageCode;
-
-  const browserLang = typeof navigator !== 'undefined' ? navigator.language.slice(0, 2).toLowerCase() : 'en';
-  if (SUPPORTED_LANGUAGES.some((l) => l.code === browserLang)) return browserLang as SupportedLanguageCode;
-
-  return 'en';
+  return (typeof window !== 'undefined' ? pathLanguage(window.location.pathname) : undefined) || 'en';
 }
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: commonEn, home: homeEn, packages: packagesEn, destinations: destinationsEn, activities: activitiesEn, auth: authEn, booking: bookingEn, dashboard: dashboardEn, quotation: quotationEn, blog: blogEn, reviews: reviewsEn, terms: termsEn, contact: contactEn, about: aboutEn },
-    de: { common: commonDe, home: homeDe, packages: packagesDe, destinations: destinationsDe, activities: activitiesDe, auth: authDe, booking: bookingDe, dashboard: dashboardDe, quotation: quotationDe, blog: blogDe, reviews: reviewsDe, terms: termsDe, contact: contactDe, about: aboutDe },
-    fr: { common: commonFr, home: homeFr, packages: packagesFr, destinations: destinationsFr, activities: activitiesFr, auth: authFr, booking: bookingFr, dashboard: dashboardFr, quotation: quotationFr, blog: blogFr, reviews: reviewsFr, terms: termsFr, contact: contactFr, about: aboutFr },
+    en: { common: { ...commonEn, copy: copyResources('en') }, home: homeEn, packages: packagesEn, destinations: destinationsEn, activities: activitiesEn, auth: authEn, booking: bookingEn, dashboard: dashboardEn, quotation: quotationEn, blog: blogEn, reviews: reviewsEn, terms: termsEn, contact: contactEn, about: aboutEn },
+    de: { common: { ...commonDe, copy: copyResources('de') }, home: homeDe, packages: packagesDe, destinations: destinationsDe, activities: activitiesDe, auth: authDe, booking: bookingDe, dashboard: dashboardDe, quotation: quotationDe, blog: blogDe, reviews: reviewsDe, terms: termsDe, contact: contactDe, about: aboutDe },
+    fr: { common: { ...commonFr, copy: copyResources('fr') }, home: homeFr, packages: packagesFr, destinations: destinationsFr, activities: activitiesFr, auth: authFr, booking: bookingFr, dashboard: dashboardFr, quotation: quotationFr, blog: blogFr, reviews: reviewsFr, terms: termsFr, contact: contactFr, about: aboutFr },
   },
   lng: detectInitialLanguage(),
   fallbackLng: 'en',
@@ -82,11 +86,9 @@ if (typeof document !== 'undefined') {
   document.documentElement.lang = i18n.language;
 }
 
-// Every language change instantly re-renders subscribed components (no
-// reload) via react-i18next; here we also persist the choice and keep
-// <html lang> in sync for accessibility/SEO.
+// URL routing owns preference persistence; keep the document language in sync.
 i18n.on('languageChanged', (lng) => {
-  if (typeof window !== 'undefined') window.localStorage.setItem(STORAGE_KEY, lng);
+
   if (typeof document !== 'undefined') document.documentElement.lang = lng;
 });
 

@@ -1,3 +1,5 @@
+import { copy } from '../i18n';
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -60,7 +62,7 @@ export function Destinations() {
               <span className="h-px w-8 bg-gold" />
               {t('eyebrow')}
             </span>
-            <h1 className="font-display mt-4 text-4xl font-semibold text-white sm:text-6xl">{t('title')}</h1>
+            <LocalizedHeading className="font-display mt-4 text-4xl font-semibold text-white sm:text-6xl">{t('title')}</LocalizedHeading>
             <p className="mt-4 text-base text-cream/85 sm:text-lg">{t('subtitle')}</p>
           </motion.div>
         </div>
@@ -72,7 +74,7 @@ export function Destinations() {
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder={t('searchPlaceholder')}
-          filters={[{ key: 'category', label: t('filters.categories'), options: CATEGORY_OPTIONS }]}
+          filters={[{ key: 'category', label: t('filters.categories'), options: CATEGORY_OPTIONS.map(option => ({ ...option, label: copy(option.label) })) }]}
           values={{ category }}
           onFilterChange={(key, value) => {
             if (key === 'category') setCategory(value);

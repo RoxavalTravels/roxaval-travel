@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
+import { copy } from '../../i18n';
 import { CheckIcon, PlusIcon, XIcon } from 'lucide-react';
 
 export interface AutocompleteOption {
@@ -83,15 +84,15 @@ export function AutocompleteTagInput({
           {selectedLabels.map((o) =>
         <span key={o.id} className="flex items-center gap-1.5 rounded-full bg-emerald/10 px-3 py-1.5 text-xs font-semibold text-emerald">
               {o.label}
-              <button type="button" onClick={() => removeSelected(o.id)} aria-label={`Remove ${o.label}`} className="text-emerald/60 hover:text-emerald">
+              <button type="button" onClick={() => removeSelected(o.id)} aria-label={copy('Remove {{name}}', { name: o.label })} className="text-emerald/60 hover:text-emerald">
                 <XIcon className="h-3 w-3" />
               </button>
             </span>
         )}
           {customValues.map((v) =>
         <span key={v} className="flex items-center gap-1.5 rounded-full border border-dashed border-gold bg-gold/10 px-3 py-1.5 text-xs font-semibold text-forest">
-              {v} <span className="text-[10px] uppercase text-forest/40">custom</span>
-              <button type="button" onClick={() => removeCustom(v)} aria-label={`Remove ${v}`} className="text-forest/40 hover:text-forest">
+              {v} <span className="text-[10px] uppercase text-forest/40">{copy('custom')}</span>
+              <button type="button" onClick={() => removeCustom(v)} aria-label={copy('Remove {{name}}', { name: v })} className="text-forest/40 hover:text-forest">
                 <XIcon className="h-3 w-3" />
               </button>
             </span>
@@ -109,7 +110,7 @@ export function AutocompleteTagInput({
           onBlur={() => {
             blurTimeout.current = setTimeout(() => setFocused(false), 150);
           }}
-          placeholder={placeholder}
+          placeholder={copy(placeholder)}
           className="w-full rounded-xl border border-forest/10 bg-cream/50 px-4 py-3 outline-none focus:border-emerald focus:ring-1 focus:ring-emerald" />
 
 
@@ -133,7 +134,7 @@ export function AutocompleteTagInput({
             onClick={addCustom}
             className="flex w-full items-center gap-2 border-t border-forest/5 px-4 py-2.5 text-left text-sm font-semibold text-emerald hover:bg-cream">
 
-                <PlusIcon className="h-3.5 w-3.5" /> Add "{query.trim()}" as a custom entry
+                <PlusIcon className="h-3.5 w-3.5" /> {copy('Add {{name}} as a custom entry', { name: query.trim() })}
               </button>
           }
           </div>

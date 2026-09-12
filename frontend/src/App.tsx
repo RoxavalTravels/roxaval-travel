@@ -1,6 +1,8 @@
 
+import { LanguageRouter } from './i18n/LanguageRouter';
+const AdminTranslations = lazy(() => import('./admin/pages/settings/Translations').then(m => ({ default: m.AdminTranslations })));
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
@@ -99,7 +101,7 @@ export function App() {
   const { i18n } = useTranslation();
   return (
     <HelmetProvider>
-    <BrowserRouter>
+    <LanguageRouter>
       <AuthProvider>
       <ToastProvider>
         <ScrollToTop />
@@ -128,6 +130,7 @@ export function App() {
           <Route path="/terms" element={<TermsConditions />} />
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
           <Route path="/account-settings" element={<RequireAuth><Placeholder title="Account Settings" /></RequireAuth>} />
+          <Route path="*" element={<div className="min-h-screen pt-32 text-center text-forest"><h1 className="text-3xl">404</h1><a href="/" className="mt-6 inline-block underline">Roxaval Travels</a></div>} />
         </Route>
 
         <Route path="/my-tours/requests/:id/quotation" element={<RequireAuth><QuotationPreview /></RequireAuth>} />
@@ -185,6 +188,7 @@ export function App() {
             <Route path="blog/new" element={<AdminBlogForm />} />
             <Route path="blog/:id/edit" element={<AdminBlogForm />} />
 
+            <Route path="translations" element={<AdminTranslations />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="profile" element={<AdminProfile />} />
 
@@ -205,7 +209,7 @@ export function App() {
         </Suspense>
       </ToastProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </LanguageRouter>
     </HelmetProvider>);
 
 }

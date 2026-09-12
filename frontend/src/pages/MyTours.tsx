@@ -1,3 +1,5 @@
+import { copy } from '../i18n';
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -411,7 +413,7 @@ function BookingsTab({ initialSelectedId }: {initialSelectedId?: string;}) {
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
               <p className="flex items-center gap-1.5 text-forest/70"><CalendarIcon className="h-4 w-4" /> {formatDate(selected.travelDate)}</p>
-              <p className="flex items-center gap-1.5 text-forest/70"><UsersIcon className="h-4 w-4" /> {selected.travelers.adults} Adults, {selected.travelers.children} Children</p>
+              <p className="flex items-center gap-1.5 text-forest/70"><UsersIcon className="h-4 w-4" /> {selected.travelers.adults} Adults, {selected.travelers.children} {copy("Children")}</p>
             </div>
             {selected.specialRequests && <p className="mt-3 text-sm text-forest/60">{selected.specialRequests}</p>}
 
@@ -576,7 +578,7 @@ function RequestsTab({ initialSelectedId, onBookingCreated }: {initialSelectedId
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2 text-sm">
               <p className="flex items-center gap-1.5 text-forest/70"><CalendarIcon className="h-4 w-4" /> {formatDate(selected.travelDates.startDate)} – {formatDate(selected.travelDates.endDate)}</p>
-              <p className="flex items-center gap-1.5 text-forest/70"><UsersIcon className="h-4 w-4" /> {selected.travelers.adults} Adults, {selected.travelers.children} Children</p>
+              <p className="flex items-center gap-1.5 text-forest/70"><UsersIcon className="h-4 w-4" /> {selected.travelers.adults} Adults, {selected.travelers.children} {copy("Children")}</p>
               <p className="text-forest/70">Hotel: {selected.hotelCategory}</p>
               <p className="text-forest/70">Style: {selected.travelStyle}</p>
             </div>
@@ -786,7 +788,7 @@ export function MyTours() {
       <Seo title="My Tours | Roxaval Travels" description="Manage your Sri Lanka tour bookings, quotations and requests with Roxaval Travels." noindex />
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <BackButton className="mb-6" />
-        <h1 className="font-display text-3xl font-semibold text-forest sm:text-4xl">{t('myTours.title')}</h1>
+        <LocalizedHeading className="font-display text-3xl font-semibold text-forest sm:text-4xl">{t('myTours.title')}</LocalizedHeading>
         <p className="mt-2 text-forest/60">{t('myTours.subtitle')}</p>
 
         <div className="mt-8"><CustomerDashboardSummary /></div>

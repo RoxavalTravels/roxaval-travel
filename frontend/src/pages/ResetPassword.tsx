@@ -1,3 +1,4 @@
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -52,7 +53,7 @@ export function ResetPassword() {
 
         <BackButton className="mb-5" />
 
-        <h1 className="font-display text-2xl font-semibold text-forest">{t('reset.title')}</h1>
+        <LocalizedHeading className="font-display text-2xl font-semibold text-forest">{t('reset.title')}</LocalizedHeading>
         <p className="mt-1.5 text-sm text-forest/55">{t('reset.subtitle')}</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">

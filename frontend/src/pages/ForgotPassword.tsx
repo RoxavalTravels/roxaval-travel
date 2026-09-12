@@ -1,3 +1,4 @@
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -43,7 +44,7 @@ export function ForgotPassword() {
           <ArrowLeftIcon className="h-3.5 w-3.5" /> {t('forgot.backToSignIn')}
         </Link>
 
-        <h1 className="font-display mt-5 text-2xl font-semibold text-forest">{t('forgot.title')}</h1>
+        <LocalizedHeading className="font-display mt-5 text-2xl font-semibold text-forest">{t('forgot.title')}</LocalizedHeading>
         <p className="mt-1.5 text-sm text-forest/55">{t('forgot.subtitle')}</p>
 
         {sent ?
