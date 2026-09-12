@@ -1,6 +1,18 @@
 # Roxaval multilingual release
 
-This release targets the existing React frontend and **Laravel backend-php** installation. The older Node backend is not used by this release. No live server or live database has been changed from this workspace.
+This release targets the existing React frontend and **Laravel backend-php** installation. The older Node backend is not used by this release. Deployed to production on 12 September 2026.
+
+## Production deployment record
+
+- Frontend: `/home2/zlwoctte/www.roxavaltravels.com` (the domain's verified document root).
+- Laravel: `/home2/zlwoctte/public_html/website_91fe39e6/roxaval-backend-php`.
+- Full pre-deployment frontend and backend archives and MySQL dump are preserved outside the public roots in `/home2/zlwoctte/roxaval-release-20260912`, with restricted permissions. Existing frontend assets, uploads, vendor and server credentials were preserved.
+- Live database authentication passed; the earlier MySQL 1045 log entry was no longer reproducible. No credential changes were needed. The additive translation migration and `optimize:clear` completed using `/opt/cpanel/ea-php83/root/usr/bin/php`.
+- Merged the PHP gateway routing into the existing frontend `.htaccess`, retaining its cache rules and setting the verified Laravel path.
+- Live HTTP checks passed for EN/DE/FR home pages, the German tours listing, admin login, translations API and sitemap. Legacy `/packages` returns 301 to `/en/sri-lanka-tours/`; an unknown page returns 404. Initial HTML contains translated metadata, one self-canonical and four language alternates; admin login is noindex.
+- Live Chromium checks passed for first-visit popup, saved preference, a French direct advertising URL overriding a stored German preference, switching to the equivalent German listing with the query string retained, and the 375px mobile popup. No browser runtime errors occurred in these flows.
+- Live testing found and corrected metadata replacement matching an example `<title>` inside an HTML comment, which had hidden the entry script from the browser. The controller now removes comments before replacing metadata; a DOM regression check verifies that the module script and application root remain actual elements. The local Laravel suite passed with 14 tests / 274 assertions after this correction.
+- Existing production catalog translations are retained. Client review of German/French copy and configuration of the actual 14-day package's editorial slugs remain content-management tasks before launching ads to those example URLs. Authenticated admin edits and real enquiry submissions were tested locally, not submitted against production.
 
 ## Preserve and deploy
 
