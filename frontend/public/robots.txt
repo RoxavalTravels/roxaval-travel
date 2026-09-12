@@ -9,4 +9,4 @@ Disallow: /auth
 Disallow: /reset-password
 Disallow: /search
 
-Sitemap: https://api.roxavaltravels.com/sitemap.xml
+Sitemap: https://www.roxavaltravels.com/sitemap.xml

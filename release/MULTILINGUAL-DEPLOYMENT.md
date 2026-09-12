@@ -2,6 +2,8 @@
 
 This release targets the existing React frontend and **Laravel backend-php** installation. The older Node backend is not used by this release. Deployed to production on 12 September 2026.
 
+The later SEO release supersedes the frontend/backend patch files where they overlap. See [SEO-DEPLOYMENT.md](SEO-DEPLOYMENT.md) for current archives, the main-host sitemap, metadata improvements and the 438-page live audit.
+
 ## Production deployment record
 
 - Frontend: `/home2/zlwoctte/www.roxavaltravels.com` (the domain's verified document root).

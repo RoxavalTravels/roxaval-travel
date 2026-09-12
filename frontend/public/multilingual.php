@@ -8,6 +8,7 @@ if (!is_file($backend.'/vendor/autoload.php')) {
 define('ROXAVAL_FRONTEND_INDEX', __DIR__.'/index.html');
 require $backend.'/vendor/autoload.php';
 $app = require $backend.'/bootstrap/app.php';
-$uri = '/website'.($_SERVER['REQUEST_URI'] ?? '/');
+$incoming = $_SERVER['REQUEST_URI'] ?? '/';
+$uri = parse_url($incoming, PHP_URL_PATH) === '/sitemap.xml' ? $incoming : '/website'.$incoming;
 $request = Illuminate\Http\Request::create($uri, 'GET', [], $_COOKIE, [], $_SERVER);
 $app->handleRequest($request);

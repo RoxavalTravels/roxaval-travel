@@ -4,6 +4,7 @@ export interface PageTranslation {
   pageKey: string; locale: Language; slug: string; metaTitle?: string;
   metaDescription?: string; h1?: string; imageAlt?: string;
   socialTitle?: string; socialDescription?: string; messages?: Record<string, Record<string, unknown>>;
+  structuredData?: object;
 }
 export let translations: PageTranslation[] = [];
 export function setTranslations(rows: PageTranslation[]) { translations = rows; }

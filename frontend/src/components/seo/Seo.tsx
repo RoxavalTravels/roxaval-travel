@@ -29,7 +29,7 @@ export function Seo({ title, description, keywords, image, type = 'website', noi
   const socialDescription = page?.socialDescription || description;
   const canonical = absoluteUrl(localizedPath(canonicalPath || location.pathname, locale));
   const ogImage = absoluteImage(image);
-  const jsonLdList = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+  const jsonLdList = [...(page?.structuredData ? [page.structuredData] : []), ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [])];
 
   return (
     <Helmet>
@@ -37,7 +37,7 @@ export function Seo({ title, description, keywords, image, type = 'website', noi
       <title>{title}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
-      <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
+      <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'} />
       <link rel="canonical" href={canonical} />
       {!noindex && languages.filter(language => pageTranslation(location.pathname, language)).map(language => <link key={language} rel="alternate" hrefLang={language} href={absoluteUrl(localizedPath(location.pathname, language))} />)}
       {!noindex && page && <link rel="alternate" hrefLang="x-default" href={absoluteUrl(localizedPath(location.pathname, 'en'))} />}
