@@ -26,6 +26,11 @@ const server = http.createServer((req,res) => {
       const url = new URL(route.request().url());
       if (url.pathname.includes('/api/v1/')) {
         const apiPath = url.pathname.split('/api/v1')[1];
+        if (apiPath === '/hotels/admin/all') {
+          const current = Number(url.searchParams.get('page') || 1);
+          const hotels = Array.from({length:181}, (_, i) => ({_id:String(i+1), name:`Hotel ${i+1}`,status:i===180?'inactive':'active'}));
+          return route.fulfill({contentType:'application/json',body:JSON.stringify({success:true,data:hotels.slice((current-1)*100,current*100),meta:{total:181,page:current,limit:100,totalPages:2}})});
+        }
         if (apiPath === '/auth/me' && signedIn) return route.fulfill({contentType:'application/json',body:JSON.stringify({success:true,data:{user:{_id:'1',fullName:'Test Admin',email:'admin@example.test',role:'superadmin'}}})});
         if (apiPath === '/custom-tours' && route.request().method() === 'POST') inquiry = route.request().postDataJSON();
         if (apiPath === '/translations/pages' && route.request().method() === 'PATCH') {
@@ -40,6 +45,13 @@ const server = http.createServer((req,res) => {
     });
     const page = await context.newPage();
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    await page.goto('http://127.0.0.1:4179/de/sri-lanka-rundreise-14-tage/?gclid=first-ad#details');
+    await page.locator('dialog[open]').waitFor();
+    await page.getByRole('heading',{name:'Heading de'}).waitFor();
+    await page.getByRole('link',{name:'English',exact:true}).click();
+    await page.waitForURL('**/en/sri-lanka-tour-14-days/?gclid=first-ad#details');
+    assert.equal(await page.locator('dialog[open]').count(),0);
+    await page.evaluate(()=>localStorage.clear());
     await page.goto('http://127.0.0.1:4179/');
     await page.locator('dialog[open]').waitFor();
     await page.getByRole('link',{name:'Deutsch',exact:true}).click();
@@ -90,6 +102,12 @@ const server = http.createServer((req,res) => {
     await page.getByRole('button',{name:'Deutsch',exact:true}).click();
     await page.waitForURL('**/de/');
     signedIn = true;
+    await page.goto('http://127.0.0.1:4179/admin/packages/new');
+    await page.getByText('Hotel 181 (inactive)',{exact:true}).first().waitFor();
+    assert.equal(await page.getByText('Hotel 101',{exact:true}).count()>0,true);
+    await page.goto('http://127.0.0.1:4179/admin/custom-requests/new');
+    await page.locator('option[value="Solo"]').waitFor({state:'attached'});
+    for (const style of ['Solo','Discovery','Romantic','Wildlife','Nature','Wellness','Scenic']) assert.ok(await page.locator(`option[value="${style}"]`).count());
     await page.setViewportSize({width:1440,height:1000});
     await page.goto('http://127.0.0.1:4179/de/sri-lanka-rundreisen/#custom-tour');
     const wizard = page.locator('#custom-tour');
@@ -118,6 +136,7 @@ const server = http.createServer((req,res) => {
     await page.locator('dialog[open]').waitFor();
     await page.getByRole('link',{name:'English',exact:true}).click();
     await page.waitForURL('**/en/');
+    assert.equal(await page.locator('dialog[open]').count(),0);
     assert.deepEqual(errors,[]);
     console.log('Passed: preference and storage denial, direct ads URLs, equivalent tour slugs, H1/alt/SEO, desktop/mobile switching, navigation/back, responsive modal, German enquiry submission with unchanged API enums, admin SEO save; no browser errors.');
   } finally { await browser.close(); server.close(); }

@@ -3,7 +3,7 @@ import { Router, createPath, parsePath } from 'react-router-dom';
 import type { Navigator, To } from 'react-router-dom';
 import i18n from './index';
 import { apiGetOne } from '../lib/api';
-import { internalPath, localizedPath, pathLanguage, rememberedLanguage, rememberLanguage, setTranslations, PageTranslation } from './routing';
+import { internalPath, localizedPath, pathLanguage, rememberedLanguage, setTranslations, PageTranslation } from './routing';
 
 // Keep existing route identities stable while emitting real localized hrefs.
 // Every Link, NavLink and navigate() uses this navigator, including forms.
@@ -42,7 +42,6 @@ export function LanguageRouter({ children }: { children: React.ReactNode }) {
   const pathname = window.location.pathname;
   const locale = pathLanguage(pathname) || 'en';
   useLayoutEffect(() => {
-    if (pathLanguage(pathname)) rememberLanguage(locale);
     void i18n.changeLanguage(locale);
   }, [locale, pathname]);
   useEffect(() => {

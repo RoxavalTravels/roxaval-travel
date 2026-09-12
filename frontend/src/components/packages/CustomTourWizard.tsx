@@ -30,7 +30,7 @@ const HOTEL_CATEGORIES = [
   { label: '5 Star', value: 'Luxury' }
 ];
 const MEAL_PREFERENCES = ['Breakfast Only', 'Half Board', 'Full Board', 'All Inclusive', 'Vegetarian', 'Vegan', 'Halal', 'No Preference'];
-const TRAVEL_STYLES = ['Relaxed', 'Adventure', 'Cultural', 'Luxury', 'Family', 'Honeymoon', 'Backpacking', 'Solo', 'Heritage', 'Discovery', 'Beach'];
+import { TRAVEL_STYLES } from '../../lib/travelStyles';
 const TRANSPORT_OPTIONS = ['Private Car', 'Van', 'SUV', 'Minibus', 'No Preference'];
 const ROOM_TYPE_OPTIONS = ['No Preference', 'Single', 'Double', 'Twin', 'Triple', 'Family / Quad', 'Suite'];
 const SIGHTSEEING_PREFERENCE_OPTIONS = ['Include', 'Exclude', 'No Preference'];

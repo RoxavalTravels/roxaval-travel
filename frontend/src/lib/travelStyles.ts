@@ -1,0 +1,1 @@
+export const TRAVEL_STYLES = ['Relaxed', 'Adventure', 'Cultural', 'Luxury', 'Family', 'Honeymoon', 'Backpacking', 'Solo', 'Heritage', 'Discovery', 'Beach', 'Romantic', 'Wildlife', 'Nature', 'Wellness', 'Scenic'];

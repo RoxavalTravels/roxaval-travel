@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LanguageFlag } from './LanguageFlag';
-import { languages, localizedPath, rememberLanguage, rememberedLanguage } from '../../i18n/routing';
+import { languages, localizedPath, internalPath, rememberLanguage, rememberedLanguage } from '../../i18n/routing';
 
 export function LanguageWelcome() {
   const dialog = useRef<HTMLDialogElement>(null);
-  const show = window.location.pathname === '/' && !rememberedLanguage();
+  const navigate = useNavigate();
+  const pageKey = internalPath(window.location.pathname);
+  const show = !/^\/(admin|auth|reset-password|my-tours|profile|notifications|account-settings)(\/|$)/.test(pageKey) && !rememberedLanguage();
   useEffect(() => {
     if (!show) return;
     dialog.current?.showModal();
@@ -18,6 +21,6 @@ export function LanguageWelcome() {
     <img src="/roxaval-logo.png" alt="Roxaval Travels" className="mx-auto mb-6 h-20 object-contain" />
     <h2 id="language-welcome" className="font-display text-3xl">Welcome to Roxaval Travels</h2>
     <p id="language-instruction" className="mt-3 mb-6 text-forest/70">Select your language</p>
-    <div className="space-y-3">{languages.map(language => <a key={language} lang={language} href={localizedPath('/', language) + window.location.search + window.location.hash} onClick={() => rememberLanguage(language)} className="flex items-center justify-center gap-3 rounded-xl border border-forest/20 bg-white px-6 py-4 font-semibold transition hover:bg-forest hover:text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"><LanguageFlag language={language} />{labels[language]}</a>)}</div>
+    <div className="space-y-3">{languages.map(language => <a key={language} lang={language} href={localizedPath(pageKey, language) + window.location.search + window.location.hash} onClick={event => { event.preventDefault(); rememberLanguage(language); navigate(localizedPath(pageKey, language) + window.location.search + window.location.hash); }} className="flex items-center justify-center gap-3 rounded-xl border border-forest/20 bg-white px-6 py-4 font-semibold transition hover:bg-forest hover:text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"><LanguageFlag language={language} />{labels[language]}</a>)}</div>
   </dialog>;
 }

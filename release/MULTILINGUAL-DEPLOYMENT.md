@@ -16,6 +16,18 @@ This release targets the existing React frontend and **Laravel backend-php** ins
 
 ## Preserve and deploy
 
+Follow-up release on 12 September: `frontend-followup-20260912.zip` supersedes the original frontend archive. Deploy migration `2026_09_12_000002_expand_custom_tour_travel_styles.php` before that frontend. This expands the existing travel-style enum without replacing saved requests. Pre-follow-up backups are `frontend-before-followup.tar.gz` and `database-before-followup.sql` in the same private server release directory.
+
+The follow-up prompts first-time visitors on public landing pages, including language-prefixed ad URLs. Selecting a language retains the equivalent page, query parameters and fragment. Only an explicit choice stores a preference; visiting a language URL no longer overwrites it. Visitors with an existing preference see no prompt, and explicit language URLs continue to take priority. When storage is blocked, an in-memory preference supports navigation during the current page session.
+
+Package hotel selectors and the custom-itinerary hotel picker follow every API page using the authenticated admin catalog. Package selectors mark inactive hotels. Hotel-picker filters still apply; hotels without room types are shown with an instruction to configure rooms. Custom-tour travel styles now include Romantic, Wildlife, Nature, Wellness and Scenic alongside existing Solo, Discovery and other choices.
+
+Live hotel audit: 181 hotels (180 active, 1 inactive), 682 room types. Every hotel has an English name, destination and room types. Seven hotels have no images. This verifies record completeness for those fields, not the accuracy of rates, contact details or actual room availability. No hotel records were modified.
+
+Follow-up local checks: production build and TypeScript check passed; Laravel 14 tests / 284 assertions passed, including saving the new styles. Chromium regression checks include first-time ad arrivals preserving the package and tracking parameters, all 181 paginated hotel options, new travel-style options, blocked storage and the existing multilingual flows.
+
+Follow-up production verification passed on an actual catalog package: first-time German ad arrival displayed the prompt over the package, choosing English retained the equivalent package plus `gclid` and fragment, returning home used the saved English preference, and a direct French URL displayed French without a prompt or changing that saved preference. No browser runtime errors occurred. The live enum contains all 16 styles; hotel counts and room counts remain unchanged.
+
 1. Back up the live frontend, Laravel files, existing `.htaccess`, uploads and MySQL database in cPanel, outside the public document root. Local Git source snapshots are in `backups/before-multilingual-20260912.zip` and `backups/backend-before-multilingual-20260912.zip`; these are not backups of production data or credentials.
 2. Resolve the existing MySQL `1045 Access denied` error before rollout. Verify the database name, full cPanel database username, password and user assignment against the hosting control panel. Update the **server's** Laravel `.env`, then run `php artisan config:clear`. A local frontend change cannot repair those hosting credentials.
 3. Extract `backend-multilingual-20260912.zip` into the Laravel application root containing `artisan`, preserving `.env`, `vendor`, storage and uploads. Run `php artisan migrate --force` and `php artisan optimize:clear` with the host's PHP 8.3+ executable. The migration only adds three translation tables; it does not alter existing catalog data.
@@ -46,7 +58,7 @@ The language switcher then connects those exact pages. No fictitious tour or pro
 
 ## URL behavior
 
-- First unprefixed home visit shows the branded, keyboard-accessible language dialog. Preference uses local storage with a safe fallback when storage is blocked.
+- First public-page visit shows the branded, keyboard-accessible language dialog, including direct ad landing pages. Preference uses local storage with an in-memory fallback when storage is blocked.
 - Only `/` redirects according to saved preference. A direct language URL always wins, including Google Ads links. Language changes preserve query parameters and fragments.
 - Existing unprefixed English page URLs return 301 to the equivalent `/en/` URL through the PHP gateway. The original English static meta titles/descriptions were retained.
 - Changing an editorial slug saves its previous URL as a permanent redirect. Catalog title edits no longer regenerate catalog slugs. Do not rename internal catalog slugs directly in the database, as translation identities reference them.

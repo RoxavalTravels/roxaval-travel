@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CalendarIcon, Loader2Icon, SearchIcon, TriangleAlertIcon } from 'lucide-react';
-import { apiGetList } from '../../../lib/api';
+import { apiGetAll } from '../../../lib/api';
 import { formatDate } from '../../../lib/date';
 import { Modal } from '../Modal';
 
@@ -112,15 +112,18 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
 
   useEffect(() => {
     if (!open) return;
+    let active = true;
     setLoading(true);
-    const params: Record<string, string | number | undefined> = { limit: 50 };
+    const params: Record<string, string | number | undefined> = { sort: 'id' };
     if (destination) params.destination = destination;
     if (starRating) params.starRating = starRating;
     if (mealPlan) params['roomTypes.mealPlan'] = mealPlan;
     if (search) params.q = search;
-    apiGetList<HotelRow>('/hotels', params).
-    then(({ data }) => setHotels(data)).
-    finally(() => setLoading(false));
+    apiGetAll<HotelRow>('/hotels/admin/all', params).
+    then(({ data }) => { if (active) setHotels(data); }).
+    catch(() => { if (active) setHotels([]); }).
+    finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [open, destination, starRating, mealPlan, search]);
 
   const selectRoomType = (hotel: HotelRow, rt: RoomTypeRow) => {
@@ -196,6 +199,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
               </tr>
             </thead>
             <tbody>
+              {hotels.filter(h => !h.roomTypes.length).map(h => <tr key={h._id} className="border-t border-forest/5"><td className="p-2">{h.name}</td><td colSpan={9} className="p-2 text-forest/60">Add room types in Hotels before selecting this hotel for a quotation.</td></tr>)}
               {hotels.flatMap((h) =>
             (h.roomTypes.length ? h.roomTypes : []).map((rt) => {
               const rowRate = resolveRate(rt, travelDate);

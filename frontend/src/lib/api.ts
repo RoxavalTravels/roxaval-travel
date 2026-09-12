@@ -135,6 +135,19 @@ export function apiGetOne<T>(path: string, params?: QueryParams): Promise<T> {
   return request<T>(path, { params }).then((r) => r.data);
 }
 
+// Selectors must follow pagination instead of silently omitting later records.
+export async function apiGetAll<T>(path: string, params?: QueryParams): Promise<{ data: T[] }> {
+  const data: T[] = [];
+  let page = 1;
+  while (true) {
+    const result = await apiGetList<T>(path, { ...params, limit: 100, page });
+    data.push(...result.data);
+    if (!result.meta || page >= result.meta.totalPages || result.data.length === 0) break;
+    page++;
+  }
+  return { data };
+}
+
 export function apiPost<T>(path: string, body?: unknown): Promise<T> {
   return request<T>(path, { method: 'POST', body }).then((r) => r.data);
 }

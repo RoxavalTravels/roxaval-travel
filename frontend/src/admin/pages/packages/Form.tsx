@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader2Icon, SaveIcon, TrashIcon } from 'lucide-react';
-import { apiGetList, apiGetOne, apiPatch, apiPost, ApiRequestError } from '../../../lib/api';
+import { apiGetAll, apiGetList, apiGetOne, apiPatch, apiPost, ApiRequestError } from '../../../lib/api';
 import { useToast } from '../../components/ToastProvider';
 import { PageHeader } from '../../components/PageHeader';
 import {
@@ -122,11 +122,11 @@ export function AdminPackageForm() {
     Promise.all([
     apiGetList<{ _id: string; name: string }>('/destinations', { limit: 100 }),
     apiGetList<{ _id: string; name: string }>('/activities', { limit: 100 }),
-    apiGetList<{ _id: string; name: string }>('/hotels', { limit: 100 })]
+    apiGetAll<{ _id: string; name: string; status: string }>('/hotels/admin/all', { sort: 'id' })]
     ).then(([d, a, h]) => {
       setDestOptions(d.data.map((x) => ({ value: x._id, label: x.name })));
       setActivityOptions(a.data.map((x) => ({ value: x._id, label: x.name })));
-      setHotelOptions(h.data.map((x) => ({ value: x._id, label: x.name })));
+      setHotelOptions(h.data.map((x) => ({ value: x._id, label: x.name + (x.status === 'inactive' ? ' (inactive)' : '') })));
     });
   }, []);
 

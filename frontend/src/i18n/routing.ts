@@ -9,10 +9,12 @@ export let translations: PageTranslation[] = [];
 export function setTranslations(rows: PageTranslation[]) { translations = rows; }
 export const cleanPath = (path: string) => '/' + path.split('/').filter(Boolean).join('/');
 export const pathLanguage = (path: string): Language | undefined => languages.find(l => path === `/${l}` || path.startsWith(`/${l}/`));
+let sessionLanguage: Language | undefined;
 export function rememberedLanguage(): Language | undefined {
-  try { const value = localStorage.getItem('roxaval_lang'); return languages.find(l => l === value); } catch { return undefined; }
+  try { const value = localStorage.getItem('roxaval_lang'); return languages.find(l => l === value) || sessionLanguage; } catch { return sessionLanguage; }
 }
 export function rememberLanguage(language: Language) {
+  sessionLanguage = language;
   try { localStorage.setItem('roxaval_lang', language); } catch { /* Browsing works when storage is blocked. */ }
 }
 export const defaultSlugs: Record<string, Record<Language, string>> = {
