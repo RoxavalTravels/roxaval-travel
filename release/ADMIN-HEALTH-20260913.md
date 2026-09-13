@@ -34,8 +34,14 @@ Provisional health rating: **7/10**. This is an engineering assessment of observ
 
 ## Deployment status
 
-**This audit's code fixes are not live.** The reviewable build is `frontend-admin-health-20260913.zip`; it also includes the previously prepared empty-package-image placeholder. No backend source changes or database migration are needed for this batch.
+**Deployed on 13 September 2026 after explicit user approval.** The exact tested build was `frontend-admin-health-20260913.zip`, including the empty-package-image placeholder. No backend files or database records were modified by the deployment.
 
-The earlier automatic approval review rejected full frontend replacement under the health-check scope. Explicit deployment approval is pending. After approval, preserve the current live frontend outside the document root, extract with `umask 022`, retain old hashed assets, verify static files are readable (0644), and retest public images and admin login. Do not change private backup or credential permissions.
+Complete pre-deployment backup: `/home2/zlwoctte/roxaval-admin-health-20260913/frontend-before.tar.gz` (113 MB, private 0600 permissions). Gzip integrity, archive listing, and a full `tar --compare` against the still-current frontend passed before deployment. Backup SHA-256: `371b11ef24b456d03ab0df67f0f53c5f0e22f23a48a88cb8e4fe19772082c98d`.
+
+Release SHA-256 verified on the server: `205cbf1f9aab23c093b03ad5cf1685a4ac9ab69eddd1a66c87b1fecdc8442858`. Extraction used `umask 022`, retained old hashed assets, and set the new public entry files and assets to 0644. The existing hosting rules were preserved. Rollback is restoration of the complete frontend backup; no database/backend rollback is needed.
+
+The host temporarily refused SSH with “Not allowed at this time”; deployment succeeded after a cooldown. Backup download attempts also failed, so no local downloaded copy is claimed. Full readability and consistency of the server backup were verified before deployment.
+
+Post-deployment checks passed: the exact tested JavaScript bundle is served; new JS/CSS, representative photos, placeholder SVG and sitemap return HTTP 200. EN/DE/FR home pages (including a 375px mobile viewport), the English tour listing and admin login rendered with no broken images or JavaScript runtime errors in the checks. Admin login required-field validation, password visibility toggle and forgot-password link worked; unauthenticated dashboard navigation redirected to admin login. No real credentials were submitted, so successful authenticated admin login is not asserted. Existing external-image and live-integration limitations above remain; no new issue was found in these post-deployment flows.
 
 GitHub authentication was unresolved in the preceding tasks; local commits must not be mistaken for a completed push.
