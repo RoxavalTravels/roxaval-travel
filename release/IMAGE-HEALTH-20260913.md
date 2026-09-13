@@ -2,7 +2,7 @@
 
 The recent deployment left 82 public assets with restrictive permissions. Apache returned HTTP 403 for those images. Their permissions were corrected to 0644 on the live frontend; no database photos were replaced and no private files were changed.
 
-The published “Sri Lanka Discovery Tour - 15 Days” record (ID 30) has an empty hero image and gallery. Package cards and detail pages now show a neutral branded placeholder when both are missing. The real package photo must still be uploaded in the admin editor.
+The published “Sri Lanka Discovery Tour - 15 Days” record (ID 30) has an empty hero image and gallery. A neutral branded placeholder for package cards and detail pages is implemented and built locally but is NOT deployed: automatic approval review rejected the full frontend deployment as broader than the health-check request. The real package photo must still be uploaded in the admin editor. Live changes in this task are limited to the successful public-asset permission repair.
 
 Checks:
 
