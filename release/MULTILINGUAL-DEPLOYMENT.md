@@ -18,6 +18,8 @@ The later SEO release supersedes the frontend/backend patch files where they ove
 
 ## Preserve and deploy
 
+**Public asset permissions:** use `umask 077` only while creating private backups. Set `umask 022` before extracting into the public frontend root. Public image/CSS/JS/font files must be readable by Apache (0644), and their directories traversable (0755). On 13 September, 82 public assets were repaired after restrictive permissions caused image HTTP 403 responses. Do not apply public permissions to `.env`, private backups or other credential files. After each deployment, check image HTTP responses and fully rendered home/tour pages, not only page HTML.
+
 Follow-up release on 12 September: `frontend-followup-20260912.zip` supersedes the original frontend archive. Deploy migration `2026_09_12_000002_expand_custom_tour_travel_styles.php` before that frontend. This expands the existing travel-style enum without replacing saved requests. Pre-follow-up backups are `frontend-before-followup.tar.gz` and `database-before-followup.sql` in the same private server release directory.
 
 The follow-up prompts first-time visitors on public landing pages, including language-prefixed ad URLs. Selecting a language retains the equivalent page, query parameters and fragment. Only an explicit choice stores a preference; visiting a language URL no longer overwrites it. Visitors with an existing preference see no prompt, and explicit language URLs continue to take priority. When storage is blocked, an in-memory preference supports navigation during the current page session.

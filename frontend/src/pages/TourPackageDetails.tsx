@@ -114,7 +114,7 @@ export function TourPackageDetails() {
 
       {/* Hero */}
       <section className="relative h-[65vh] min-h-[460px] w-full overflow-hidden">
-        <LocalizedImage src={pkg.heroImage} alt={pkg.name} className="absolute inset-0 h-full w-full object-cover" />
+        <LocalizedImage src={pkg.heroImage || pkg.gallery?.[0] || '/image-unavailable.svg'} alt={pkg.name} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/40 to-forest/10" />
         <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-4 py-6 sm:px-6 lg:px-8">
           <BreadcrumbBackRow breadcrumbs={[{ label: t('breadcrumb.home'), href: '/' }, { label: t('breadcrumb.packages'), href: '/packages' }, { label: pkg.name }]} />
