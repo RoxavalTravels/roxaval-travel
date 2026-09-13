@@ -66,8 +66,12 @@ export function AdminDashboard() {
   const [bookingsByStatus, setBookingsByStatus] = useState<Record<string, number>>({});
   const [counts, setCounts] = useState({ packages: 0, destinations: 0, activities: 0, hotels: 0 });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setError(false);
     const to = new Date();
     const from = new Date();
     from.setDate(from.getDate() - 30);
@@ -77,10 +81,10 @@ export function AdminDashboard() {
     apiGetOne<DashboardStats>('/reports/dashboard'),
     apiGetOne<RevenuePoint[]>('/reports/revenue', range).catch(() => []),
     apiGetOne<BookingsByStatus[]>('/reports/bookings', range).catch(() => []),
-    apiGetList('/packages', { limit: 1 }),
-    apiGetList('/destinations', { limit: 1 }),
-    apiGetList('/activities', { limit: 1 }),
-    apiGetList('/hotels', { limit: 1 })]
+    apiGetList('/packages/admin/all', { limit: 1 }),
+    apiGetList('/destinations/admin/all', { limit: 1 }),
+    apiGetList('/activities/admin/all', { limit: 1 }),
+    apiGetList('/hotels/admin/all', { limit: 1 })]
     ).
     then(([dashStats, revenueData, bookingsData, pkgs, dests, acts, hotels]) => {
       setStats(dashStats);
@@ -97,8 +101,11 @@ export function AdminDashboard() {
         hotels: hotels.meta.total
       });
     }).
+    catch(() => setError(true)).
     finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
+
+  if (error && !loading) return <div role="alert" className="rounded-2xl bg-white p-6 text-forest">Unable to load the dashboard.<button type="button" onClick={() => setAttempt(value => value + 1)} className="ml-3 rounded-full bg-forest px-5 py-2 text-white">Try again</button></div>;
 
   if (loading || !stats) {
     return <div className="grid h-64 place-items-center text-forest/40">Loading dashboard…</div>;

@@ -79,12 +79,6 @@ const AdminNotifications = lazy(() => import('./admin/pages/notifications/Notifi
 const AdminContactList = lazy(() => import('./admin/pages/contact/List').then((m) => ({ default: m.AdminContactList })));
 const AdminBirthdaysList = lazy(() => import('./admin/pages/birthdays/List').then((m) => ({ default: m.AdminBirthdaysList })));
 
-// Placeholders for other pages to ensure routing works
-const Placeholder = ({ title }: {title: string;}) =>
-<div className="min-h-screen pt-32 pb-20 flex items-center justify-center bg-cream">
-    <h1 className="text-4xl font-display text-forest">{title} Page Coming Soon</h1>
-  </div>;
-
 const RouteFallback = () =>
 <div className="grid min-h-screen place-items-center bg-cream">
     <div className="h-8 w-8 animate-spin rounded-full border-2 border-forest/20 border-t-forest" />
@@ -129,7 +123,7 @@ export function App() {
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/terms" element={<TermsConditions />} />
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-          <Route path="/account-settings" element={<RequireAuth><Placeholder title="Account Settings" /></RequireAuth>} />
+          <Route path="/account-settings" element={<RequireAuth><Navigate to="/profile" replace /></RequireAuth>} />
           <Route path="*" element={<div className="min-h-screen pt-32 text-center text-forest"><h1 className="text-3xl">404</h1><a href="/" className="mt-6 inline-block underline">Roxaval Travels</a></div>} />
         </Route>
 

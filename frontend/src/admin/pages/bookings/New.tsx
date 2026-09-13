@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2Icon, SaveIcon, SearchIcon } from 'lucide-react';
-import { apiGetList, apiPost, ApiRequestError } from '../../../lib/api';
+import { apiGetAll, apiPost, ApiRequestError } from '../../../lib/api';
 import { useToast } from '../../components/ToastProvider';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -40,19 +40,24 @@ export function AdminBookingNew() {
   const [specialRequests, setSpecialRequests] = useState('');
 
   useEffect(() => {
-    apiGetList<CustomerRow>('/customers', { limit: 200 }).then((r) => setCustomers(r.data));
+    apiGetAll<CustomerRow>('/customers', { sort: 'id' }).then((r) => setCustomers(r.data)).catch(() => toast('Unable to load customers. Please reload and try again.', 'error'));
   }, []);
 
   useEffect(() => {
     setItineraryId('');
+    setQuotations([]);
+    setQuotationsLoading(false);
     if (!customerId) {
       setQuotations([]);
       return;
     }
     setQuotationsLoading(true);
-    apiGetList<QuotationRow>('/custom-tours', { customer: customerId, limit: 50 }).
-    then((r) => setQuotations(r.data.filter((q) => q.itinerary && ['Sent', 'Accepted'].includes(q.itinerary.status)))).
-    finally(() => setQuotationsLoading(false));
+    let active = true;
+    apiGetAll<QuotationRow>('/custom-tours', { customer: customerId, sort: 'id' }).
+    then((r) => { if (active) setQuotations(r.data.filter((q) => q.itinerary && ['Sent', 'Accepted'].includes(q.itinerary.status))); }).
+    catch(() => { if (active) toast('Unable to load quotations. Please select the customer again.', 'error'); }).
+    finally(() => { if (active) setQuotationsLoading(false); });
+    return () => { active = false; };
   }, [customerId]);
 
   const filteredCustomers = customers.filter((c) => {

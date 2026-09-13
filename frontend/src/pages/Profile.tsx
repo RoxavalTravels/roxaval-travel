@@ -43,6 +43,7 @@ export function Profile() {
         marketingOptIn: c.marketingOptIn || false,
       });
     }).
+    catch(() => setError(t('profile.saveFailed'))).
     finally(() => setLoading(false));
   }, []);
 
@@ -77,7 +78,7 @@ export function Profile() {
         breadcrumbs={[{ label: tc('nav.home'), href: '/' }, { label: t('profile.breadcrumb') }]} />
 
       <section className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
-        {loading || !profile ?
+        {!loading && !profile ? <p role="alert">{error}</p> : loading || !profile ?
         <div className="grid h-40 place-items-center"><Loader2Icon className="h-6 w-6 animate-spin text-forest/40" /></div> :
 
         <form onSubmit={handleSubmit} className="space-y-5 rounded-3xl bg-white p-6 shadow-soft sm:p-10">

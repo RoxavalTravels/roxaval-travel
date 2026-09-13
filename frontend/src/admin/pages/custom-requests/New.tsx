@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2Icon, SaveIcon, SearchIcon } from 'lucide-react';
-import { apiGetList, apiPost, ApiRequestError } from '../../../lib/api';
+import { apiGetAll, apiPost, ApiRequestError } from '../../../lib/api';
 import { useToast } from '../../components/ToastProvider';
 import { PageHeader } from '../../components/PageHeader';
 import { TextField, TextAreaField, NumberField, SelectField, CheckboxField, RefMultiSelect } from '../../components/fields/Fields';
@@ -64,18 +64,18 @@ export function AdminCustomRequestNew() {
 
   useEffect(() => {
     Promise.all([
-    apiGetList<CustomerRow>('/customers', { limit: 200 }),
-    apiGetList<{ _id: string; name: string }>('/destinations', { limit: 100 }),
-    apiGetList<{ _id: string; name: string }>('/activities', { limit: 100 }),
-    apiGetList<{ _id: string; user?: { fullName?: string } }>('/admins', { department: 'operations', limit: 100 }),
-    apiGetList<{ _id: string; user?: { fullName?: string } }>('/admins', { department: 'sales', limit: 100 })]
+    apiGetAll<CustomerRow>('/customers', { sort: 'id' }),
+    apiGetAll<{ _id: string; name: string }>('/destinations', { sort: 'id' }),
+    apiGetAll<{ _id: string; name: string }>('/activities', { sort: 'id' }),
+    apiGetAll<{ _id: string; user?: { fullName?: string } }>('/admins', { department: 'operations', sort: 'id' }),
+    apiGetAll<{ _id: string; user?: { fullName?: string } }>('/admins', { department: 'sales', sort: 'id' })]
     ).then(([c, d, a, ops, sales]) => {
       setCustomers(c.data);
       setDestOptions(d.data.map((x) => ({ value: x._id, label: x.name })));
       setActivityOptions(a.data.map((x) => ({ value: x._id, label: x.name })));
       setOperationOptions(ops.data.map((x) => ({ value: x._id, label: x.user?.fullName || 'Unnamed' })));
       setSalesOptions(sales.data.map((x) => ({ value: x._id, label: x.user?.fullName || 'Unnamed' })));
-    });
+    }).catch(() => toast('Unable to load form options. Please reload and try again.', 'error'));
   }, []);
 
   useEffect(() => {

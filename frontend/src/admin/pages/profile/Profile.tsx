@@ -34,6 +34,7 @@ export function AdminProfile() {
       setFullName(p.user.fullName);
       setPhone(p.user.phone || '');
     }).
+    catch(() => toast('Unable to load your profile. Please reload and try again.', 'error')).
     finally(() => setLoading(false));
   }, []);
 
@@ -71,6 +72,7 @@ export function AdminProfile() {
     }
   };
 
+  if (!loading && !profile) return <div role="alert">Unable to load your profile. <button type="button" onClick={() => window.location.reload()} className="underline">Try again</button></div>;
   if (loading || !profile) return <div className="grid h-64 place-items-center"><Loader2Icon className="h-6 w-6 animate-spin text-forest/40" /></div>;
 
   return (

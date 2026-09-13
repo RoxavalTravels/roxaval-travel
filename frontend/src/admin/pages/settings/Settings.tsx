@@ -21,6 +21,7 @@ interface SettingsData {
 export function AdminSettings() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [logo, setLogo] = useState<string[]>([]);
@@ -31,6 +32,7 @@ export function AdminSettings() {
       setSettings(s);
       setLogo(s.logoUrl ? [s.logoUrl] : []);
     }).
+    catch(() => setLoadError(true)).
     finally(() => setLoading(false));
   }, []);
 
@@ -56,6 +58,7 @@ export function AdminSettings() {
     }
   };
 
+  if (loadError) return <div role="alert">Unable to load settings. <button type="button" onClick={() => window.location.reload()} className="underline">Try again</button></div>;
   if (loading || !settings) return <div className="grid h-64 place-items-center"><Loader2Icon className="h-6 w-6 animate-spin text-forest/40" /></div>;
 
   return (

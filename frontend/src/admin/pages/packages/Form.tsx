@@ -127,7 +127,7 @@ export function AdminPackageForm() {
       setDestOptions(d.data.map((x) => ({ value: x._id, label: x.name })));
       setActivityOptions(a.data.map((x) => ({ value: x._id, label: x.name })));
       setHotelOptions(h.data.map((x) => ({ value: x._id, label: x.name + (x.status === 'inactive' ? ' (inactive)' : '') })));
-    });
+    }).catch(() => toast('Unable to load package options. Please reload and try again.', 'error'));
   }, []);
 
   useEffect(() => {
