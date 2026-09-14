@@ -7,7 +7,10 @@ export interface PageTranslation {
   structuredData?: object;
 }
 export let translations: PageTranslation[] = [];
-export function setTranslations(rows: PageTranslation[]) { translations = rows; }
+export function setTranslations(rows: PageTranslation[]) {
+  translations = rows;
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('roxaval-translations-updated'));
+}
 export const cleanPath = (path: string) => '/' + path.split('/').filter(Boolean).join('/');
 export const pathLanguage = (path: string): Language | undefined => languages.find(l => path === `/${l}` || path.startsWith(`/${l}/`));
 let sessionLanguage: Language | undefined;

@@ -12,7 +12,7 @@ function flatten(value: Record<string, unknown>, prefix = ''): Record<string, st
 }
 export function AdminTranslations() {
   const [rows, setRows] = useState<PageTranslation[]>([]);
-  const [page, setPage] = useState('/');
+  const [page, setPage] = useState(new URLSearchParams(window.location.search).get('page') || '/');
   const [locale, setLocale] = useState<Language>('en');
   const [draft, setDraft] = useState<PageTranslation>();
   const [namespace, setNamespace] = useState('home');
@@ -34,7 +34,10 @@ export function AdminTranslations() {
     try {
       await apiPatch('/translations/pages', draft);
       const fresh = await apiGetOne<PageTranslation[]>('/translations/pages/admin');
-      setRows(fresh); setTranslations(fresh);
+      setRows(fresh);
+      const publicRows = await apiGetOne<PageTranslation[]>('/translations/pages');
+      publicRows.forEach(row => Object.entries(row.messages || {}).forEach(([namespace, values]) => i18n.addResourceBundle(row.locale, namespace, values, true, true)));
+      setTranslations(publicRows);
       setStatus('Saved. Open the page preview to review your changes.');
     } catch (error) { setStatus(error instanceof ApiRequestError && error.errors?.length ? error.errors.map(item => `${item.field}: ${item.message}`).join(' · ') : error instanceof Error ? error.message : 'Save failed'); }
     finally { setSaving(false); }
@@ -47,6 +50,7 @@ export function AdminTranslations() {
       <label>Language<select aria-label="Language" className="block rounded-lg border p-3" value={locale} onChange={event => setLocale(event.target.value as Language)}><option value="en">English</option><option value="de">Deutsch</option><option value="fr">Français</option></select></label>
     </div>
     {draft && <>
+      <div><button disabled={saving} onClick={save} className="rounded-xl bg-forest px-6 py-3 text-white disabled:opacity-50">{saving ? 'Saving…' : 'Save SEO changes'}</button></div>
       <div className="grid gap-4 rounded-2xl bg-white p-6 md:grid-cols-2">{Object.entries(fields).map(([field, label]) => <label key={field} className="block text-sm font-medium text-forest">{label}<input className="mt-2 block w-full rounded-xl border border-forest/15 px-3 py-2.5 font-normal" value={String(draft[field as keyof PageTranslation] || '')} onChange={event => update(field as keyof PageTranslation, event.target.value)} /></label>)}</div>
       <a className="text-emerald underline" href={localizedPath(page, locale)} target="_blank" rel="noreferrer">Preview saved page ↗</a>
       <section className="space-y-4 rounded-2xl bg-white p-6">

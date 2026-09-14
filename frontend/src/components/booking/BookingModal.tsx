@@ -74,7 +74,7 @@ export function BookingModal({ open, onClose, source, onSuccess }: BookingModalP
         specialRequests: specialRequests || undefined
       };
       const booking = source.type === 'package' ?
-      await apiPost<{ _id: string; bookingReference: string }>('/bookings/from-package', { tourPackage: source.id, ...payload }) :
+      await apiPost<{ _id: string; bookingReference: string }>('/bookings/from-package', { tourPackage: source.id, expectedUnitPrice: source.price, expectedCurrency: source.currency, ...payload }) :
       await apiPost<{ _id: string; bookingReference: string }>('/bookings/from-itinerary', { itinerary: source.id, ...payload });
 
       toast(t('modal.successToast', { reference: booking.bookingReference }));

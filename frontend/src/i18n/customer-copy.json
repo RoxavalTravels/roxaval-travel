@@ -1,4 +1,7 @@
 [
+  ["Breakfast", "Frühstück", "Petit-déjeuner"],
+  ["Lunch", "Mittagessen", "Déjeuner"],
+  ["Dinner", "Abendessen", "Dîner"],
   ["Travel Details", "Reisedetails", "Détails du voyage"],
   ["Destinations", "Reiseziele", "Destinations"],
   ["Activities", "Aktivitäten", "Activités"],

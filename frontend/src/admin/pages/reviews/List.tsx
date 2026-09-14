@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AddReview } from './AddReview';
 import { CheckIcon, HomeIcon, SearchIcon, StarIcon, TrashIcon, XIcon } from 'lucide-react';
 import { useAdminList } from '../../hooks/useAdminList';
 import { DataTable, Column } from '../../components/DataTable';
@@ -6,14 +7,14 @@ import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { useToast } from '../../components/ToastProvider';
-import { apiDelete, apiPatch, ApiRequestError } from '../../../lib/api';
+import { apiDelete, apiGetAll, apiPatch, ApiRequestError } from '../../../lib/api';
 
 interface AdminReview {
   _id: string;
   customer?: { user?: { fullName?: string } };
   reviewerName?: string;
   source?: string;
-  tourPackage?: { name: string };
+  tourPackage?: { _id: string; name: string };
   rating: number;
   title?: string;
   text: string;
@@ -31,6 +32,10 @@ export function AdminReviewsList() {
   });
   const confirm = useConfirm();
   const toast = useToast();
+  const [packages, setPackages] = useState<{ _id: string; name: string }[]>([]);
+  useEffect(() => {
+    apiGetAll<{ _id: string; name: string }>('/packages/admin/all', { lang: 'en' }).then(({ data }) => setPackages(data.sort((a, b) => a.name.localeCompare(b.name)))).catch(() => toast('Unable to load packages. Reload to try again.', 'error'));
+  }, []);
 
   const moderate = async (r: AdminReview, decision: 'approved' | 'rejected') => {
     try {
@@ -72,7 +77,10 @@ export function AdminReviewsList() {
 
   const columns: Column<AdminReview>[] = [
   { header: 'Customer', render: (r) => r.customer?.user?.fullName || r.reviewerName || '-' },
-  { header: 'Package', render: (r) => r.tourPackage?.name || '-' },
+  { header: 'Package', render: (r) => <select aria-label={`Package for review ${r._id}`} className="max-w-52 border p-2" value={r.tourPackage?._id || ''} onChange={async event => {
+    try { await apiPatch(`/reviews/${r._id}/package`, { tourPackage: event.target.value }); refetch(); }
+    catch (error) { toast(error instanceof Error ? error.message : 'Unable to assign package', 'error'); }
+  }}><option value="" disabled>Select package</option>{packages.map(pkg => <option key={pkg._id} value={pkg._id}>{pkg.name}</option>)}</select> },
   { header: 'Rating', render: (r) => <span className="inline-flex items-center gap-1"><StarIcon className="h-3.5 w-3.5 fill-gold text-gold" /> {r.rating}</span> },
   { header: 'Review', className: 'max-w-xs truncate', render: (r) => r.text },
   { header: 'Status', render: (r) => <StatusBadge status={r.status} /> },
@@ -106,6 +114,7 @@ export function AdminReviewsList() {
   return (
     <div>
       <PageHeader title="Reviews" subtitle="Moderate customer feedback before it goes live" />
+      <AddReview packages={packages} onSaved={() => { toast('Review saved. Approve it to publish.'); refetch(); }} />
 
       <div className="mb-4 flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[220px]">

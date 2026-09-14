@@ -37,7 +37,19 @@ export function LanguageRouter({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const update = () => setRevision(n => n + 1);
     window.addEventListener('popstate', update);
-    return () => window.removeEventListener('popstate', update);
+    window.addEventListener('roxaval-translations-updated', update);
+    // A preview or a tab returning from the editor must not retain its old embedded registry.
+    let active = true;
+    const refresh = () => {
+      if (window.location.pathname.startsWith('/admin')) return;
+      apiGetOne<PageTranslation[]>('/translations/pages').then(rows => {
+        if (!active) return;
+        rows.forEach(row => Object.entries(row.messages || {}).forEach(([namespace, values]) => i18n.addResourceBundle(row.locale, namespace, values, true, true)));
+        setTranslations(rows);
+      }).catch(() => { /* Keep the loaded page usable during a temporary outage. */ });
+    };
+    window.addEventListener('focus', refresh);
+    return () => { active = false; window.removeEventListener('popstate', update); window.removeEventListener('roxaval-translations-updated', update); window.removeEventListener('focus', refresh); };
   }, []);
   const pathname = window.location.pathname;
   const locale = pathLanguage(pathname) || 'en';

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangleIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, DownloadIcon, EyeIcon, Loader2Icon, MessageCircleIcon, PencilIcon, PlusIcon, SaveIcon, SendIcon, TrashIcon, UserCheckIcon, WandSparklesIcon, XIcon } from 'lucide-react';
-import { apiGetList, apiGetOne, apiPatch, apiPost, ApiRequestError, API_ORIGIN } from '../../../lib/api';
+import { apiGetAll, apiGetList, apiGetOne, apiPatch, apiPost, ApiRequestError, API_ORIGIN } from '../../../lib/api';
 import { whatsAppLink } from '../../../lib/contact';
 import { formatDate, formatDateTime } from '../../../lib/date';
 import { useToast } from '../../components/ToastProvider';
@@ -604,13 +604,13 @@ export function AdminCustomRequestDetail() {
     Promise.all([
     apiGetList<{ _id: string; name: string }>('/destinations', { limit: 100 }),
     apiGetList<{ _id: string; name: string }>('/activities', { limit: 100 }),
-    apiGetList<{ _id: string; name: string }>('/hotels', { limit: 100 }),
+    apiGetAll<{ _id: string; name: string }>('/hotels/admin/all'),
     apiGetList<{ _id: string; name: string; pricePerDay: number }>('/tour-guides', { limit: 100 }),
     apiGetList<{ _id: string; name: string; pricePerDay: number }>('/vehicles', { limit: 100 })]
     ).then(([d, a, h, g, v]) => {
       setDestOptions(d.data.map((x) => ({ value: x._id, label: x.name })));
       setActivityOptions(a.data.map((x) => ({ value: x._id, label: x.name })));
-      setHotelOptions(h.data.map((x) => ({ value: x._id, label: x.name })));
+      setHotelOptions(h.data.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base', numeric: true })).map((x) => ({ value: x._id, label: x.name })));
       setGuideOptions(g.data.map((x) => ({ value: x._id, label: x.name })));
       setVehicleOptions(v.data.map((x) => ({ value: x._id, label: x.name })));
       setVehiclePricePerDay(Object.fromEntries(v.data.map((x) => [x._id, x.pricePerDay || 0])));

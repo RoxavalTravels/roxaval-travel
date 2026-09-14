@@ -19,13 +19,29 @@ const server = http.createServer((req,res) => {
   const browser = await chromium.launch({ headless:true, ...(process.env.CHROMIUM_PATH ? { executablePath:process.env.CHROMIUM_PATH } : {}) });
   try {
     const context = await browser.newContext();
+    context.setDefaultTimeout(15000);
     let signedIn = false;
     let inquiry;
     let savedTranslation;
+    let pricedTour = false;
+    let addedReview;
+    let savedSettings;
     await context.route('**/*', async route => {
       const url = new URL(route.request().url());
       if (url.pathname.includes('/api/v1/')) {
         const apiPath = url.pathname.split('/api/v1')[1];
+        const respond = data => route.fulfill({contentType:'application/json',body:JSON.stringify({success:true,data,meta:{total:Array.isArray(data)?data.length:1,totalPages:1,page:1,limit:100}})});
+        if (apiPath === '/settings') {
+          if (route.request().method() === 'PATCH') savedSettings = route.request().postDataJSON();
+          return respond(savedSettings || {companyName:'Roxaval',logoUrl:'',address:'',phone:'',email:'',website:'',socialLinks:{},bankDetails:{},seoDefaults:{},euroRates:{},maintenanceMode:false});
+        }
+        if (apiPath === '/reviews/admin' && route.request().method() === 'POST') { addedReview = route.request().postDataJSON(); return respond({...addedReview,_id:'review1',status:'pending'}); }
+        if (apiPath === '/packages/admin/all') return respond([tour]);
+        if (apiPath === '/packages/slug/test-tour' && pricedTour) {
+          const lang = url.searchParams.get('lang');
+          const activity = { _id:'a1',name:({en:'Wildlife Safari',de:'Wildtiersafari',fr:'Safari animalier'})[lang] || 'Wildlife Safari' };
+          return respond({...tour,showPrice:true,price:lang==='en'?1000:900,currency:lang==='en'?'USD':'EUR',activities:[activity],itinerary:[{dayNumber:1,title:'Day one',description:'A day outdoors.',meals:['Breakfast','Lunch','Dinner'],activities:[activity]}]});
+        }
         if (apiPath === '/hotels/admin/all') {
           const current = Number(url.searchParams.get('page') || 1);
           const hotels = Array.from({length:181}, (_, i) => ({_id:String(i+1), name:`Hotel ${i+1}`,status:i===180?'inactive':'active'}));
@@ -105,6 +121,9 @@ const server = http.createServer((req,res) => {
     await page.goto('http://127.0.0.1:4179/admin/packages/new');
     await page.getByText('Hotel 181 (inactive)',{exact:true}).first().waitFor();
     assert.equal(await page.getByText('Hotel 101',{exact:true}).count()>0,true);
+    const hotelLabels = await page.locator('label').filter({hasText:/^Hotel \d/}).allTextContents();
+    assert.equal(hotelLabels.length,181);
+    assert.deepEqual(hotelLabels,[...hotelLabels].sort((a,b)=>a.localeCompare(b,'en',{sensitivity:'base',numeric:true})));
     await page.goto('http://127.0.0.1:4179/admin/custom-requests/new');
     await page.locator('option[value="Solo"]').waitFor({state:'attached'});
     for (const style of ['Solo','Discovery','Romantic','Wildlife','Nature','Wellness','Scenic']) assert.ok(await page.locator(`option[value="${style}"]`).count());
@@ -113,10 +132,10 @@ const server = http.createServer((req,res) => {
     const wizard = page.locator('#custom-tour');
     await wizard.getByRole('heading',{name:'Gestalten Sie Ihre Traumreise'}).waitFor();
     await wizard.getByPlaceholder('dd/mm/yyyy').fill('15/12/2026');
-    for (let step=0;step<3;step++) await wizard.getByRole('button',{name:'Nächster Schritt',exact:true}).click();
+    for (let step=0;step<3;step++) { await wizard.getByRole('button',{name:'Nächster Schritt',exact:true}).click(); await page.waitForTimeout(400); }
     await wizard.getByRole('button',{name:'Nur Frühstück',exact:true}).click();
     await wizard.locator('select').selectOption('Double');
-    for (let step=0;step<2;step++) await wizard.getByRole('button',{name:'Nächster Schritt',exact:true}).click();
+    for (let step=0;step<2;step++) { await wizard.getByRole('button',{name:'Nächster Schritt',exact:true}).click(); await page.waitForTimeout(400); }
     await wizard.getByRole('button',{name:'Anfrage senden',exact:true}).click();
     await page.getByRole('heading',{name:'Anfrage erfolgreich gesendet!'}).waitFor();
     assert.equal(inquiry.hotelCategory,'Standard');
@@ -131,6 +150,38 @@ const server = http.createServer((req,res) => {
     assert.equal(savedTranslation.locale,'de');
     assert.equal(savedTranslation.metaTitle,'Admin edited title');
     assert.equal(savedTranslation.pageKey,'/');
+    await page.goto('http://127.0.0.1:4179/de/');
+    await page.waitForFunction(()=>document.title==='Admin edited title');
+    rows.find(row=>row.pageKey==='/' && row.locale==='de').metaTitle='Updated in another tab';
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await page.waitForFunction(()=>document.title==='Updated in another tab');
+    pricedTour = true;
+    await page.goto('http://127.0.0.1:4179/en/sri-lanka-tour-14-days/');
+    await page.getByText('Breakfast, Lunch, Dinner',{exact:false}).waitFor();
+    await page.getByText('USD 1,000',{exact:false}).waitFor();
+    await page.locator('nav').getByRole('button',{name:/langue|language|Sprache/i}).click();
+    await page.getByRole('button',{name:'Deutsch',exact:true}).click();
+    await page.getByText('Frühstück, Mittagessen, Abendessen',{exact:false}).waitFor();
+    await page.getByText('Wildtiersafari',{exact:true}).first().waitFor();
+    await page.getByText('EUR 900',{exact:false}).waitFor();
+    await page.locator('nav').getByRole('button',{name:/langue|language|Sprache/i}).click();
+    await page.getByRole('button',{name:'Français',exact:true}).click();
+    await page.getByText('Petit-déjeuner, Déjeuner, Dîner',{exact:false}).waitFor();
+    await page.getByText('Safari animalier',{exact:true}).first().waitFor();
+    await page.goto('http://127.0.0.1:4179/admin/reviews');
+    await page.getByRole('button',{name:'Add package review',exact:true}).click();
+    await page.getByLabel('Package',{exact:true}).selectOption('1');
+    await page.getByLabel('Reviewer name').fill('Test guest');
+    await page.getByLabel('Review',{exact:true}).fill('Genuine submitted feedback for this test.');
+    await page.getByRole('button',{name:'Save pending review'}).click();
+    await page.getByText('Review saved. Approve it to publish.',{exact:true}).waitFor();
+    assert.equal(addedReview.tourPackage,'1');
+    assert.equal(addedReview.rating,5);
+    await page.goto('http://127.0.0.1:4179/admin/settings');
+    await page.getByLabel('USD to EUR').fill('0.9');
+    await page.getByRole('button',{name:'Save Settings',exact:true}).click();
+    await page.getByText('Settings saved.',{exact:true}).waitFor();
+    assert.equal(savedSettings.euroRates.USD,0.9);
     await page.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw new Error('Storage disabled');}}));
     await page.goto('http://127.0.0.1:4179/');
     await page.locator('dialog[open]').waitFor();
@@ -138,6 +189,6 @@ const server = http.createServer((req,res) => {
     await page.waitForURL('**/en/');
     assert.equal(await page.locator('dialog[open]').count(),0);
     assert.deepEqual(errors,[]);
-    console.log('Passed: preference and storage denial, direct ads URLs, equivalent tour slugs, H1/alt/SEO, desktop/mobile switching, navigation/back, responsive modal, German enquiry submission with unchanged API enums, admin SEO save; no browser errors.');
+    console.log('Passed: multilingual regression, EUR settings and language switching, translated package meals/activities, 181 alphabetically ordered hotel choices, admin review entry, SEO save and cross-tab refresh; no browser errors.');
   } finally { await browser.close(); server.close(); }
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});

@@ -120,7 +120,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     if (mealPlan) params['roomTypes.mealPlan'] = mealPlan;
     if (search) params.q = search;
     apiGetAll<HotelRow>('/hotels/admin/all', params).
-    then(({ data }) => { if (active) setHotels(data); }).
+    then(({ data }) => { if (active) setHotels(data.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base', numeric: true }))); }).
     catch(() => { if (active) setHotels([]); }).
     finally(() => { if (active) setLoading(false); });
     return () => { active = false; };

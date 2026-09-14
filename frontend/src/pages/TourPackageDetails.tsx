@@ -42,7 +42,7 @@ function parseDayDescription(description: string) {
 }
 
 export function TourPackageDetails() {
-  const { t } = useTranslation('packages');
+  const { t, i18n } = useTranslation('packages');
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -74,7 +74,7 @@ export function TourPackageDetails() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, i18n.resolvedLanguage]);
 
   if (loading) return <main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main>;
   if (error || !pkg) return <main className="min-h-screen bg-cream pt-24"><ErrorState title={t('detail.notFoundTitle')} message={error || undefined} /></main>;
@@ -210,6 +210,7 @@ export function TourPackageDetails() {
                           </div>
                       }
                         <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-relaxed text-forest/65">{body}</p>
+                        {!!day.activities?.length && <div className="mt-3"><h4 className="text-sm font-semibold">{t('detail.activities')}</h4><ul className="mt-1 list-inside list-disc text-sm text-forest/65">{day.activities.map(activity => <li key={activity._id}>{activity.name}</li>)}</ul></div>}
                         {(day.hotel || day.meals && day.meals.length > 0) &&
                       <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-forest/8 pt-3.5">
                             {day.hotel &&
@@ -219,7 +220,7 @@ export function TourPackageDetails() {
                         }
                             {day.meals && day.meals.length > 0 &&
                         <p className="flex items-center gap-1.5 text-xs font-medium text-forest/55">
-                                <UtensilsIcon className="h-3.5 w-3.5 text-forest/35" /> {day.meals.join(', ')}
+                                <UtensilsIcon className="h-3.5 w-3.5 text-forest/35" /> {day.meals.map(meal => copy(meal)).join(', ')}
                               </p>
                         }
                           </div>
