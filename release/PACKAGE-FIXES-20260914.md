@@ -23,6 +23,10 @@ The backend patch adds nullable JSON `settings.euro_rates` via migration `2026_0
 
 ## Deployment status
 
-Release prepared and tested locally. Live deployment is not yet completed. Exchange-rate configuration remains pending the client's rate.
+**Not deployed: hosting connection blocked the release.** Read-only SSH connected initially, but repeated SSH/SFTP transfers then closed with `Connection closed by 50.6.35.211 port 2222`. A helper transfer over SSH reached the private release directory but stopped at base64 decoding before any backup or deployment script executed. The corrected transfer and the final guarded deployment attempt were also closed by the host. No new production backup completed, no source-parity result is asserted, and no live application files or database schema were changed.
+
+The private staging directory is `/home2/zlwoctte/roxaval-package-fixes-20260914`; its presence alone does not mean a verified backup exists. Local `backups/package-release-backup.sh`, `package-release-backup.php` and `deploy-package-fixes.sh` contain the guarded workflow. Restore hosting SSH/SFTP access before retrying it, and verify backups before replacement.
+
+Exchange-rate configuration remains pending the client's rate. All local browser rates (such as 0.9 EUR per USD) are test fixtures only, not proposed business rates. Local backend commit: `b8498d6`; frontend implementation commit: `d67f406`. No GitHub push is claimed.
 
 Rollback restores the prior frontend and patched backend files. The unused additive settings column can remain, retaining any configured rates; no destructive database rollback is required.
