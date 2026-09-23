@@ -40,6 +40,7 @@
   "cancellationPolicy": "Cancellation Policy",
   "importantNotes": "Important Notes",
   "tripRoute": "Trip Itinerary Route",
+  "accommodationSummary": "Accommodation Summary",
   "notReady": "Your itinerary isn't ready yet.",
   "notBuilt": "No itinerary has been built for this request yet."
 }

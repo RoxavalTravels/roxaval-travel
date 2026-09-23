@@ -1,8 +1,9 @@
 
-import { LanguageRouter } from './i18n/LanguageRouter';
-const AdminTranslations = lazy(() => import('./admin/pages/settings/Translations').then(m => ({ default: m.AdminTranslations })));
 import { Suspense, lazy } from 'react';
+import { LanguageRouter } from './i18n/LanguageRouter';
 import { Routes, Route, Navigate } from 'react-router-dom';
+
+const AdminTranslations = lazy(() => import('./admin/pages/settings/Translations').then(m => ({ default: m.AdminTranslations })));
 import { useTranslation } from 'react-i18next';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';

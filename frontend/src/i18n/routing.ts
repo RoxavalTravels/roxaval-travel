@@ -3,6 +3,7 @@ export type Language = typeof languages[number];
 export interface PageTranslation {
   pageKey: string; locale: Language; slug: string; metaTitle?: string;
   metaDescription?: string; h1?: string; imageAlt?: string;
+  keywords?: string;
   socialTitle?: string; socialDescription?: string; messages?: Record<string, Record<string, unknown>>;
   structuredData?: object;
 }

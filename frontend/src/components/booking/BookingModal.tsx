@@ -6,6 +6,7 @@ import { Modal } from '../ui/Modal';
 import { DateField } from '../ui/DateField';
 import { apiPost, ApiRequestError } from '../../lib/api';
 import { useToast } from '../../context/ToastContext';
+import { formatMoney, roundMoney } from '../../lib/money';
 
 export interface BookingSource {
   type: 'package' | 'itinerary';
@@ -55,9 +56,9 @@ export function BookingModal({ open, onClose, source, onSuccess }: BookingModalP
   // below rather than freely editable — a per-person quote is then just
   // that quoted rate times the (fixed) adult count, no separate child rate
   // needed since the traveler mix can't change here.
-  const estimatedTotal = source.type === 'itinerary' ?
+  const estimatedTotal = roundMoney(source.type === 'itinerary' ?
   source.price * (source.pricePerPerson ? Math.max(adults, 1) : 1) :
-  source.price * (source.pricePerPerson === false ? 1 : Math.max(adults, 1)) + source.price * ((source.childPricePercent ?? 50) / 100) * children;
+  source.price * (source.pricePerPerson === false ? 1 : Math.max(adults, 1)) + roundMoney(source.price * ((source.childPricePercent ?? 50) / 100)) * children);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,23 +154,23 @@ export function BookingModal({ open, onClose, source, onSuccess }: BookingModalP
             {source.type === 'package' &&
             <>
                 {source.pricePerPerson === false ?
-              <div className="flex justify-between"><span>{copy('Package price (for {{count}})', { count: source.maxTravelers ?? adults })}</span><span>{source.currency} {source.price.toLocaleString()}</span></div> :
+              <div className="flex justify-between"><span>{copy('Package price (for {{count}})', { count: source.maxTravelers ?? adults })}</span><span>{formatMoney(source.price, source.currency)}</span></div> :
 
-              <div className="flex justify-between"><span>{adults} {copy('Adults')} × {source.currency} {source.price.toLocaleString()}</span><span>{source.currency} {(source.price * Math.max(adults, 1)).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>{adults} {copy('Adults')} × {formatMoney(source.price, source.currency)}</span><span>{formatMoney((source.price * Math.max(adults, 1)), source.currency)}</span></div>
               }
                 {children > 0 &&
-              <div className="flex justify-between"><span>{children} {copy('Children')} × {source.currency} {(source.price * ((source.childPricePercent ?? 50) / 100)).toLocaleString()} ({source.childPricePercent ?? 50}%)</span><span>{source.currency} {(source.price * ((source.childPricePercent ?? 50) / 100) * children).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>{children} {copy('Children')} × {formatMoney(roundMoney(source.price * ((source.childPricePercent ?? 50) / 100)), source.currency)} ({source.childPricePercent ?? 50}%)</span><span>{formatMoney((roundMoney(source.price * ((source.childPricePercent ?? 50) / 100)) * children), source.currency)}</span></div>
               }
                 {infants > 0 && <div className="flex justify-between"><span>{infants} {copy('Infants')}</span><span>{copy('Free')}</span></div>}
               </>
             }
             {source.type === 'itinerary' && source.pricePerPerson &&
-            <div className="flex justify-between"><span>{source.currency} {source.price.toLocaleString()} / person × {adults} Adult{adults === 1 ? '' : 's'}</span><span>{source.currency} {estimatedTotal.toLocaleString()}</span></div>
+            <div className="flex justify-between"><span>{formatMoney(source.price, source.currency)} / person × {adults} Adult{adults === 1 ? '' : 's'}</span><span>{formatMoney(estimatedTotal, source.currency)}</span></div>
             }
           </div>
           <div className="mt-2 flex items-center justify-between border-t border-forest/10 pt-2">
             <span className="text-forest/60">{t('modal.estimatedTotal')}</span>
-            <span className="font-display text-lg font-semibold text-forest">{source.currency} {estimatedTotal.toLocaleString()}</span>
+            <span className="font-display text-lg font-semibold text-forest">{formatMoney(estimatedTotal, source.currency)}</span>
           </div>
         </div>
 

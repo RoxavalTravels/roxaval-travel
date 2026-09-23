@@ -13,19 +13,27 @@ function flatten(value: Record<string, unknown>, prefix = ''): Record<string, st
 export function AdminTranslations() {
   const [rows, setRows] = useState<PageTranslation[]>([]);
   const [page, setPage] = useState(new URLSearchParams(window.location.search).get('page') || '/');
-  const [locale, setLocale] = useState<Language>('en');
+  const [locale, setLocale] = useState<Language>(() => {
+    const selected = new URLSearchParams(window.location.search).get('locale');
+    return selected === 'de' || selected === 'fr' ? selected : 'en';
+  });
   const [draft, setDraft] = useState<PageTranslation>();
   const [namespace, setNamespace] = useState('home');
   const [filter, setFilter] = useState('');
   const [status, setStatus] = useState('');
   const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', page); params.set('locale', locale);
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}?${params}`);
+  }, [page, locale]);
   useEffect(() => { apiGetOne<PageTranslation[]>('/translations/pages/admin').then(setRows).catch(error => setStatus(error.message)); }, []);
   useEffect(() => {
     const row = rows.find(row => row.pageKey === page && row.locale === locale);
     setDraft(row ? { ...row, messages: rows.find(item => item.pageKey === '/' && item.locale === locale)?.messages || {} } : undefined);
   }, [rows, page, locale]);
   const update = (field: keyof PageTranslation, value: string) => setDraft(old => old ? { ...old, [field]: value } : old);
-  const fields = { metaTitle: 'Meta title', metaDescription: 'Meta description', slug: 'URL slug (without language prefix)', h1: 'H1 heading', imageAlt: 'Main image alt text', socialTitle: 'Social sharing title', socialDescription: 'Social sharing description' } as const;
+  const fields = { metaTitle: 'Meta title', metaDescription: 'Meta description', keywords: 'Keywords (comma-separated)', slug: 'URL slug (without language prefix)', h1: 'H1 heading', imageAlt: 'Main image alt text', socialTitle: 'Social sharing title', socialDescription: 'Social sharing description' } as const;
   const messages = flatten(i18n.getResourceBundle(locale, namespace) || {});
   const overrides = flatten(draft?.messages?.[namespace] || {});
   const save = async () => {

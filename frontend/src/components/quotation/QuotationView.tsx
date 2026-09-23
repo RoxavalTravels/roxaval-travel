@@ -1,3 +1,4 @@
+import { formatMoney } from '../../lib/money';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -97,7 +98,7 @@ export interface QuotationItinerary {
   summary?: string;
   bannerImage?: string;
   days: QuotationDay[];
-  pricing: { basePrice: number; discount: number; totalPrice: number; currency: string; pricePerPerson: boolean };
+  pricing: { basePrice: number; discount: number; totalPrice: number; currency: string; pricePerPerson: boolean; showPrice?: boolean };
   sightseeingIncluded?: boolean;
   visaRequirements?: string;
   travelInsurance?: string;
@@ -244,6 +245,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
   const itin = request.itinerary;
   const days = itin.days || [];
   const nights = Math.max(0, days.length - 1);
+  const showPrice = itin.pricing.showPrice !== false;
 
   // Ordered, de-duplicated route (consecutive repeats collapsed) built from
   // each day's destination tags — falls back to hotel destinations when a
@@ -304,10 +306,10 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
               <p className="font-display text-2xl font-semibold text-forest sm:text-3xl">{itin.title || t('defaultTitle', { days: days.length })}</p>
               <p className="mt-1 text-sm text-forest/50">{t('quotationNo', { ref: request.referenceNumber })}</p>
             </div>
-            <div className="rounded-2xl bg-forest px-5 py-3 text-right text-white">
+            {showPrice && <div className="rounded-2xl bg-forest px-5 py-3 text-right text-white">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-white/60">{t('totalCost')}</p>
-              <p className="font-display text-xl font-bold">{itin.pricing.currency} {itin.pricing.totalPrice.toLocaleString()}</p>
-            </div>
+              <p className="font-display text-xl font-bold">{formatMoney(itin.pricing.totalPrice, itin.pricing.currency, docLang)}</p>
+            </div>}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-forest/70">
@@ -342,7 +344,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
                 <div className="flex items-center gap-3 print:break-inside-avoid">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald text-sm font-bold text-white">{d.dayNumber}</div>
                   <div>
-                    <p className="font-display text-base font-semibold text-forest">{t('day')} {d.dayNumber}{d.destinations?.[0]?.name ? ` - ${d.destinations[0].name}` : ''}</p>
+                    <p className="font-display text-base font-semibold text-forest">{t('day')} {String(d.dayNumber).padStart(2, '0')}{(d.title?.trim() || d.destinations?.[0]?.name) ? ` (${d.title?.trim() || d.destinations?.[0]?.name})` : ''}</p>
                     {d.date && <p className="text-xs text-forest/50">{fmtDate(d.date)}</p>}
                   </div>
                 </div>
@@ -452,7 +454,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
 
         {/* Financial summary */}
         <div className="mt-10 border-t border-forest/10 pt-6 print:mt-6 print:break-inside-avoid">
-          <p className="font-display text-lg font-semibold text-forest">{t('financialSummary')} <span className="text-sm font-normal text-forest/50">[ in {itin.pricing.currency} ]</span></p>
+          <p className="font-display text-lg font-semibold text-forest">{showPrice ? t('financialSummary') : t('accommodationSummary')} {showPrice && <span className="text-sm font-normal text-forest/50">[ in {itin.pricing.currency} ]</span>}</p>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-xs">
               <thead>
@@ -483,12 +485,16 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
           </div>
 
           <div className="mt-4 flex flex-col items-end gap-1 border-t border-forest/10 pt-4">
-            {itin.pricing.discount > 0 &&
-              <p className="text-xs text-forest/50">{t('basePrice')}: {itin.pricing.currency} {itin.pricing.basePrice.toLocaleString()} &nbsp; {t('discount')}: {itin.pricing.currency} {itin.pricing.discount.toLocaleString()}</p>
-            }
-            <p className="font-display text-xl font-bold text-forest">
-              {t('total')}: {itin.pricing.currency} {itin.pricing.totalPrice.toLocaleString()}
-            </p>
+            {showPrice ? (
+              <>
+                {itin.pricing.discount > 0 &&
+                  <p className="text-xs text-forest/50">{t('basePrice')}: {formatMoney(itin.pricing.basePrice, itin.pricing.currency, docLang)} &nbsp; {t('discount')}: {formatMoney(itin.pricing.discount, itin.pricing.currency, docLang)}</p>
+                }
+                <p className="font-display text-xl font-bold text-forest">
+                  {t('total')}: {formatMoney(itin.pricing.totalPrice, itin.pricing.currency, docLang)}
+                </p>
+              </>
+            ) : null}
             <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${itin.sightseeingIncluded === false ? 'bg-gold/15 text-forest/70' : 'bg-emerald/10 text-emerald'}`}>
               {itin.sightseeingIncluded === false ? t('sightseeingNotIncluded') : t('sightseeingIncluded')}
             </span>

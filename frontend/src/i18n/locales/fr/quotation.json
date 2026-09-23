@@ -41,5 +41,6 @@
   "importantNotes": "Remarques importantes",
   "tripRoute": "Itinéraire du Voyage",
   "notReady": "Votre itinéraire n'est pas encore prêt.",
-  "notBuilt": "Aucun itinéraire n'a encore été créé pour cette demande."
+  "notBuilt": "Aucun itinéraire n'a encore été créé pour cette demande.",
+  "accommodationSummary": "Récapitulatif des hébergements"
 }

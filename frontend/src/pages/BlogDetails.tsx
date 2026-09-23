@@ -90,7 +90,9 @@ export function BlogDetails() {
         // user cancelled or share failed — fall through to copy-link
       }
     }
-    await navigator.clipboard.writeText(shareUrl).catch(() => {});
+    await navigator.clipboard.writeText(shareUrl).catch(() => {
+      // Clipboard access may be blocked in some browsers; the share flow still succeeds.
+    });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -366,8 +368,7 @@ export function BlogDetails() {
             className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
 
                 <div className={s.image ? '' : 'lg:col-span-2'}>
-                  <span className="block font-display text-6xl font-bold leading-none text-forest/10 sm:text-8xl">{String(i + 1).padStart(2, '0')}</span>
-                  <h2 className="-mt-4 font-display text-xl font-semibold text-forest sm:-mt-6 sm:text-2xl">{s.heading}</h2>
+                  <h2 className="font-display text-xl font-semibold text-forest sm:text-2xl">{s.heading}</h2>
                   <div className="prose mt-4 max-w-none text-base leading-relaxed text-forest/70">
                     {s.body.split(/\n\s*\n/).map((para, pi) => <p key={pi} className="mb-4">{para}</p>)}
                   </div>

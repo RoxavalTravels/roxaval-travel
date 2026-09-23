@@ -27,6 +27,7 @@ import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
 import { BookingModal } from '../components/booking/BookingModal';
 import { useAuth } from '../context/AuthContext';
 import type { TourPackage, Review } from '../types/tourPackage';
+import { formatMoney } from '../lib/money';
 
 // Day descriptions authored as "Distance: ... Travel Time: ... <narrative>" get their
 // facts pulled out into badges instead of buried in a wall of text. Descriptions that
@@ -48,6 +49,7 @@ export function TourPackageDetails() {
   const navigate = useNavigate();
   const [pkg, setPkg] = useState<TourPackage | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewError, setReviewError] = useState(false);
   const [related, setRelated] = useState<TourPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,14 +60,16 @@ export function TourPackageDetails() {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setReviewError(false);
+    setReviews([]);
 
     apiGetOne<TourPackage>(`/packages/slug/${slug}`).
     then((data) => {
       if (cancelled) return;
       setPkg(data);
       return Promise.all([
-      apiGetList<Review>('/reviews', { tourPackage: data._id, limit: 10 }).then(({ data: r }) => !cancelled && setReviews(r)),
-      apiGetList<TourPackage>('/packages', { category: data.category, limit: 4 }).then(({ data: list }) => !cancelled && setRelated(list.filter((p) => p._id !== data._id).slice(0, 3)))]
+      apiGetList<Review>('/reviews', { tourPackage: data._id, limit: 10 }).then(({ data: r }) => !cancelled && setReviews(r)).catch(() => !cancelled && setReviewError(true)),
+      apiGetList<TourPackage>('/packages', { category: data.category, limit: 4 }).then(({ data: list }) => !cancelled && setRelated(list.filter((p) => p._id !== data._id).slice(0, 3))).catch(() => !cancelled && setRelated([]))]
       );
     }).
     catch((err: Error) => !cancelled && setError(err.message)).
@@ -310,23 +314,24 @@ export function TourPackageDetails() {
           </div>
 
           {/* Reviews */}
-          {reviews.length > 0 &&
-          <div className="mt-10">
-              <h2 className="font-display text-2xl font-semibold text-forest">{t('detail.reviews')}</h2>
+          <section className="mt-10" aria-labelledby="package-reviews-title">
+              <h2 id="package-reviews-title" className="font-display text-2xl font-semibold text-forest">{t('detail.reviews')}</h2>
+              {reviewError ? <p role="alert" className="mt-4 text-sm text-forest/60">{copy('Reviews are temporarily unavailable. Please try again later.')}</p> : reviews.length === 0 && <p className="mt-4 rounded-3xl bg-white p-6 text-sm text-forest/60">{copy('No reviews yet')}</p>}
               <div className="mt-4 space-y-4">
                 {reviews.map((r) =>
               <div key={r._id} className="rounded-3xl bg-white p-6 shadow-soft">
-                    <div className="flex items-center gap-1">
+                    {r.customer?.user?.avatar && <img src={r.customer.user.avatar} alt="" className="mb-3 h-10 w-10 rounded-full object-cover" />}
+                    <div className="flex items-center gap-1" aria-label={`${r.rating} / 5`}>
                       {Array.from({ length: r.rating }).map((_, i) => <StarIcon key={i} className="h-4 w-4 fill-gold text-gold" />)}
                     </div>
                     {r.title && <p className="mt-2 font-semibold text-forest">{r.title}</p>}
                     <p className="mt-1.5 text-sm leading-relaxed text-forest/70">{r.text}</p>
+                    {r.createdAt && <time dateTime={r.createdAt} className="mt-2 block text-xs text-forest/50">{new Date(r.createdAt).toLocaleDateString(i18n.resolvedLanguage || 'en', { year: 'numeric', month: 'long', day: 'numeric' })}</time>}
                     <p className="mt-2 text-xs text-forest/50">{r.customer?.user?.fullName || r.reviewerName || t('detail.verifiedTraveler')}{r.country ? ` • ${r.country}` : ''}</p>
                   </div>
               )}
               </div>
-            </div>
-          }
+            </section>
         </div>
 
         {/* Sidebar CTA */}
@@ -335,9 +340,9 @@ export function TourPackageDetails() {
             {pkg.showPrice ?
             <>
                 <p className="font-display text-3xl font-bold">
-                  {pkg.currency} {displayPrice.toLocaleString()}
+                  {formatMoney(displayPrice, pkg.currency)}
                   {pkg.discountPrice != null && pkg.discountPrice < pkg.price &&
-                  <span className="ml-2 text-base font-normal text-cream/50 line-through">{pkg.currency} {pkg.price.toLocaleString()}</span>
+                  <span className="ml-2 text-base font-normal text-cream/50 line-through">{formatMoney(pkg.price, pkg.currency)}</span>
                   }
                 </p>
                 <p className="mt-1 text-xs uppercase tracking-wide text-cream/60">{t('detail.perPerson', { min: pkg.minTravelers, max: pkg.maxTravelers })}</p>

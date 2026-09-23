@@ -133,8 +133,10 @@ export function RouteMap({ days, lang }: { days: { dayNumber: number; destinatio
 
         <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            maxZoom={19}
+            referrerPolicy="strict-origin-when-cross-origin"
+            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <Polyline
             positions={stops.map((s) => [s.lat, s.lng])}
             pathOptions={{ color: '#1a7a5e', weight: 2.5, dashArray: '6 6' }} />

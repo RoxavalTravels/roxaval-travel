@@ -158,12 +158,12 @@ const server = http.createServer((req,res) => {
     pricedTour = true;
     await page.goto('http://127.0.0.1:4179/en/sri-lanka-tour-14-days/');
     await page.getByText('Breakfast, Lunch, Dinner',{exact:false}).waitFor();
-    await page.getByText('USD 1,000',{exact:false}).waitFor();
+    await page.getByText('US$1,000.00',{exact:false}).waitFor();
     await page.locator('nav').getByRole('button',{name:/langue|language|Sprache/i}).click();
     await page.getByRole('button',{name:'Deutsch',exact:true}).click();
     await page.getByText('Frühstück, Mittagessen, Abendessen',{exact:false}).waitFor();
     await page.getByText('Wildtiersafari',{exact:true}).first().waitFor();
-    await page.getByText('EUR 900',{exact:false}).waitFor();
+    await page.getByText(/900,00\s*€/).waitFor();
     await page.locator('nav').getByRole('button',{name:/langue|language|Sprache/i}).click();
     await page.getByRole('button',{name:'Français',exact:true}).click();
     await page.getByText('Petit-déjeuner, Déjeuner, Dîner',{exact:false}).waitFor();

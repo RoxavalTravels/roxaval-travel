@@ -114,7 +114,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     if (!open) return;
     let active = true;
     setLoading(true);
-    const params: Record<string, string | number | undefined> = { sort: 'id' };
+    const params: Record<string, string | number | undefined> = { sort: 'name' };
     if (destination) params.destination = destination;
     if (starRating) params.starRating = starRating;
     if (mealPlan) params['roomTypes.mealPlan'] = mealPlan;
@@ -199,9 +199,8 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
               </tr>
             </thead>
             <tbody>
-              {hotels.filter(h => !h.roomTypes.length).map(h => <tr key={h._id} className="border-t border-forest/5"><td className="p-2">{h.name}</td><td colSpan={9} className="p-2 text-forest/60">Add room types in Hotels before selecting this hotel for a quotation.</td></tr>)}
               {hotels.flatMap((h) =>
-            (h.roomTypes.length ? h.roomTypes : []).map((rt) => {
+            !h.roomTypes.length ? [<tr key={h._id} className="border-t border-forest/5"><td className="p-2">{h.name}</td><td colSpan={9} className="p-2 text-forest/60">Add room types in Hotels before selecting this hotel for a quotation.</td></tr>] : h.roomTypes.map((rt) => {
               const rowRate = resolveRate(rt, travelDate);
               return (
                 <tr key={`${h._id}-${rt._id}`} className={`border-t border-forest/5 ${pickedHotel?._id === h._id && pickedRoomType?._id === rt._id ? 'bg-emerald/10' : ''}`}>

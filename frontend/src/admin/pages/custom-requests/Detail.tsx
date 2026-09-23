@@ -327,7 +327,7 @@ interface ItineraryDetail {
   hotels: { _id: string; name: string }[];
   tourGuide?: { _id: string; name: string };
   vehicle?: { _id: string; name: string };
-  pricing: { basePrice: number; markupAmount?: number; discount: number; totalPrice: number; currency: string; pricePerPerson: boolean };
+  pricing: { basePrice: number; markupAmount?: number; discount: number; totalPrice: number; currency: string; pricePerPerson: boolean; showPrice?: boolean };
   sightseeingIncluded?: boolean;
   adminNotes: string;
   customerFacingNotes: string;
@@ -560,6 +560,7 @@ export function AdminCustomRequestDetail() {
   const [discount, setDiscount] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   const [currency, setCurrency] = useState('USD');
+  const [showPrice, setShowPrice] = useState(true);
   const [sightseeingIncluded, setSightseeingIncluded] = useState(true);
   const [adminNotes, setAdminNotes] = useState('');
   const [customerFacingNotes, setCustomerFacingNotes] = useState<LocalizedString>(DEFAULT_CUSTOMER_FACING_NOTES);
@@ -604,7 +605,7 @@ export function AdminCustomRequestDetail() {
     Promise.all([
     apiGetList<{ _id: string; name: string }>('/destinations', { limit: 100 }),
     apiGetList<{ _id: string; name: string }>('/activities', { limit: 100 }),
-    apiGetAll<{ _id: string; name: string }>('/hotels/admin/all'),
+    apiGetAll<{ _id: string; name: string }>('/hotels/admin/all', { sort: 'name' }),
     apiGetList<{ _id: string; name: string; pricePerDay: number }>('/tour-guides', { limit: 100 }),
     apiGetList<{ _id: string; name: string; pricePerDay: number }>('/vehicles', { limit: 100 })]
     ).then(([d, a, h, g, v]) => {
@@ -699,6 +700,7 @@ export function AdminCustomRequestDetail() {
       setDiscount(itin.pricing.discount);
       setTotalPrice(itin.pricing.totalPrice);
       setCurrency(itin.pricing.currency);
+      setShowPrice(itin.pricing.showPrice ?? true);
       setSightseeingIncluded(itin.sightseeingIncluded ?? true);
       setAdminNotes(itin.adminNotes);
       setBannerImage(itin.bannerImage || '');
@@ -729,6 +731,7 @@ export function AdminCustomRequestDetail() {
       // rates once hotels/transport/guide are actually picked below.
       setBasePrice(0);
       setTotalPrice(0);
+      setShowPrice(true);
       setSightseeingIncluded(request.sightseeingPreference !== 'Exclude');
       setTourGuide('');
       setVehicle('');
@@ -785,6 +788,7 @@ export function AdminCustomRequestDetail() {
     days: days.map(({ _key, ...d }) => d),
     hotels, tourGuide, vehicle,
     basePrice, markupAmount, discount, totalPrice, currency,
+    showPrice,
     sightseeingIncluded, adminNotes, customerFacingNotes,
     visaRequirements, travelInsurance, cancellationPolicy, inclusions, exclusions,
   });
@@ -1148,7 +1152,7 @@ export function AdminCustomRequestDetail() {
     hotels,
     tourGuide: tourGuide || undefined,
     vehicle: vehicle || undefined,
-    pricing: { basePrice, markupAmount, discount, totalPrice, currency, pricePerPerson: false },
+    pricing: { basePrice, markupAmount, discount, totalPrice, currency, pricePerPerson: false, showPrice },
     sightseeingIncluded,
     adminNotes,
     customerFacingNotes,
@@ -1849,6 +1853,13 @@ export function AdminCustomRequestDetail() {
                   <NumberField label="Discount" value={discount} onChange={setDiscount} min={0} />
                   <NumberField label="Total Price" value={totalPrice} onChange={setTotalPrice} min={0} />
                   <TextField label="Currency" value={currency} onChange={setCurrency} />
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-forest/10 bg-cream/50 px-3 py-2">
+                  <div>
+                    <p className="text-sm font-semibold text-forest">Customer-facing price</p>
+                    <p className="text-xs text-forest/50">Enable this to send the quotation without showing a cost.</p>
+                  </div>
+                  <CheckboxField label="Hide price / price on request" checked={!showPrice} onChange={(hide) => setShowPrice(!hide)} />
                 </div>
                 <p className="mt-2 text-xs text-forest/50">
                   Markup is Roxaval's margin on top of the base cost - it's baked into Total Price when you click "Use this amount" above, never shown to the customer directly. Total Price is the full trip cost, not per person.

@@ -1,0 +1,29 @@
+# Quotation map and price visibility — 23 September 2026
+
+Deployed to cPanel on 23 September 2026 following explicit user authorization. See deployment record below; the preparation notes describe the earlier local checks.
+
+- `RouteMap.tsx`: replace CARTO tiles with the standard HTTPS OpenStreetMap endpoint, correct attribution, maximum zoom 19 and an explicit cross-origin referrer policy. Route markers and printing remain intact. Provider policy: https://operations.osmfoundation.org/policies/tiles/ . Availability remains dependent on the external tile service.
+- `QuotationView.tsx`: respect the existing saved `pricing.showPrice` flag throughout screen/print output. Hidden prices now omit the total badge, amounts and currency heading rather than displaying price placeholders. Keep the hotel summary with a translated accommodation heading.
+- `MyTours.tsx`: hide the customer itinerary total when that quotation's price is hidden. Existing confirmed booking/payment amounts remain visible.
+- Laravel `DocumentService.php`: generated quotation PDFs also omit their amount summary when `pricing_show_price` is false. Previously this path ignored the option.
+- Quotation EN/DE/FR resources: accommodation summary labels.
+
+Use **Admin → Custom Requests → open request → itinerary pricing → Hide price / price on request**, save the itinerary, then preview/print or generate a new quotation PDF. Previously generated PDF files are unchanged; regenerate them. Stored internal costs are preserved. This is document presentation, not an API-level secrecy feature.
+
+The working tree already contained the checkbox, model casts, save/version support, and migration `2026_09_19_000001_add_show_price_to_itineraries_table.php`; they were retained. A future deployment must include that migration if it has not already run. No migration was run on production.
+
+Validation: production build and functional TypeScript check passed (existing unused-variable checks disabled). Focused Chromium test `frontend/scripts/test-quotation-visibility.cjs` passed screen/print price visibility, map endpoint selection and runtime-error checks using mocked API data and blocked tile delivery. This does not establish live tile availability. PHP syntax passed. Full Laravel suite: 17/18 tests passed, 596 assertions; the SEO keyword-clearing test fails because current code supplies fallback keywords. That separate issue and the earlier incomplete broader browser audit prevent claiming the entire pending batch is release-ready.
+
+Many earlier changes remain in this workspace. Do not deploy the entire build as an isolated quotation patch without reviewing those pending changes and completing release verification.
+
+## Deployment record
+
+- Private complete backups are in `/home2/zlwoctte/roxaval-quotation-20260923`: frontend 119,731,671 bytes; backend 315,229,749 bytes; MySQL dump 7,484,364 bytes. All are 0600 outside public roots. Gzip integrity, listings, and frontend comparison passed before replacement. No local backup download is claimed.
+- Backup SHA-256: frontend `7da26880600557ac86fe78df94659370c36051544347f08b69c7cef9e42143c8`; backend `7d5763db27b1c0b6991184f543a54745a0c1b6b3a360dda9886494e955f9e569`; database `49dd90b5a87e5ad652b68af898ce6075865a97185b51d781a03d1335b042f7cd`.
+- Compared live app/routes source before packaging the pending frontend/backend fixes. The active backend is Laravel; no Node backend files were deployed. Backend patch contains changed application/routes files, PDF template and the additive visibility migration. No slug-cleanup migrations were included or run.
+- Fixed the separate SEO keyword-clearing regression: explicit empty keywords now suppress that tag. Re-run Laravel suite passed **18 tests / 596 assertions**. Current build passed the multilingual browser suite, 29 admin-screen smoke checks and targeted booking-selector regressions with mocked API data. Quotation browser checks passed route-title rendering and price visibility. Production build and functional TypeScript checks passed.
+- Final normalized archives: `backend-quotation-unix-20260923.zip`, SHA-256 `44954bacb31d66e76408a5dd64e68b41803321d7bf15a34c689ba4d0401b48d4`; `frontend-quotation-unix-20260923.zip`, SHA-256 `0ab7877fc4a7c8afba47b82b0d87f5cf59be7c19d6570db42eddb9b38db9e661`. Server checksum/archive checks passed. Initial Windows-path archive extraction returned a warning; normalized archives were uploaded and the guarded deployment completed successfully.
+- Migration `2026_09_19_000001_add_show_price_to_itineraries_table.php` ran successfully; both visibility columns verified. No seeds, deletions, exchange-rate changes or slug-cleanup migrations. Existing assets, credentials, uploads and `.htaccess` retained. Laravel optimize caches cleared. Public assets set readable.
+- Active frontend entry: `index-BOLgQ7bL.js`. Deployed DocumentService and Itinerary model SHA-256 match the local release files. Day headings use saved editable titles, e.g. `Day 01 (Sigiriya to Kandy)`, in preview/print and regenerated PDF tables. Existing stored PDFs must be regenerated.
+- Post-deployment Chromium checks passed EN/DE/FR home pages (German at 375px), English tour listing, admin login validation/password toggle/forgot-password link and unauthenticated dashboard redirect. No broken rendered images or runtime exceptions in those checks. Exact JS bundle, CSS, representative photos, placeholder and sitemap returned HTTP 200. Authenticated live quotation rendering and live map tile availability remain unverified; local quotation tests used fixtures.
+- Rollback: restore frontend/backend backup files; retain additive visibility columns to preserve selections. Database restore is unnecessary unless a separate data rollback is needed. No production customer submissions, emails, payments or authenticated quotation generation were performed during checks.

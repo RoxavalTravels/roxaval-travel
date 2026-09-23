@@ -122,7 +122,7 @@ export function AdminPackageForm() {
     Promise.all([
     apiGetList<{ _id: string; name: string }>('/destinations', { limit: 100 }),
     apiGetList<{ _id: string; name: string }>('/activities', { limit: 100 }),
-    apiGetAll<{ _id: string; name: string; status: string }>('/hotels/admin/all', { sort: 'id' })]
+    apiGetAll<{ _id: string; name: string; status: string }>('/hotels/admin/all', { sort: 'name' })]
     ).then(([d, a, h]) => {
       setDestOptions(d.data.map((x) => ({ value: x._id, label: x.name })));
       setActivityOptions(a.data.map((x) => ({ value: x._id, label: x.name })));

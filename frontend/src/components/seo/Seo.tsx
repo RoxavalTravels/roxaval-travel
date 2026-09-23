@@ -25,6 +25,8 @@ export function Seo({ title, description, keywords, image, type = 'website', noi
   const page = pageTranslation(location.pathname, locale);
   title = page?.metaTitle || title;
   description = page?.metaDescription || description;
+  keywords = page?.keywords || keywords;
+  const effectiveKeywords = keywords || title;
   const socialTitle = page?.socialTitle || title;
   const socialDescription = page?.socialDescription || description;
   const canonical = absoluteUrl(localizedPath(canonicalPath || location.pathname, locale));
@@ -36,7 +38,7 @@ export function Seo({ title, description, keywords, image, type = 'website', noi
       <html lang={locale} />
       <title>{title}</title>
       <meta name="description" content={description} />
-      {keywords && <meta name="keywords" content={keywords} />}
+      <meta name="keywords" content={effectiveKeywords} />
       <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'} />
       <link rel="canonical" href={canonical} />
       {!noindex && languages.filter(language => pageTranslation(location.pathname, language)).map(language => <link key={language} rel="alternate" hrefLang={language} href={absoluteUrl(localizedPath(location.pathname, language))} />)}

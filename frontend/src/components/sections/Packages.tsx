@@ -8,12 +8,13 @@ import { SectionHeading } from '../ui/SectionHeading';
 import type { TourPackage } from '../../types/tourPackage';
 
 export function Packages() {
-  const { t } = useTranslation('home');
+  const { t, i18n } = useTranslation('home');
   const [packages, setPackages] = useState<TourPackage[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
 
     apiGetList<TourPackage>('/packages', { isFeatured: true, limit: 8, sort: '-rating' }).
     then(async ({ data }) => {
@@ -34,7 +35,7 @@ export function Packages() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   if (!loading && packages.length === 0) return null;
 

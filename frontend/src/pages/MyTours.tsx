@@ -1,3 +1,4 @@
+import { formatMoney } from '../lib/money';
 import { copy } from '../i18n';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useRef, useState } from 'react';
@@ -79,7 +80,7 @@ interface ItineraryDetail {
   summary: string;
   days: ItineraryDay[];
   hotels: HotelRef[];
-  pricing: { basePrice: number; discount: number; totalPrice: number; currency: string; pricePerPerson: boolean };
+  pricing: { basePrice: number; discount: number; totalPrice: number; currency: string; pricePerPerson: boolean; showPrice?: boolean };
   customerFacingNotes: string;
   status: 'Draft' | 'Sent' | 'Changes Requested' | 'Accepted' | 'Rejected';
 }
@@ -185,7 +186,7 @@ function PayNowPanel({ booking, onPaid }: {booking: BookingItem;onPaid: () => vo
   useEffect(() => {
     apiGetOne<{ bankDetails: BankDetails }>('/settings').
     then((s) => setBankDetails(s.bankDetails)).
-    catch(() => {});
+    catch(() => setBankDetails(null));
   }, []);
 
   // 'balance' and 'full' both mean "pay off what's left" — using the actual
@@ -374,7 +375,7 @@ function BookingsTab({ initialSelectedId }: {initialSelectedId?: string;}) {
   }, [items, selectedId]);
 
   const loadMyReviews = () => {
-    apiGetOne<Review[]>('/reviews/my-reviews').then(setMyReviews).catch(() => {});
+    apiGetOne<Review[]>('/reviews/my-reviews').then(setMyReviews).catch(() => setMyReviews([]));
   };
 
   useEffect(loadMyReviews, []);
@@ -418,10 +419,10 @@ function BookingsTab({ initialSelectedId }: {initialSelectedId?: string;}) {
             {selected.specialRequests && <p className="mt-3 text-sm text-forest/60">{selected.specialRequests}</p>}
 
             <div className="mt-5 space-y-1.5 border-t border-forest/10 pt-4 text-sm">
-              <div className="flex justify-between"><span className="text-forest/60">Total</span><span className="font-semibold text-forest">{selected.pricing.currency} {selected.pricing.totalAmount.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-forest/60">Advance (30%)</span><span className="text-forest">{selected.pricing.currency} {selected.pricing.advanceAmount.toLocaleString()}</span></div>
-              <div className="flex justify-between border-t border-forest/10 pt-1.5"><span className="text-forest/60">Paid so far</span><span className="font-semibold text-emerald">{selected.pricing.currency} {(selected.pricing.amountPaid || 0).toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-forest/60">Remaining</span><span className="font-semibold text-forest">{selected.pricing.currency} {Math.max(Math.round((selected.pricing.totalAmount - (selected.pricing.amountPaid || 0)) * 100) / 100, 0).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-forest/60">Total</span><span className="font-semibold text-forest">{formatMoney(selected.pricing.totalAmount, selected.pricing.currency)}</span></div>
+              <div className="flex justify-between"><span className="text-forest/60">Advance (30%)</span><span className="text-forest">{formatMoney(selected.pricing.advanceAmount, selected.pricing.currency)}</span></div>
+              <div className="flex justify-between border-t border-forest/10 pt-1.5"><span className="text-forest/60">Paid so far</span><span className="font-semibold text-emerald">{formatMoney((selected.pricing.amountPaid || 0), selected.pricing.currency)}</span></div>
+              <div className="flex justify-between"><span className="text-forest/60">Remaining</span><span className="font-semibold text-forest">{formatMoney(Math.max(Math.round((selected.pricing.totalAmount - (selected.pricing.amountPaid || 0)) * 100) / 100, 0), selected.pricing.currency)}</span></div>
             </div>
           </div>
 
@@ -649,10 +650,10 @@ function RequestsTab({ initialSelectedId, onBookingCreated }: {initialSelectedId
                 </div>
           }
 
-              <div className="mt-4 flex items-center justify-between border-t border-forest/10 pt-4">
+              {itin.pricing.showPrice !== false && <div className="mt-4 flex items-center justify-between border-t border-forest/10 pt-4">
                 <span className="text-sm text-forest/60">Total Price</span>
-                <span className="font-display text-xl font-semibold text-forest">{itin.pricing.currency} {itin.pricing.totalPrice.toLocaleString()}{itin.pricing.pricePerPerson ? ' / person' : ''}</span>
-              </div>
+                <span className="font-display text-xl font-semibold text-forest">{formatMoney(itin.pricing.totalPrice, itin.pricing.currency)}{itin.pricing.pricePerPerson ? ' / person' : ''}</span>
+              </div>}
 
               {itin.status === 'Sent' &&
           <div className="mt-5 space-y-3">

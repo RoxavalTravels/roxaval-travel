@@ -41,5 +41,6 @@
   "importantNotes": "Wichtige Hinweise",
   "tripRoute": "Reiseroute",
   "notReady": "Ihr Reiseplan ist noch nicht fertig.",
-  "notBuilt": "Für diese Anfrage wurde noch kein Reiseplan erstellt."
+  "notBuilt": "Für diese Anfrage wurde noch kein Reiseplan erstellt.",
+  "accommodationSummary": "Unterkunftsübersicht"
 }

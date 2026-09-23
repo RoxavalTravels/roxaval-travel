@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ClockIcon, StarIcon, ArrowRightIcon, Users2Icon, UserIcon } from 'lucide-react';
 import type { TourPackage } from '../../types/tourPackage';
+import { formatMoney } from '../../lib/money';
 
 interface PackageCardProps {
   pkg: TourPackage;
@@ -42,6 +43,7 @@ export function PackageCard({ pkg, index = 0, compact = false }: PackageCardProp
           </p>
 
           <div className={`flex items-end justify-end border-t border-forest/10 ${compact ? 'mt-2 pt-2' : 'mt-5 pt-4'}`}>
+            {pkg.showPrice && <span className="mr-auto pr-2 text-sm font-semibold text-forest">{formatMoney(pkg.discountPrice ?? pkg.price, pkg.currency)}</span>}
             {compact ?
             <span className="inline-flex items-center gap-1 rounded-full bg-forest px-3 py-1.5 text-xs font-semibold text-cream transition-colors group-hover:bg-emerald">
                 {copy("View")} <ArrowRightIcon className="h-3 w-3 transition-transform group-hover:translate-x-1" />

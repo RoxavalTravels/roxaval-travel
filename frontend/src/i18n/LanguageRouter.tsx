@@ -16,7 +16,7 @@ export function LanguageRouter({ children }: { children: React.ReactNode }) {
     const embedded = document.getElementById('roxaval-translations')?.textContent;
     const load: Promise<[PageTranslation[], { locale: string; slug: string; pageKey: string }[]]> = embedded
       ? Promise.resolve([JSON.parse(embedded), []])
-      : Promise.all([apiGetOne<PageTranslation[]>('/translations/pages'), apiGetOne<{ locale: string; slug: string; pageKey: string }[]>('/translations/redirects')]);
+      : Promise.all([apiGetOne<PageTranslation[]>('/translations/pages').catch(() => []), apiGetOne<{ locale: string; slug: string; pageKey: string }[]>('/translations/redirects').catch(() => [])]);
     load.then(([rows, aliases]) => {
       if (!active) return;
       setTranslations(rows);
@@ -31,7 +31,7 @@ export function LanguageRouter({ children }: { children: React.ReactNode }) {
         i18n.addResourceBundle(row.locale, namespace, values, true, true);
       }));
       setReady(true);
-    }).catch(() => { if (active) setError(true); });
+    }).catch(() => { if (active) { setReady(true); setError(false); } });
     return () => { active = false; };
   }, []);
   useEffect(() => {

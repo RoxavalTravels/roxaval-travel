@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AddReview } from './AddReview';
-import { CheckIcon, HomeIcon, SearchIcon, StarIcon, TrashIcon, XIcon } from 'lucide-react';
+import { CheckIcon, HomeIcon, SearchIcon, StarIcon, TrashIcon, XIcon, PencilIcon } from 'lucide-react';
 import { useAdminList } from '../../hooks/useAdminList';
 import { DataTable, Column } from '../../components/DataTable';
 import { PageHeader } from '../../components/PageHeader';
@@ -26,6 +26,7 @@ interface AdminReview {
 export function AdminReviewsList() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
+  const [editing, setEditing] = useState<AdminReview>();
   const { items, meta, loading, error, page, setPage, refetch } = useAdminList<AdminReview>('/reviews/admin/all', {
     q: search || undefined,
     status: status || undefined
@@ -99,10 +100,11 @@ export function AdminReviewsList() {
     header: 'Actions',
     render: (r) =>
     <div className="flex items-center gap-1.5">
+          <button aria-label={`Edit review ${r._id}`} onClick={() => setEditing(r)} className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-cream"><PencilIcon className="h-4 w-4" /></button>
           {r.status === 'pending' &&
       <>
-              <button onClick={() => moderate(r, 'approved')} className="grid h-8 w-8 place-items-center rounded-lg text-emerald hover:bg-emerald/10"><CheckIcon className="h-4 w-4" /></button>
-              <button onClick={() => moderate(r, 'rejected')} className="grid h-8 w-8 place-items-center rounded-lg text-red-500 hover:bg-red-50"><XIcon className="h-4 w-4" /></button>
+              <button aria-label={`Approve review ${r._id}`} onClick={() => moderate(r, 'approved')} className="grid h-8 w-8 place-items-center rounded-lg text-emerald hover:bg-emerald/10"><CheckIcon className="h-4 w-4" /></button>
+              <button aria-label={`Reject review ${r._id}`} onClick={() => moderate(r, 'rejected')} className="grid h-8 w-8 place-items-center rounded-lg text-red-500 hover:bg-red-50"><XIcon className="h-4 w-4" /></button>
             </>
       }
           <button onClick={() => remove(r)} className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-red-50 hover:text-red-600"><TrashIcon className="h-4 w-4" /></button>
@@ -114,7 +116,7 @@ export function AdminReviewsList() {
   return (
     <div>
       <PageHeader title="Reviews" subtitle="Moderate customer feedback before it goes live" />
-      <AddReview packages={packages} onSaved={() => { toast('Review saved. Approve it to publish.'); refetch(); }} />
+      <AddReview key={editing?._id || 'new'} packages={packages} review={editing} onSaved={() => { setEditing(undefined); toast('Review saved. Approve it to publish.'); refetch(); }} />
 
       <div className="mb-4 flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[220px]">
