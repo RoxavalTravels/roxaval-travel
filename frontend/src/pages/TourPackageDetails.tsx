@@ -325,7 +325,7 @@ export function TourPackageDetails() {
                       {Array.from({ length: r.rating }).map((_, i) => <StarIcon key={i} className="h-4 w-4 fill-gold text-gold" />)}
                     </div>
                     {r.title && <p className="mt-2 font-semibold text-forest">{r.title}</p>}
-                    <p className="mt-1.5 text-sm leading-relaxed text-forest/70">{r.text}</p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-forest/70">{copy(r.text)}</p>
                     {r.createdAt && <time dateTime={r.createdAt} className="mt-2 block text-xs text-forest/50">{new Date(r.createdAt).toLocaleDateString(i18n.resolvedLanguage || 'en', { year: 'numeric', month: 'long', day: 'numeric' })}</time>}
                     <p className="mt-2 text-xs text-forest/50">{r.customer?.user?.fullName || r.reviewerName || t('detail.verifiedTraveler')}{r.country ? ` • ${r.country}` : ''}</p>
                   </div>

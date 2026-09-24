@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRightIcon, BookmarkIcon, ChevronLeftIcon, ChevronRightIcon, StarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { destinations } from '../../data/content';
+import { copy } from '../../i18n';
 
 export function Destinations() {
   const { t } = useTranslation('home');
@@ -111,7 +112,7 @@ export function Destinations() {
                 {activeDest.name}
               </h2>
               <p className="mt-6 max-w-md text-base leading-relaxed text-cream/90 sm:text-lg drop-shadow-md">
-                {activeDest.description}
+                {copy(activeDest.description)}
               </p>
               <Link to="/destinations" className="group mt-8 inline-flex items-center gap-2 rounded-full bg-emerald px-8 py-4 text-sm font-semibold text-white shadow-lift transition-all hover:scale-105 hover:bg-emerald-light active:scale-95">
                 {t('destinations.explore')} <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -170,7 +171,7 @@ export function Destinations() {
                     )}
                     </div>
                     <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-md sm:text-xs">
-                      {d.tag.split(' ')[0]}
+                      {copy(d.tag)}
                     </span>
                   </div>
                 </div>

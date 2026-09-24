@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AwardIcon, SparklesIcon, CompassIcon, BedDoubleIcon, BadgePercentIcon, ShieldCheckIcon, HeadphonesIcon, CarFrontIcon, CheckIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { whyChoose } from '../../data/content';
+import { copy } from '../../i18n';
 import { SectionHeading } from '../ui/SectionHeading';
 
 // A plain `import * as Icons from 'lucide-react'` (needed since `f.icon`
@@ -47,7 +48,7 @@ export function WhyChoose() {
                   </div>
                   <div className="h-px w-6 shrink-0 bg-gold/50" />
                   <div className="min-w-0 flex-1 rounded-full bg-white/10 px-6 py-3.5 ring-1 ring-white/15 backdrop-blur-sm transition-colors duration-300 group-hover:bg-white/15">
-                    <p className="truncate font-display text-sm font-semibold text-white sm:text-base">{f.title}</p>
+                    <p className="font-display text-sm font-semibold text-white sm:text-base">{copy(f.title)}</p>
                   </div>
                 </motion.div>);
 

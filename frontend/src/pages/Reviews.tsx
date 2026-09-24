@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { copy } from '../i18n';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -46,8 +47,8 @@ function ReviewCard({ review, index }: {review: Review;index: number;}) {
         }
       </div>
       <div className="mt-3"><Stars rating={review.rating} /></div>
-      {review.title && <p className="mt-2 font-display text-base font-semibold text-forest">{review.title}</p>}
-      <p className="mt-2 text-sm leading-relaxed text-forest/65">{review.text}</p>
+      {review.title && <p className="mt-2 font-display text-base font-semibold text-forest">{copy(review.title)}</p>}
+      <p className="mt-2 text-sm leading-relaxed text-forest/65">{copy(review.text)}</p>
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-forest/5 pt-3 text-xs text-forest/45">
         {review.tourPackage?.name && <span className="flex items-center gap-1.5"><PackageIcon className="h-3.5 w-3.5" /> {review.tourPackage.name}</span>}
         <span className="flex items-center gap-1.5"><CalendarIcon className="h-3.5 w-3.5" /> {formatDate(review.createdAt)}</span>

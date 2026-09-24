@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowUpRightIcon, ArrowRightIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { activities } from '../../data/content';
+import { copy } from '../../i18n';
 import { SectionHeading } from '../ui/SectionHeading';
 
 export function Activities() {
@@ -32,11 +33,11 @@ export function Activities() {
             whileHover={{ y: -8 }}
             className="group relative h-80 overflow-hidden rounded-3xl">
             
-              <img src={a.image} alt={a.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <img src={a.image} alt={copy(a.name)} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
               <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/40 to-transparent transition-opacity group-hover:from-forest/95" />
               <div className="absolute inset-0 flex flex-col justify-end p-5">
-                <h3 className="font-display text-xl font-semibold text-white">{a.name}</h3>
-                <p className="mt-1.5 text-sm text-cream/80 leading-relaxed line-clamp-2">{a.description}</p>
+                <h3 className="font-display text-xl font-semibold text-white">{copy(a.name)}</h3>
+                <p className="mt-1.5 text-sm text-cream/80 leading-relaxed line-clamp-2">{copy(a.description)}</p>
                 <button className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-gold group-hover:text-forest">
                   {t('activities.exploreActivity')} <ArrowUpRightIcon className="h-3.5 w-3.5" />
                 </button>

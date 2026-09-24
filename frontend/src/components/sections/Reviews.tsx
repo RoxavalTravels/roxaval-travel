@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { apiGetList } from '../../lib/api';
 import { SectionHeading } from '../ui/SectionHeading';
 import type { Review } from '../../types/review';
+import { copy } from '../../i18n';
 
 const AUTOPLAY_INTERVAL = 4000;
 const SWIPE_THRESHOLD = 50;
@@ -70,7 +71,8 @@ export function Reviews() {
   if (reviews.length === 0) return null;
 
   const r = reviews[index];
-  const name = r.customer?.user?.fullName || r.reviewerName || 'Verified Traveler';
+  const name = r.customer?.user?.fullName || r.reviewerName || copy('Verified Traveler');
+  const reviewText = copy(r.text);
 
   return (
     <section id="reviews" className="relative py-24 bg-white overflow-hidden">
@@ -108,9 +110,9 @@ export function Reviews() {
                   )}
                 </div>
                 <p className="font-display mt-5 text-base sm:text-lg leading-relaxed text-forest">
-                  “{truncate(r.text, TEXT_LIMIT)}”
-                  {r.text.length > TEXT_LIMIT &&
-                  <Link to="/reviews" className="ml-2 whitespace-nowrap text-sm font-semibold text-emerald hover:underline">Read full review</Link>
+                  “{truncate(reviewText, TEXT_LIMIT)}”
+                  {reviewText.length > TEXT_LIMIT &&
+                  <Link to="/reviews" className="ml-2 whitespace-nowrap text-sm font-semibold text-emerald hover:underline">{copy('Read full review')}</Link>
                   }
                 </p>
                 <div className="mt-8 flex items-center gap-4">
@@ -149,7 +151,7 @@ export function Reviews() {
         </div>
 
         <div className="mt-16">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.3em] text-emerald/70">Fresh Off the Plane</p>
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.3em] text-emerald/70">{copy('Fresh Off the Plane')}</p>
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
             {WELCOME_PHOTOS.map((src, i) =>
             <motion.div
@@ -160,7 +162,7 @@ export function Reviews() {
               transition={{ duration: 0.4, delay: i * 0.06 }}
               className="group aspect-square overflow-hidden rounded-2xl shadow-soft ring-1 ring-forest/5">
 
-                <img src={src} alt="Guest welcomed by Roxaval Travels at the airport" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img src={src} alt={copy('Guest welcomed by Roxaval Travels at the airport')} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
               </motion.div>
             )}
           </div>
