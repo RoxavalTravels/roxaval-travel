@@ -1,6 +1,6 @@
 # SEO, headings, content and package reviews — 24 September 2026
 
-Prepared locally for deployment review. No production source, database, DNS or Search Console settings were changed in this task.
+Deployed on 24 September 2026 after the user's request to push and deploy. Frontend files and frontend Apache rules were updated. No backend, database, DNS or Search Console settings were changed.
 
 ## Verified findings and changes
 
@@ -48,4 +48,16 @@ Frontend artifact: `frontend-seo-content-20260924.tar.gz`, SHA-256 `edb09786367b
 
 Before deployment, back up the current frontend and `.htaccess`, verify the archive, compare the live rules again and confirm Apache sees HTTPS correctly (especially if hosting adds a TLS proxy). Extract with public-readable permissions while retaining old hashed assets. Apply the prepared redirect before the gateway. Test all four host/scheme variants, paths with query parameters, static assets, robots.txt, sitemap.xml, EN/DE/FR pages and admin login. Expected: alternatives return 301 to HTTPS/www, canonical URLs return 200 without loops. No backend migration is required. Rollback restores the frontend and `.htaccess` backups.
 
-Status: frontend release prepared and tested; host redirects prepared but not live-tested. Ready for a controlled deployment with the checks above, subject to acceptance of the existing repository lint/unused-symbol debt. Not deployed or pushed in this task.
+## Completed deployment
+
+Implementation commit `538747c` was pushed to `RoxavalTravels/roxaval-travel`, branch `main`.
+
+Complete private frontend backup: `/home2/zlwoctte/roxaval-seo-content-20260924/frontend-before.tar.gz`. Gzip integrity and full archive comparison against the live frontend passed before deployment. SHA-256: `8e1a7c099d80c12d5a190459dfe8005c9b04c955da430afdea0020da5bdea223`. A separate `htaccess-before` copy is in the same private directory.
+
+The uploaded release checksum matched the tested artifact above. Deployed assets and index with public-readable permissions, preserving old hashed assets. Applied the prepared Apache rules after comparing the live file with its backup. Live entry bundle is `index-BqCBhuTV.js`, stylesheet `index-BVybsYkX.css`.
+
+Post-deployment: all 12 combinations of four host/scheme variants and language page/robots/sitemap passed. Alternatives return 301 to HTTPS/www; canonical URLs return 200 without loops. The language-page query string was preserved. All 438 published URLs passed HTTP, canonical, hreflang, WebPage schema and sitemap checks again.
+
+Live Chromium checks passed EN/DE/FR home pages (German at 375px), English tour listing, representative images, placeholder, exact JS/CSS bundle, admin login required-field validation/password visibility/forgot-password link and unauthenticated dashboard redirect. No broken images or runtime errors appeared in these checked flows. No credentials were submitted or production records written. Earlier repository lint debt and external integration/content limitations remain.
+
+Rollback: restore the complete frontend backup, or restore `htaccess-before` for a hosting-rule-only rollback. No backend or database rollback is needed. Unrelated old Node backend edits and draft slug-cleanup migrations were excluded from this tested release.
