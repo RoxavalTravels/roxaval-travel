@@ -241,11 +241,11 @@ export function TourPackageDetails() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {pkg.destinations.length > 0 &&
             <div>
-                <h3 className="font-display text-lg font-semibold text-forest">{t('detail.destinations')}</h3>
+                <h2 className="font-display text-lg font-semibold text-forest">{t('detail.destinations')}</h2>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {pkg.destinations.map((d) =>
                 <span key={d._id} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-sm font-medium text-forest shadow-soft">
-                      <MapPinIcon className="h-3.5 w-3.5 text-emerald" /> {d.name}
+                      <MapPinIcon className="h-3.5 w-3.5 text-emerald" /> {d.slug ? <Link to={`/destinations/${d.slug}`} className="hover:underline">{d.name}</Link> : d.name}
                     </span>
                 )}
                 </div>
@@ -253,11 +253,11 @@ export function TourPackageDetails() {
             }
             {pkg.activities.length > 0 &&
             <div>
-                <h3 className="font-display text-lg font-semibold text-forest">{t('detail.activities')}</h3>
+                <h2 className="font-display text-lg font-semibold text-forest">{t('detail.activities')}</h2>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {pkg.activities.map((a) =>
                 <span key={a._id} className="rounded-full bg-white px-3.5 py-2 text-sm font-medium text-forest shadow-soft">
-                      {a.name}
+                      {a.slug ? <Link to={`/activity/${a.slug}`} className="hover:underline">{a.name}</Link> : a.name}
                     </span>
                 )}
                 </div>
@@ -268,7 +268,7 @@ export function TourPackageDetails() {
           {/* Hotels */}
           {pkg.hotels.length > 0 &&
           <div className="mt-10">
-              <h3 className="font-display text-lg font-semibold text-forest">{t('detail.hotels')}</h3>
+              <h2 className="font-display text-lg font-semibold text-forest">{t('detail.hotels')}</h2>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {pkg.hotels.map((h) =>
               <div key={h._id} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-soft">
@@ -289,7 +289,7 @@ export function TourPackageDetails() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {pkg.includedServices.length > 0 &&
             <div className="rounded-3xl bg-white p-6 shadow-soft">
-                <h3 className="font-display text-lg font-semibold text-forest">{t('detail.included')}</h3>
+                <h2 className="font-display text-lg font-semibold text-forest">{t('detail.included')}</h2>
                 <ul className="mt-3 space-y-2">
                   {pkg.includedServices.map((s) =>
                 <li key={s} className="flex items-center gap-2 text-sm text-forest/70">
@@ -301,7 +301,7 @@ export function TourPackageDetails() {
             }
             {pkg.excludedServices.length > 0 &&
             <div className="rounded-3xl bg-white p-6 shadow-soft">
-                <h3 className="font-display text-lg font-semibold text-forest">{t('detail.excluded')}</h3>
+                <h2 className="font-display text-lg font-semibold text-forest">{t('detail.excluded')}</h2>
                 <ul className="mt-3 space-y-2">
                   {pkg.excludedServices.map((s) =>
                 <li key={s} className="flex items-center gap-2 text-sm text-forest/70">
@@ -316,6 +316,7 @@ export function TourPackageDetails() {
           {/* Reviews */}
           <section className="mt-10" aria-labelledby="package-reviews-title">
               <h2 id="package-reviews-title" className="font-display text-2xl font-semibold text-forest">{t('detail.reviews')}</h2>
+              <p className="mt-3 text-sm text-forest/70">{copy('Travelled with us? Share your experience from your completed booking.')} <Link to="/my-tours" className="font-semibold text-emerald underline">{copy('Review your trip')}</Link></p>
               {reviewError ? <p role="alert" className="mt-4 text-sm text-forest/60">{copy('Reviews are temporarily unavailable. Please try again later.')}</p> : reviews.length === 0 && <p className="mt-4 rounded-3xl bg-white p-6 text-sm text-forest/60">{copy('No reviews yet')}</p>}
               <div className="mt-4 space-y-4">
                 {reviews.map((r) =>

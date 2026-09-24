@@ -160,7 +160,7 @@ export function ActivityDetails() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {activity.thingsIncluded.length > 0 &&
             <div className="rounded-3xl bg-white p-6 shadow-soft">
-                <h3 className="font-display text-lg font-semibold text-forest">{t('detail.thingsIncluded')}</h3>
+                <h2 className="font-display text-lg font-semibold text-forest">{t('detail.thingsIncluded')}</h2>
                 <ul className="mt-3 space-y-2">
                   {activity.thingsIncluded.map((t) =>
                 <li key={t} className="flex items-center gap-2 text-sm text-forest/70">
@@ -172,7 +172,7 @@ export function ActivityDetails() {
             }
             {activity.thingsToBring.length > 0 &&
             <div className="rounded-3xl bg-white p-6 shadow-soft">
-                <h3 className="font-display text-lg font-semibold text-forest">{t('detail.thingsToBring')}</h3>
+                <h2 className="font-display text-lg font-semibold text-forest">{t('detail.thingsToBring')}</h2>
                 <ul className="mt-3 space-y-2">
                   {activity.thingsToBring.map((t) =>
                 <li key={t} className="flex items-center gap-2 text-sm text-forest/70">
@@ -208,7 +208,7 @@ export function ActivityDetails() {
               <div className="mt-4 flex flex-wrap gap-3">
                 {relatedDestinations.map((d) =>
               <span key={d._id} className="rounded-full bg-white px-4 py-2 text-sm font-medium text-forest shadow-soft">
-                    {d.name}
+                    {d.slug ? <Link to={`/destinations/${d.slug}`} className="hover:underline">{d.name}</Link> : d.name}
                   </span>
               )}
               </div>

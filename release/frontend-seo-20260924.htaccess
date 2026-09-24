@@ -1,0 +1,25 @@
+# Prepared from the live frontend rules read on 24 September 2026.
+# Review against the live file again immediately before deployment.
+Options -MultiViews
+RewriteEngine On
+
+# One preferred HTTPS/www URL, preserving paths and query parameters.
+RewriteCond %{HTTP_HOST} ^(?:www\.)?roxavaltravels\.com(?::[0-9]+)?$ [NC]
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} !^www\.roxavaltravels\.com$ [NC]
+RewriteRule ^ https://www.roxavaltravels.com%{REQUEST_URI} [R=301,L,NE]
+
+SetEnv ROXAVAL_BACKEND_PATH /home2/zlwoctte/public_html/website_91fe39e6/roxaval-backend-php
+RewriteRule ^$ multilingual.php [END,QSA]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ multilingual.php [END,QSA]
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>

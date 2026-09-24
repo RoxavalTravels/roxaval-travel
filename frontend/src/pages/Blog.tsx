@@ -31,7 +31,7 @@ function ArticleCard({ post, large = false }: {post: BlogListItem;large?: boolea
           <span className="rounded-full bg-emerald/10 px-2.5 py-1 font-semibold uppercase tracking-wide text-emerald">{post.category}</span>
           <span className="flex items-center gap-1"><CalendarIcon className="h-3.5 w-3.5" /> {formatDate(post.publishedAt || post.createdAt)}</span>
         </div>
-        <h3 className={`font-display mt-3 font-semibold text-forest transition-colors group-hover:text-emerald ${large ? 'text-2xl' : 'text-lg'}`}>{post.title}</h3>
+        <h2 className={`font-display mt-3 font-semibold text-forest transition-colors group-hover:text-emerald ${large ? 'text-2xl' : 'text-lg'}`}>{post.title}</h2>
         <p className="mt-2 line-clamp-2 text-sm text-forest/60">{post.excerpt}</p>
       </div>
     </Link>);

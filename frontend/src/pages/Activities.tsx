@@ -71,6 +71,7 @@ export function Activities() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <h2 className="mb-6 font-display text-2xl font-semibold text-forest">{copy('Find your next experience')}</h2>
         <FilterBar
           search={search}
           onSearchChange={setSearch}

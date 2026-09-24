@@ -110,7 +110,7 @@ export function ContactUs() {
               <div className="grid h-16 w-16 place-items-center rounded-full bg-emerald/10 text-emerald">
                 <CheckIcon className="h-8 w-8" />
               </div>
-              <h3 className="font-display mt-5 text-2xl font-semibold text-forest">{t('messageSentTitle')}</h3>
+              <h2 className="font-display mt-5 text-2xl font-semibold text-forest">{t('messageSentTitle')}</h2>
               <p className="mt-2 max-w-sm text-sm text-forest/60">{t('messageSentBody')}</p>
               <button onClick={() => setSubmitted(false)} className="mt-6 rounded-full border border-forest/15 px-6 py-2.5 text-sm font-semibold text-forest hover:bg-cream">{t('sendAnother')}</button>
             </div> :

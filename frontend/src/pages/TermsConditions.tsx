@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageBanner } from '../components/layout/PageBanner';
 import { Seo } from '../components/seo/Seo';
@@ -47,7 +48,7 @@ export function TermsConditions() {
         body: (
           <p>
             {t('sections.contactInformation.bodyBefore')}
-            <a href="/contact" className="text-emerald underline">{t('sections.contactInformation.contactLink')}</a>
+            <Link to="/contact" className="text-emerald underline">{t('sections.contactInformation.contactLink')}</Link>
             {t('sections.contactInformation.bodyAfter')}
           </p>
         ),

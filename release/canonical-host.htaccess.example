@@ -1,0 +1,11 @@
+# Merge BEFORE the multilingual gateway and SPA fallback in the frontend
+# document root. Retain PHP handlers, API exclusions and existing cache rules.
+# No DNS changes. Only the two public Roxaval hosts are affected.
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^(?:www\.)?roxavaltravels\.com(?::[0-9]+)?$ [NC]
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} !^www\.roxavaltravels\.com$ [NC]
+RewriteRule ^ https://www.roxavaltravels.com%{REQUEST_URI} [R=301,L,NE]
+# The existing query string is preserved. Verify TLS terminates at Apache
+# before merging; if a trusted proxy terminates TLS, configure the host's
+# trusted scheme handling first to avoid a redirect loop.

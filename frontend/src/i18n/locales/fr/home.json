@@ -72,5 +72,29 @@
     "eyebrow": "Nos partenaires",
     "title": "Nos partenaires hôteliers",
     "subtitle": "Tarifs préférentiels et service prioritaire auprès des plus grands groupes hôteliers du Sri Lanka."
+  },
+  "travelIntro": {
+    "title": "Des vacances au Sri Lanka à votre rythme",
+    "introduction": "Le Sri Lanka réunit cités anciennes, réserves naturelles, collines couvertes de théiers et plages de l’océan Indien dans un voyage varié. Nos circuits au Sri Lanka constituent un point de départ pour vos vacances, en équilibrant découvertes et détente. Choisissez les lieux qui vous attirent et un rythme adapté à vos compagnons de voyage.",
+    "culture": {
+      "title": "Culture et histoires locales",
+      "text": "Explorez le Triangle culturel, Sigiriya et Kandy pour découvrir le patrimoine de l’île. Prenez le temps de visiter les temples, de goûter la cuisine locale et d’écouter les histoires de chaque lieu, plutôt que de multiplier les longs trajets.",
+      "link": "Explorer les destinations du Sri Lanka"
+    },
+    "wildlife": {
+      "title": "Faune sauvage et plein air",
+      "text": "Un safari apporte un autre rythme à votre circuit culturel. Découvrez les activités nature et échangez avec nous sur les parcs et les saisons adaptés à votre itinéraire. Les observations d’animaux dépendent de la nature et ne sont jamais garanties.",
+      "link": "Découvrir les safaris et autres activités"
+    },
+    "coast": {
+      "title": "Une pause sur la côte",
+      "text": "Un séjour balnéaire peut être un voyage à part entière ou prolonger un circuit sur l’île. Associez les visites à quelques journées paisibles au bord de la mer, en choisissant la côte selon la saison et vos envies.",
+      "link": "Parcourir nos circuits au Sri Lanka"
+    },
+    "hills": {
+      "title": "Montagnes et thé de Ceylan",
+      "text": "Promenez-vous dans les plantations de thé, admirez les paysages montagneux et découvrez les environs d’Ella et de Nuwara Eliya. Dites-nous comment vous aimez voyager : nous vous aiderons à réunir ces expériences dans un itinéraire personnalisé.",
+      "link": "Créer votre circuit sur mesure au Sri Lanka"
+    }
   }
 }

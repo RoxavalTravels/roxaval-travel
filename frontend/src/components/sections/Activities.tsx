@@ -38,9 +38,9 @@ export function Activities() {
               <div className="absolute inset-0 flex flex-col justify-end p-5">
                 <h3 className="font-display text-xl font-semibold text-white">{copy(a.name)}</h3>
                 <p className="mt-1.5 text-sm text-cream/80 leading-relaxed line-clamp-2">{copy(a.description)}</p>
-                <button className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-gold group-hover:text-forest">
+                <Link to="/activities" aria-label={`${copy(a.name)} — ${t('activities.viewAllActivities')}`} className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-gold group-hover:text-forest">
                   {t('activities.exploreActivity')} <ArrowUpRightIcon className="h-3.5 w-3.5" />
-                </button>
+                </Link>
               </div>
             </motion.article>
           )}

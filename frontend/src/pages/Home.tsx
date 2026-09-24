@@ -11,6 +11,7 @@ import { CoreValues } from '../components/sections/CoreValues';
 import { HotelPartners } from '../components/sections/HotelPartners';
 import { Reviews } from '../components/sections/Reviews';
 import { Blog } from '../components/sections/Blog';
+import { TravelIntroduction } from '../components/sections/TravelIntroduction';
 
 export function Home() {
   return (
@@ -21,6 +22,7 @@ export function Home() {
         keywords="Sri Lanka travel, Sri Lanka tour packages, private tours Sri Lanka, honeymoon tours Sri Lanka, wildlife tours Sri Lanka, beach holidays Sri Lanka, custom Sri Lanka tours" />
 
       <Hero />
+      <TravelIntroduction />
       <Destinations />
       <Packages />
       <CustomTourCta />

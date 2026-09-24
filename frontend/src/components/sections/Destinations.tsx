@@ -160,7 +160,7 @@ export function Destinations() {
 
                 {/* Thumbnail Details */}
                 <div className="absolute bottom-4 left-4 right-4">
-                  <h4 className="font-sans text-xl font-bold text-white sm:text-2xl">{d.name}</h4>
+                  <h3 className="font-sans text-xl font-bold text-white sm:text-2xl">{d.name}</h3>
                   <div className="mt-2 flex items-center justify-between">
                     <div className="flex gap-0.5">
                       {[...Array(5)].map((_, i) =>

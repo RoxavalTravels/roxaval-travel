@@ -60,7 +60,7 @@ export function Footer() {
         <div className="relative -translate-y-14 rounded-3xl bg-emerald p-8 sm:p-10 shadow-lift overflow-hidden">
           <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="font-display text-2xl sm:text-3xl font-semibold text-white">{t('footer.newsletterTitle')}</h3>
+              <h2 className="font-display text-2xl sm:text-3xl font-semibold text-white">{t('footer.newsletterTitle')}</h2>
               <p className="mt-2 text-cream/80 text-sm">{t('footer.newsletterSubtitle')}</p>
             </div>
             {status === 'submitted' ?
@@ -121,7 +121,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-white">{t('footer.quickLinks')}</h4>
+            <h2 className="font-display text-lg font-semibold text-white">{t('footer.quickLinks')}</h2>
             <ul className="mt-4 space-y-2.5">
               {quickLinks.map((l) =>
               <li key={l.label}>
@@ -133,7 +133,7 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-white">{t('footer.contactUs')}</h4>
+            <h2 className="font-display text-lg font-semibold text-white">{t('footer.contactUs')}</h2>
             <ul className="mt-4 space-y-3 text-sm text-cream/70">
               <li className="flex gap-3"><MapPinIcon className="h-5 w-5 text-gold shrink-0" /> {ADDRESS_SRI_LANKA}</li>
               <li className="flex gap-3">
@@ -158,7 +158,7 @@ export function Footer() {
 
           {/* Explore more */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-white">{t('footer.exploreMore')}</h4>
+            <h2 className="font-display text-lg font-semibold text-white">{t('footer.exploreMore')}</h2>
             <ul className="mt-4 space-y-2.5">
               {exploreMoreLinks.map((l) =>
               <li key={l.label}>

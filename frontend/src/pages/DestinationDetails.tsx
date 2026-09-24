@@ -23,12 +23,15 @@ import { PackageCard } from '../components/packages/PackageCard';
 import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
 import type { Destination } from '../types/destination';
 import type { TourPackage } from '../types/tourPackage';
+import { ContentParagraphs } from '../components/ui/ContentParagraphs';
+import type { Activity } from '../types/activity';
 
 export function DestinationDetails() {
   const { t } = useTranslation('destinations');
   const { slug } = useParams<{ slug: string }>();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [packages, setPackages] = useState<TourPackage[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,8 +45,12 @@ export function DestinationDetails() {
     then((data) => {
       if (cancelled) return;
       setDestination(data);
-      return apiGetList<TourPackage>('/packages', { destinations: data._id, limit: 3 }).
-      then(({ data: list }) => !cancelled && setPackages(list));
+      setPackages([]);
+      setActivities([]);
+      return Promise.all([
+        apiGetList<TourPackage>('/packages', { destinations: data._id, limit: 3 }).then(({ data: list }) => !cancelled && setPackages(list)).catch(() => { /* Related content is optional; preserve the destination page. */ }),
+        apiGetList<Activity>('/activities', { destinations: data._id, limit: 6 }).then(({ data: list }) => !cancelled && setActivities(list)).catch(() => { /* Related content is optional; preserve the destination page. */ }),
+      ]);
     }).
     catch((err: Error) => !cancelled && setError(err.message)).
     finally(() => !cancelled && setLoading(false));
@@ -129,18 +136,22 @@ export function DestinationDetails() {
           {/* Overview */}
           <div className="mt-10">
             <h2 className="font-display text-2xl font-semibold text-forest">{t('detail.overview')}</h2>
-            <p className="mt-3 leading-relaxed text-forest/70">{d.description}</p>
+            <ContentParagraphs text={d.description} />
           </div>
 
           {/* History */}
           {d.history &&
           <div className="mt-10">
               <h2 className="font-display text-2xl font-semibold text-forest">{t('detail.history')}</h2>
-              <p className="mt-3 leading-relaxed text-forest/70">{d.history}</p>
+              <ContentParagraphs text={d.history} />
             </div>
           }
 
           {/* Gallery */}
+          {activities.length > 0 && <section className="mt-10">
+            <h2 className="font-display text-2xl font-semibold text-forest">{copy('Experiences in {{name}}', { name: d.name })}</h2>
+            <ul className="mt-4 space-y-3">{activities.map(activity => <li key={activity._id}><Link to={`/activity/${activity.slug}`} className="font-semibold text-emerald underline underline-offset-4">{activity.name}</Link></li>)}</ul>
+          </section>}
           {d.gallery.length > 0 &&
           <div className="mt-10">
               <h2 className="font-display text-2xl font-semibold text-forest">{t('detail.gallery')}</h2>
@@ -221,7 +232,7 @@ export function DestinationDetails() {
           {/* Travel Tips */}
           {d.travelTips.length > 0 &&
           <div className="mt-10 rounded-3xl bg-white p-6 shadow-soft">
-              <h3 className="font-display text-lg font-semibold text-forest">{t('detail.travelTips')}</h3>
+              <h2 className="font-display text-lg font-semibold text-forest">{t('detail.travelTips')}</h2>
               <ul className="mt-3 space-y-2">
                 {d.travelTips.map((t) =>
               <li key={t} className="flex items-start gap-2 text-sm text-forest/70">
@@ -236,7 +247,7 @@ export function DestinationDetails() {
           <div className="mt-10 rounded-3xl border border-dashed border-forest/15 bg-white/60 p-6">
             <div className="flex items-center gap-2.5">
               <CloudSunIcon className="h-5 w-5 text-emerald" />
-              <h3 className="font-display text-lg font-semibold text-forest">{t('detail.weather')}</h3>
+              <h2 className="font-display text-lg font-semibold text-forest">{t('detail.weather')}</h2>
               <span className="rounded-full bg-forest/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-forest/40">{t('detail.sampleData')}</span>
             </div>
             <p className="mt-2 text-sm text-forest/65">

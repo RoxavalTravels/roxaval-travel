@@ -14,6 +14,13 @@ let browser;
  for(const [index,lang] of ['en','de','fr'].entries()){
   await page.setViewportSize({width:lang==='fr'?375:1440,height:900});
   await page.goto('http://127.0.0.1:4188/'+lang+'/');
+  await page.locator('main h1').waitFor();
+  assert.equal(await page.locator('main h1').count(),1);
+  await page.locator('#sri-lanka-holidays').waitFor();
+  const introduction=page.locator('section[aria-labelledby="sri-lanka-holidays"]');
+  assert.equal(await introduction.locator('h3').count(),4);
+  assert.equal(await introduction.locator('a').count(),4);
+  for(const href of await introduction.locator('a').evaluateAll(links=>links.map(a=>a.getAttribute('href')))) assert.ok(href.startsWith('/'+lang+'/'),href);
   const activity=copy.find(r=>r[0]==='Wildlife Safari')[index];await page.locator('#activities h3').filter({hasText:activity}).waitFor();
   for(const english of ['Experienced Travel Experts','Fully Customized Tours','Trusted Local Guides','Comfortable Accommodation','Affordable Prices','Secure Booking Process','24/7 Customer Support','Safe & Reliable Transport']) assert.ok((await page.locator('#my-tours').innerText()).includes(copy.find(r=>r[0]===english)[index]));
   assert.ok((await page.locator('#destinations').innerText()).includes(copy.find(r=>r[0].startsWith('Climb the legendary'))[index]));

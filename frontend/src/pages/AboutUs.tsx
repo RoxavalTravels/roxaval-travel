@@ -106,14 +106,14 @@ export function AboutUs() {
         <div className="mt-14 grid gap-6 sm:grid-cols-2">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.6 }} className="rounded-3xl bg-forest p-8 text-white shadow-lift sm:p-10">
             <MapIcon className="h-8 w-8 text-gold" />
-            <h3 className="font-display mt-5 text-2xl font-semibold">{t('missionTitle')}</h3>
+            <h2 className="font-display mt-5 text-2xl font-semibold">{t('missionTitle')}</h2>
             <p className="mt-3 leading-relaxed text-cream/80">
               {t('missionText')}
             </p>
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.6, delay: 0.1 }} className="rounded-3xl bg-emerald p-8 text-white shadow-lift sm:p-10">
             <StarIcon className="h-8 w-8 text-gold" />
-            <h3 className="font-display mt-5 text-2xl font-semibold">{t('visionTitle')}</h3>
+            <h2 className="font-display mt-5 text-2xl font-semibold">{t('visionTitle')}</h2>
             <p className="mt-3 leading-relaxed text-cream/80">
               {t('visionText')}
             </p>

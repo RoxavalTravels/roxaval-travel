@@ -72,5 +72,29 @@
     "eyebrow": "Who We Work With",
     "title": "Our Hotel Partners",
     "subtitle": "Preferred rates and priority service from Sri Lanka's leading hotel groups."
+  },
+  "travelIntro": {
+    "title": "Sri Lanka holidays, shaped around you",
+    "introduction": "Sri Lanka brings ancient cities, wildlife reserves, tea-covered hills and Indian Ocean beaches into one varied journey. Our Sri Lanka tour packages offer a starting point for your holiday, with room to balance discovery and downtime. Choose the places that interest you and plan a pace that suits your travelling companions.",
+    "culture": {
+      "title": "Culture and local stories",
+      "text": "Explore the Cultural Triangle, Sigiriya and Kandy to discover the island’s heritage. Allow time for temples, local food and the stories behind each place, rather than filling every day with long drives.",
+      "link": "Explore Sri Lanka’s destinations"
+    },
+    "wildlife": {
+      "title": "Wildlife and outdoor experiences",
+      "text": "A safari can bring a different rhythm to your cultural tour. Browse wildlife activities and discuss the right parks and seasons for your route. Animal sightings depend on nature and are never guaranteed.",
+      "link": "Discover wildlife and other activities"
+    },
+    "coast": {
+      "title": "Time for the coast",
+      "text": "Beach holidays can stand alone or round off a journey through the island. Combine sightseeing with a few slower days by the sea, choosing your coast around the season and the kind of stay you enjoy.",
+      "link": "Browse Sri Lanka tour packages"
+    },
+    "hills": {
+      "title": "Hill country and Ceylon tea",
+      "text": "Walk among tea plantations, enjoy mountain views and make time for the hill country around Ella and Nuwara Eliya. Tell us how you like to travel and we can help bring these experiences together in a personal itinerary.",
+      "link": "Plan your custom Sri Lanka tour"
+    }
   }
 }

@@ -72,5 +72,29 @@
     "eyebrow": "Mit wem wir zusammenarbeiten",
     "title": "Unsere Hotelpartner",
     "subtitle": "Vorzugspreise und bevorzugter Service von Sri Lankas führenden Hotelgruppen."
+  },
+  "travelIntro": {
+    "title": "Sri-Lanka-Urlaub nach Ihren Wünschen",
+    "introduction": "Sri Lanka vereint alte Städte, Wildschutzgebiete, teegrüne Hügel und Strände am Indischen Ozean zu einer abwechslungsreichen Reise. Unsere Sri-Lanka-Rundreisen bieten einen Ausgangspunkt für Ihren Urlaub und lassen Raum für Entdeckungen und Erholung. Wählen Sie die Orte, die Sie interessieren, und ein Reisetempo, das zu Ihren Mitreisenden passt.",
+    "culture": {
+      "title": "Kultur und lokale Geschichten",
+      "text": "Entdecken Sie das Kulturelle Dreieck, Sigiriya und Kandy und lernen Sie das Erbe der Insel kennen. Nehmen Sie sich Zeit für Tempel, lokale Küche und die Geschichten der einzelnen Orte, statt jeden Tag mit langen Fahrten zu füllen.",
+      "link": "Sri Lankas Reiseziele entdecken"
+    },
+    "wildlife": {
+      "title": "Tierwelt und Naturerlebnisse",
+      "text": "Eine Safari bringt Abwechslung in Ihre Kulturreise. Entdecken Sie unsere Naturaktivitäten und besprechen Sie passende Parks und Reisezeiten für Ihre Route. Tierbeobachtungen hängen von der Natur ab und können nicht garantiert werden.",
+      "link": "Safaris und weitere Aktivitäten entdecken"
+    },
+    "coast": {
+      "title": "Zeit für die Küste",
+      "text": "Ein Strandurlaub kann eine eigene Reise sein oder eine Rundreise ausklingen lassen. Verbinden Sie Besichtigungen mit ruhigen Tagen am Meer und wählen Sie die Küste passend zur Jahreszeit und Ihren Urlaubswünschen.",
+      "link": "Sri-Lanka-Rundreisen ansehen"
+    },
+    "hills": {
+      "title": "Hochland und Ceylon-Tee",
+      "text": "Spazieren Sie durch Teeplantagen, genießen Sie Bergpanoramen und nehmen Sie sich Zeit für das Hochland rund um Ella und Nuwara Eliya. Erzählen Sie uns, wie Sie reisen möchten, damit wir diese Erlebnisse zu einer persönlichen Route verbinden können.",
+      "link": "Ihre individuelle Sri-Lanka-Reise planen"
+    }
   }
 }
