@@ -19,7 +19,7 @@ let browser;
     const respond=data=>route.fulfill({contentType:'application/json',body:JSON.stringify({success:true,data})});
     if(u.pathname.includes('/api/v1/')) {
       if(u.pathname.endsWith('/auth/me')) return respond({user:{_id:'1',role:'superadmin',fullName:'Test Admin'}});
-      if(u.pathname.endsWith('/custom-tours/1')) return respond({referenceNumber:'TEST-QUOTE',travelDates:{startDate:'2026-12-01',endDate:'2026-12-03'},travelers:{adults:2,children:0,infants:0},itinerary:{title:'Visibility test',days:[{dayNumber:1,title:'Sigiriya to Kandy',destinations:[{_id:'d1',name:'Kandy',mapLocation:{lat:7.29,lng:80.63}}]}],pricing:{basePrice:1234.56,discount:0,totalPrice:1234.56,currency:'USD',pricePerPerson:false,showPrice}}});
+      if(u.pathname.endsWith('/custom-tours/1')) return respond({referenceNumber:'TEST-QUOTE',travelDates:{startDate:'2026-12-01',endDate:'2026-12-03'},travelers:{adults:2,children:0,infants:0},itinerary:{title:'Visibility test',days:[{dayNumber:1,title:'Sigiriya to Kandy',destinations:[{_id:'d1',name:'Kandy',mapLocation:{lat:7.29,lng:80.63}},{_id:'d2',name:'Ella',mapLocation:{lat:6.8667,lng:81.0466}}]}],pricing:{basePrice:1234.56,discount:0,totalPrice:1234.56,currency:'USD',pricePerPerson:false,showPrice}}});
       return respond(u.pathname.includes('/translations/')?[]:{});
     }
     if(u.hostname==='tile.openstreetmap.org') {tiles.push(u.href);return route.abort();}
@@ -32,6 +32,8 @@ let browser;
     await page.goto('http://127.0.0.1:4187/admin/custom-requests/1/quotation');
     await page.getByText('Visibility test',{exact:true}).waitFor();
     await page.getByText('Day 01 (Sigiriya to Kandy)',{exact:true}).waitFor();
+    await page.locator('.leaflet-marker-icon').nth(3).waitFor();
+    assert.deepEqual(await page.locator('.leaflet-marker-icon div').allTextContents(),['1','2','3','4'],'map numbers Colombo, every selected destination, and return to Colombo');
     for(const media of ['screen','print']) {
       await page.emulateMedia({media});
       assert.equal((await page.locator('body').innerText()).includes('1,234.56'),visible);

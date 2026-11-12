@@ -65,18 +65,11 @@ const PRINT_HEIGHT = '14rem';
 /**
  * Numbered day-by-day route on a Sri Lanka map — built from each day's
  * destination coordinates (Destination.mapLocation), deduplicated so a
- * multi-day stay in one place doesn't stack repeat markers. Bookended with
- * Colombo at both ends (arrival and departure) and renumbered 1..N as
- * sequential stops, since a multi-night stay already collapses to one
- * marker below — the numbers were never really "day numbers" in practice.
- *
- * A day's own `destinations` array is populated from itinerary_days.
- * destination_ids, which the API currently returns as raw IDs rather than
- * hydrated Destination objects, so it's effectively always empty in
- * practice — same gap the route text above this map already works around
- * by falling back to the day's hotel's destination, which IS a real
- * eager-loaded relation. Mirroring that fallback here is what makes the
- * map actually have coordinates to plot.
+ * multi-day stay in one place doesn't stack repeat markers. Every mapped
+ * destination for a day is included in its saved order; if none have usable
+ * coordinates, the day's hotel destination is used instead. Bookended with
+ * Colombo at both ends (arrival and departure) and numbered 1..N as
+ * sequential stops.
  *
  * The print-sized height used to come from a `print:h-56` Tailwind class,
  * switched purely by the browser's own print media query -- but that meant
@@ -106,13 +99,22 @@ export function RouteMap({ days, lang }: { days: { dayNumber: number; destinatio
   const stops = useMemo(() => {
     const named: { name: string; lat: number; lng: number }[] = [COLOMBO];
     days.forEach((d) => {
-      const dest = d.destinations?.[0] || d.hotel?.destination;
-      const lat = dest?.mapLocation?.lat;
-      const lng = dest?.mapLocation?.lng;
-      if (!dest || lat == null || lng == null) return;
-      const prev = named[named.length - 1];
-      if (prev && prev.name === dest.name) return;
-      named.push({ name: dest.name, lat, lng });
+      const dayStops = (d.destinations || []).flatMap((dest) => {
+        const lat = dest.mapLocation?.lat;
+        const lng = dest.mapLocation?.lng;
+        return lat == null || lng == null ? [] : [{ name: dest.name, lat, lng }];
+      });
+      if (dayStops.length === 0) {
+        const dest = d.hotel?.destination;
+        const lat = dest?.mapLocation?.lat;
+        const lng = dest?.mapLocation?.lng;
+        if (dest && lat != null && lng != null) dayStops.push({ name: dest.name, lat, lng });
+      }
+      dayStops.forEach((dest) => {
+        const prev = named[named.length - 1];
+        if (prev && (prev.name === dest.name || (prev.lat === dest.lat && prev.lng === dest.lng))) return;
+        named.push(dest);
+      });
     });
     const last = named[named.length - 1];
     if (!last || last.name !== COLOMBO.name) named.push(COLOMBO);
