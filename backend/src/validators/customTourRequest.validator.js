@@ -155,6 +155,7 @@ const buildItinerarySchema = z.object({
     totalPrice: z.number().positive(),
     currency: z.string().optional(),
     pricePerPerson: z.boolean().optional(),
+    showPrice: z.boolean().optional(),
   }),
   sightseeingIncluded: z.boolean().optional(),
   adminNotes: z.string().optional(),

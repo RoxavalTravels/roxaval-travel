@@ -2,8 +2,9 @@ import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Router, createPath, parsePath } from 'react-router-dom';
 import type { Navigator, To } from 'react-router-dom';
 import i18n from './index';
-import { apiGetOne } from '../lib/api';
-import { internalPath, localizedPath, pathLanguage, rememberedLanguage, setTranslations, PageTranslation } from './routing';
+import { internalPath, localizedPath, pathLanguage, rememberedLanguage, translations } from './routing';
+import { loadRoutes, loadCurrentPage } from './pageLoader';
+import { InitialPublicContent } from '../components/seo/InitialPublicContent';
 
 // Keep existing route identities stable while emitting real localized hrefs.
 // Every Link, NavLink and navigate() uses this navigator, including forms.
@@ -14,24 +15,18 @@ export function LanguageRouter({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     const embedded = document.getElementById('roxaval-translations')?.textContent;
-    const load: Promise<[PageTranslation[], { locale: string; slug: string; pageKey: string }[]]> = embedded
-      ? Promise.resolve([JSON.parse(embedded), []])
-      : Promise.all([apiGetOne<PageTranslation[]>('/translations/pages').catch(() => []), apiGetOne<{ locale: string; slug: string; pageKey: string }[]>('/translations/redirects').catch(() => [])]);
-    load.then(([rows, aliases]) => {
+    loadRoutes(embedded || undefined).then(async aliases => {
       if (!active) return;
-      setTranslations(rows);
       const currentLocale = pathLanguage(window.location.pathname);
       const currentSlug = window.location.pathname.slice(4).replace(/\/$/, '');
       const alias = aliases.find(row => row.locale === currentLocale && row.slug === currentSlug);
-      if (alias && !rows.some(row => row.locale === currentLocale && row.slug === currentSlug)) {
+      if (alias && !translations.some(row => row.locale === currentLocale && row.slug === currentSlug)) {
         window.location.replace(localizedPath(alias.pageKey, currentLocale!) + window.location.search + window.location.hash);
         return;
       }
-      rows.forEach(row => Object.entries(row.messages || {}).forEach(([namespace, values]) => {
-        i18n.addResourceBundle(row.locale, namespace, values, true, true);
-      }));
-      setReady(true);
-    }).catch(() => { if (active) { setReady(true); setError(false); } });
+      await loadCurrentPage();
+      if (active) setReady(true);
+    }).catch(() => { if (active) setError(true); });
     return () => { active = false; };
   }, []);
   useEffect(() => {
@@ -42,17 +37,16 @@ export function LanguageRouter({ children }: { children: React.ReactNode }) {
     let active = true;
     const refresh = () => {
       if (window.location.pathname.startsWith('/admin')) return;
-      apiGetOne<PageTranslation[]>('/translations/pages').then(rows => {
-        if (!active) return;
-        rows.forEach(row => Object.entries(row.messages || {}).forEach(([namespace, values]) => i18n.addResourceBundle(row.locale, namespace, values, true, true)));
-        setTranslations(rows);
-      }).catch(() => { /* Keep the loaded page usable during a temporary outage. */ });
+      loadRoutes().then(() => active ? loadCurrentPage(true) : undefined).catch(() => { /* Keep the loaded page usable during a temporary outage. */ });
     };
     window.addEventListener('focus', refresh);
     return () => { active = false; window.removeEventListener('popstate', update); window.removeEventListener('roxaval-translations-updated', update); window.removeEventListener('focus', refresh); };
   }, []);
   const pathname = window.location.pathname;
   const locale = pathLanguage(pathname) || 'en';
+  useEffect(() => {
+    if (ready) void loadCurrentPage().catch(() => { /* Existing content remains usable; retry on focus. */ });
+  }, [ready, pathname]);
   useLayoutEffect(() => {
     void i18n.changeLanguage(locale);
   }, [locale, pathname]);
@@ -73,6 +67,6 @@ export function LanguageRouter({ children }: { children: React.ReactNode }) {
     };
     return { createHref: href, go: n => window.history.go(n), push: (to, state) => move(to, state), replace: (to, state) => move(to, state, true) };
   }, [locale]);
-  if (!ready && !pathname.startsWith('/admin')) return <div className="min-h-screen bg-cream grid place-items-center text-forest" role="status">{error ? <div className="text-center">Unable to load the website.<button className="block mx-auto mt-4 underline" onClick={() => window.location.reload()}>Try again</button></div> : 'Roxaval Travels…'}</div>;
+  if (!ready && !pathname.startsWith('/admin')) return <InitialPublicContent><div className="min-h-screen bg-cream grid place-items-center text-forest" role="status">{error ? <div className="text-center">Unable to load the website.<button className="block mx-auto mt-4 underline" onClick={() => window.location.reload()}>Try again</button></div> : 'Roxaval Travels…'}</div></InitialPublicContent>;
   return <Router navigator={navigator} location={{ pathname: internalPath(pathname), search: window.location.search, hash: window.location.hash, state: window.history.state?.usr ?? null, key: String(revision) }}>{children}</Router>;
 }

@@ -3,21 +3,10 @@ import { getCurrentLanguage } from '../i18n';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 export const API_ORIGIN = API_BASE_URL.replace(/\/api\/v\d+\/?$/, '');
 
-// Generated documents (vouchers, invoices, itineraries...) are stored on
-// Cloudinary and come back as full URLs; only prefix API_ORIGIN for the
-// legacy relative `/uploads/...` shape older records may still have.
+// New private documents and receipts use authenticated API download URLs.
+// Prefix the API origin for legacy relative links.
 export const resolveFileUrl = (url: string) => (/^https?:\/\//i.test(url) ? url : `${API_ORIGIN}${url}`);
-
-// Documents are opened through our own API instead of linking straight to
-// Cloudinary: the backend proxies the file with the correct
-// Content-Type/Content-Disposition (Cloudinary serves raw PDFs with a
-// generic type, since its account-level security policy blocks anything
-// it recognizes as a PDF from being delivered directly), and this is also
-// where document-level access control (e.g. hotel vouchers being
-// admin-only) is enforced. The auth cookie rides along automatically on
-// this kind of same-origin navigation.
 export const documentFileUrl = (documentId: string) => `${API_BASE_URL}/documents/${documentId}/file`;
-
 export interface ApiMeta {
   total: number;
   page: number;
@@ -67,7 +56,7 @@ let refreshPromise: Promise<boolean> | null = null;
 
 async function tryRefresh(): Promise<boolean> {
   if (!refreshPromise) {
-    refreshPromise = fetch(`${API_BASE_URL}/auth/refresh`, { method: 'POST', credentials: 'include' }).
+    refreshPromise = fetch(`${API_BASE_URL}/auth/refresh`, { method: 'POST', credentials: 'include', headers: { 'X-Roxaval-Request': '1' } }).
     then((res) => res.ok).
     catch(() => false).
     finally(() => {
@@ -91,7 +80,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<{
   const init: RequestInit = {
     method,
     credentials: 'include',
-    headers: formData ? undefined : { 'Content-Type': 'application/json' },
+    headers: { ...(formData ? {} : { 'Content-Type': 'application/json' }), ...(method === 'GET' ? {} : { 'X-Roxaval-Request': '1' }) },
     body: formData || (body !== undefined ? JSON.stringify(body) : undefined)
   };
 
@@ -139,7 +128,7 @@ export function apiGetOne<T>(path: string, params?: QueryParams): Promise<T> {
 export async function apiGetAll<T>(path: string, params?: QueryParams): Promise<{ data: T[] }> {
   const data: T[] = [];
   let page = 1;
-  while (true) {
+  for (;;) {
     const result = await apiGetList<T>(path, { ...params, limit: 100, page });
     data.push(...result.data);
     if (!result.meta || page >= result.meta.totalPages || result.data.length === 0) break;

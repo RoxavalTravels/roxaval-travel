@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 
 interface ConfirmOptions {
@@ -36,7 +36,6 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
   return (
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
-      <AnimatePresence>
         {options &&
         <div className="fixed inset-0 z-[180] flex items-center justify-center p-4">
             <motion.div
@@ -80,7 +79,6 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
             </motion.div>
           </div>
         }
-      </AnimatePresence>
     </ConfirmContext.Provider>);
 
 }

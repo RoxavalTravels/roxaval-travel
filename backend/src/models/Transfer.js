@@ -24,7 +24,7 @@ const transferSchema = new mongoose.Schema(
 );
 
 transferSchema.pre('save', function setSlug(next) {
-  if (this.isModified('name')) this.slug = `${slugify(this.name, { lower: true, strict: true })}-${Date.now().toString().slice(-4)}`;
+  if (this.isModified('name')) this.slug = slugify(this.name, { lower: true, strict: true });
   next();
 });
 

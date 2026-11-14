@@ -1,6 +1,6 @@
+import { GuestReviewForm } from '../components/reviews/GuestReviewForm';
 import React, { useEffect, useState } from 'react';
 import { copy } from '../i18n';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { StarIcon, PackageIcon, CalendarIcon, ExternalLinkIcon } from 'lucide-react';
@@ -82,7 +82,7 @@ export function Reviews() {
     <main className="min-h-screen bg-cream pt-16">
       <Seo
         title="Traveller Reviews | Roxaval Travels Sri Lanka"
-        description="Read verified reviews from travellers who booked private tours, honeymoon escapes, wildlife safaris and custom Sri Lanka tours with Roxaval Travels."
+        description="Read traveller reviews of private tours, honeymoon escapes, wildlife safaris and custom Sri Lanka tours with Roxaval Travels."
         keywords="Roxaval Travels reviews, Sri Lanka tour reviews, Sri Lanka travel agency reviews"
         jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Reviews', path: '/reviews' }])} />
 
@@ -94,7 +94,7 @@ export function Reviews() {
 
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        {stats &&
+        {stats && stats.totalReviews > 0 &&
         <div className="mb-10 grid gap-8 rounded-3xl bg-white p-8 shadow-soft sm:grid-cols-[auto_1fr] sm:items-center">
             <div className="text-center sm:border-r sm:border-forest/10 sm:pr-8">
               <p className="font-display text-5xl font-semibold text-forest">{stats.avgRating.toFixed(1)}</p>
@@ -129,9 +129,10 @@ export function Reviews() {
               {SORT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
-          <Link to="/my-tours" className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-forest transition-transform hover:scale-105">{t('bookTourCta')}</Link>
+          <a href="#write-review" className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-forest transition-transform hover:scale-105">{t('form.title')}</a>
         </div>
 
+        <GuestReviewForm />
         {loading && items.length === 0 && <LoadingState title={t('loadingReviews')} />}
         {error && <ErrorState message={error} />}
         {!loading && !error && items.length === 0 &&

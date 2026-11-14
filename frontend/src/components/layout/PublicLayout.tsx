@@ -2,7 +2,6 @@ import { LanguageWelcome } from './LanguageWelcome';
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Loader } from '../ui/Loader';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { FloatingWhatsApp } from './FloatingWhatsApp';
@@ -17,7 +16,6 @@ export function PublicLayout() {
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(organizationSchema())}</script>
       </Helmet>
-      <Loader />
       <Navbar />
       <LanguageWelcome />
       <div className="flex-1">

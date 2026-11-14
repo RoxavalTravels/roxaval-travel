@@ -6,6 +6,7 @@ export interface PageTranslation {
   keywords?: string;
   socialTitle?: string; socialDescription?: string; messages?: Record<string, Record<string, unknown>>;
   structuredData?: object;
+  interfaceOnly?: boolean;
 }
 export let translations: PageTranslation[] = [];
 export function setTranslations(rows: PageTranslation[]) {

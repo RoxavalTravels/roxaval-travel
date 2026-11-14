@@ -1,3 +1,4 @@
+import { InitialPublicPage, isInitialPublicRoute } from '../components/seo/InitialPublicContent';
 import { copy } from '../i18n';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useState } from 'react';
@@ -33,6 +34,8 @@ export function Destinations() {
     sort
   }, 100);
 
+  if (loading && !error && items.length === 0 && isInitialPublicRoute()) return <InitialPublicPage />;
+
   return (
     <main className="min-h-screen bg-cream pt-24">
       <Seo
@@ -54,7 +57,7 @@ export function Destinations() {
         </div>
         <div className="relative z-10 mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center sm:px-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={isInitialPublicRoute() ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}>
 

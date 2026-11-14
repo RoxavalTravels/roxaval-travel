@@ -60,7 +60,7 @@ const tourPackageSchema = new mongoose.Schema(
 );
 
 tourPackageSchema.pre('save', function setSlug(next) {
-  if (this.isModified('name.en')) this.slug = `${slugify(this.name.en, { lower: true, strict: true })}-${Date.now().toString().slice(-4)}`;
+  if (this.isModified('name.en')) this.slug = slugify(this.name.en, { lower: true, strict: true });
   next();
 });
 

@@ -98,7 +98,7 @@ export interface QuotationItinerary {
   summary?: string;
   bannerImage?: string;
   days: QuotationDay[];
-  pricing: { basePrice: number; discount: number; totalPrice: number; currency: string; pricePerPerson: boolean; showPrice?: boolean };
+  pricing: { basePrice?: number; discount: number; totalPrice: number; currency: string; pricePerPerson: boolean; showPrice?: boolean };
   sightseeingIncluded?: boolean;
   visaRequirements?: string;
   travelInsurance?: string;
@@ -488,7 +488,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
             {showPrice ? (
               <>
                 {itin.pricing.discount > 0 &&
-                  <p className="text-xs text-forest/50">{t('basePrice')}: {formatMoney(itin.pricing.basePrice, itin.pricing.currency, docLang)} &nbsp; {t('discount')}: {formatMoney(itin.pricing.discount, itin.pricing.currency, docLang)}</p>
+                  <p className="text-xs text-forest/50">{t('discount')}: {formatMoney(itin.pricing.discount, itin.pricing.currency, docLang)}</p>
                 }
                 <p className="font-display text-xl font-bold text-forest">
                   {t('total')}: {formatMoney(itin.pricing.totalPrice, itin.pricing.currency, docLang)}

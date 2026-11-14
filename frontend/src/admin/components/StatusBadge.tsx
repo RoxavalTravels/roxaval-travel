@@ -33,12 +33,12 @@ const STATUS_STYLES: Record<string, string> = {
   refunded: 'bg-red-50 text-red-600'
 };
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, label = status }: { status: string; label?: string }) {
   const key = status.toLowerCase();
   const style = STATUS_STYLES[key] || 'bg-forest/8 text-forest/60';
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${style}`}>
-      {status}
+      {label}
     </span>);
 
 }

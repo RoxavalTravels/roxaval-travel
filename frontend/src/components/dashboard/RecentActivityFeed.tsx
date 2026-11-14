@@ -1,3 +1,4 @@
+import { customerNotification } from '../../lib/customerNotification';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -62,8 +63,8 @@ export function RecentActivityFeed() {
                 }
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-forest">{n.title}</p>
-                <p className="mt-0.5 line-clamp-1 text-xs text-forest/50">{n.message}</p>
+                <p className="text-sm font-medium text-forest">{customerNotification(n).title}</p>
+                <p className="mt-0.5 line-clamp-1 text-xs text-forest/50">{customerNotification(n).message}</p>
               </div>
             </div>);
 

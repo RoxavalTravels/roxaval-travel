@@ -1,317 +1,112 @@
-import { LocalizedHeading } from '../components/seo/LocalizedHeading';
-import React, { useState } from 'react';
+﻿import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { EyeIcon, EyeOffIcon, LockIcon, Loader2Icon, MailIcon, PhoneIcon, UserIcon, CakeIcon, IdCardIcon, ChevronDownIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ApiRequestError } from '../lib/api';
 import { BackButton } from '../components/ui/BackButton';
-import { DateField } from '../components/ui/DateField';
-import { COUNTRY_DIAL_CODES, isoToFlag } from '../data/countryCodes';
 import { Seo } from '../components/seo/Seo';
+import { LocalizedHeading } from '../components/seo/LocalizedHeading';
+import { COUNTRY_DIAL_CODES, isoToFlag } from '../data/countryCodes';
 
-type Tab = 'login' | 'register';
-
-const inputClass = 'w-full rounded-full border border-forest/15 bg-white py-3 pl-11 pr-4 text-sm text-forest outline-none placeholder:text-forest/35 focus:border-emerald';
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^[0-9\s\-()]{6,20}$/;
-const PASSPORT_REGEX = /^[A-Za-z0-9]{5,15}$/;
-const PASSWORD_STRENGTH_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
-
-function calculateAge(dob: string) {
-  const birth = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
-}
-
+const inputClass = 'mt-1 w-full rounded-xl border border-forest/20 bg-white px-4 py-3 text-forest outline-none focus:border-emerald disabled:opacity-60';
+type AuthField = 'fullName' | 'email' | 'phone' | 'password';
 export function Auth() {
   const { t } = useTranslation('auth');
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [tab, setTab] = useState<Tab>('login');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-
+  const [signup, setSignup] = useState(false);
   const [fullName, setFullName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [dialCode, setDialCode] = useState('+94');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [passportNumber, setPassportNumber] = useState('');
-
-  const redirectAfterAuth = (role: string) => {
-    if (role === 'admin' || role === 'superadmin') {
-      navigate('/admin/dashboard', { replace: true });
+  const [phoneCountry, setPhoneCountry] = useState('LK');
+  const dialCode = COUNTRY_DIAL_CODES.find(country => country.iso2 === phoneCountry)!.dial;
+  const changePhone = (value: string) => {
+    const compact = value.replace(/[\s().-]/g, '');
+    if (compact.startsWith('+')) {
+      const country = [...COUNTRY_DIAL_CODES].sort((a, b) => b.dial.length - a.dial.length).find(item => compact.startsWith(item.dial));
+      if (country) {
+        if (!compact.startsWith(dialCode)) setPhoneCountry(country.iso2);
+        setPhone(compact.slice(country.dial.length));
+        return;
+      }
+    }
+    setPhone(value);
+  };
+  const [password, setPassword] = useState('');
+  const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [touched, setTouched] = useState<Partial<Record<AuthField, boolean>>>({});
+  const name = fullName.trim().replace(/\s+/g, ' ');
+  const address = email.trim().toLowerCase();
+  const nationalNumber = phone.replace(/[\s().-]/g, '');
+  const mobile = dialCode + nationalNumber;
+  const errors: Partial<Record<AuthField, string>> = {};
+  if (signup && (name.length < 2 || name.length > 100 || !/^[\p{L}\p{M}][\p{L}\p{M} .’'-]*$/u.test(name))) errors.fullName = t('codeLogin.invalidName');
+  if (address.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) errors.email = t('validation.emailInvalid');
+  if (signup && (!/^[0-9]+$/.test(nationalNumber) || !/^\+[1-9][0-9]{6,14}$/.test(mobile))) errors.phone = t('validation.mobileInvalid');
+  if (!password) errors.password = t('validation.passwordRequired');
+  else if (signup && (Array.from(password).length < 8 || new TextEncoder().encode(password).length > 72 || !/\p{L}/u.test(password) || !/\p{N}/u.test(password))) errors.password = t('passwordHelp');
+  const fieldProps = (field: AuthField) => ({
+    'aria-invalid': Boolean(touched[field] && errors[field]),
+    'aria-describedby': [touched[field] && errors[field] ? `${field}-error` : '', field === 'phone' ? 'phone-help' : field === 'password' && signup ? 'password-help' : ''].filter(Boolean).join(' ') || undefined,
+  });
+  const fieldError = (field: AuthField) => touched[field] && errors[field] ? <p id={`${field}-error`} aria-live="polite" className="mt-1 text-xs text-red-700">{errors[field]}</p> : null;
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (busy) return;
+    setTouched({ fullName: true, email: true, phone: true, password: true });
+    const firstInvalid = (Object.keys(errors) as AuthField[])[0];
+    if (firstInvalid) {
+      setError('');
+      (event.currentTarget.elements.namedItem(firstInvalid) as HTMLInputElement | null)?.focus();
       return;
     }
-    const from = (location.state as { from?: Location })?.from?.pathname || '/';
-    navigate(from, { replace: true });
-  };
-
-  const validateLogin = (): string | null => {
-    if (!loginEmail.trim()) return t('validation.emailRequired');
-    if (!EMAIL_REGEX.test(loginEmail.trim())) return t('validation.emailInvalid');
-    if (!loginPassword) return t('validation.passwordRequired');
-    return null;
-  };
-
-  const validateRegister = (): string | null => {
-    if (!fullName.trim()) return t('validation.fullNameRequired');
-    if (fullName.trim().length < 2) return t('validation.fullNameTooShort');
-    if (!regEmail.trim()) return t('validation.emailRequired');
-    if (!EMAIL_REGEX.test(regEmail.trim())) return t('validation.emailInvalid');
-    if (phone.trim() && !PHONE_REGEX.test(phone.trim())) return t('validation.phoneInvalid');
-    if (dateOfBirth) {
-      if (new Date(dateOfBirth) > new Date()) return t('validation.dobFuture');
-      if (calculateAge(dateOfBirth) < 18) return t('validation.dobMinAge');
-    }
-    if (passportNumber.trim() && !PASSPORT_REGEX.test(passportNumber.trim())) return t('validation.passportInvalid');
-    if (!regPassword) return t('validation.passwordRequired');
-    if (!PASSWORD_STRENGTH_REGEX.test(regPassword)) return t('validation.passwordWeak');
-    if (regPassword !== confirmPassword) return t('validation.passwordsDontMatch');
-    return null;
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationError = validateLogin();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
+    setBusy(true); setError('');
     try {
-      const user = await login(loginEmail.trim(), loginPassword);
-      redirectAfterAuth(user.role);
+      const user = signup ? await register({ fullName: name, email: address, phone: mobile, password }) : await login(address, password);
+      setPassword('');
+      const from = (location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from;
+      const target = (from?.pathname || '/') + (from?.search || '') + (from?.hash || '');
+      navigate(user.role !== 'customer' ? '/admin/dashboard' : target.startsWith('/') && !target.startsWith('//') ? target : '/', { replace: true });
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : t('loginFailed'));
-    } finally {
-      setSubmitting(false);
-    }
+      setError(t(err instanceof ApiRequestError && err.status === 429 ? 'codeLogin.tooMany' : err instanceof ApiRequestError && err.status === 409 ? 'accountExists' : signup ? 'registrationFailed' : 'loginFailed'));
+    } finally { setBusy(false); }
   };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationError = validateRegister();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    try {
-      const user = await register({
-        fullName: fullName.trim(),
-        email: regEmail.trim(),
-        password: regPassword,
-        phone: phone.trim() ? `${dialCode} ${phone.trim()}` : undefined,
-        dateOfBirth: dateOfBirth || undefined,
-        passportNumber: passportNumber.trim() || undefined,
-      });
-      redirectAfterAuth(user.role);
-    } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : t('registrationFailed'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-cream px-4 py-28">
-      <Seo title="Login or Sign Up | Roxaval Travels" description="Log in or create a Roxaval Travels account to book and manage your Sri Lanka tours." noindex />
-      <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-emerald/10 blur-3xl" />
-      <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-md rounded-3xl bg-white p-8 shadow-lift sm:p-10">
-
-        <BackButton className="mb-5" />
-
-        <div className="flex flex-col items-center text-center">
-          <img src="/roxaval-icon-dark.png" alt="" className="h-12 w-12 object-contain" />
-          <LocalizedHeading className="font-display mt-4 text-2xl font-semibold text-forest">
-            {tab === 'login' ? t('welcomeBack') : t('createAccount')}
-          </LocalizedHeading>
-          <p className="mt-1.5 text-sm text-forest/55">
-            {tab === 'login' ? t('loginSubtitle') : t('registerSubtitle')}
-          </p>
-        </div>
-
-        {/* Tabs */}
-        <div className="relative mt-7 grid grid-cols-2 rounded-full bg-cream p-1">
-          {(['login', 'register'] as Tab[]).map((tabKey) =>
-          <button
-            key={tabKey}
-            type="button"
-            onClick={() => {
-              setTab(tabKey);
-              setError(null);
-            }}
-            className={`relative z-10 rounded-full py-2.5 text-sm font-semibold transition-colors ${
-            tab === tabKey ? 'text-white' : 'text-forest/60 hover:text-forest'}`
-            }>
-
-              {tabKey === 'login' ? t('login') : t('register')}
-            </button>
-          )}
-          <motion.div
-            layout
-            transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-            className="absolute inset-y-1 w-[calc(50%-4px)] rounded-full bg-forest"
-            style={{ left: tab === 'login' ? 4 : 'calc(50% + 0px)' }} />
-
-        </div>
-
-        <AnimatePresence mode="wait">
-          {tab === 'login' ?
-          <motion.form
-            key="login"
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 12 }}
-            transition={{ duration: 0.2 }}
-            onSubmit={handleLogin}
-            className="mt-6 space-y-4">
-
-              <div className="relative">
-                <MailIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest/35" />
-                <input type="email" required value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder={t('emailPlaceholder')} className={inputClass} />
-              </div>
-              <div className="relative">
-                <LockIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest/35" />
-                <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder={t('passwordPlaceholder')}
-                className={`${inputClass} pr-11`} />
-
-                <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-forest/35 hover:text-forest">
-                  {showPassword ? <EyeOffIcon className="h-4.5 w-4.5" /> : <EyeIcon className="h-4.5 w-4.5" />}
-                </button>
-              </div>
-
-              <div className="flex justify-end">
-                <Link to="/auth/forgot-password" className="text-xs font-medium text-emerald hover:underline">{t('forgotPassword')}</Link>
-              </div>
-
-              {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</p>}
-
-              <button
-              type="submit"
-              disabled={submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-forest transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-70">
-
-                {submitting && <Loader2Icon className="h-4 w-4 animate-spin" />}
-                {t('signIn')}
-              </button>
-            </motion.form> :
-
-
-          <motion.form
-            key="register"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.2 }}
-            onSubmit={handleRegister}
-            className="mt-6 space-y-4">
-
-              <div className="relative">
-                <UserIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest/35" />
-                <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t('fullNamePlaceholder')} className={inputClass} />
-              </div>
-              <div className="relative">
-                <MailIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest/35" />
-                <input type="email" required value={regEmail} onChange={(e) => setRegEmail(e.target.value)} placeholder={t('emailPlaceholder')} className={inputClass} />
-              </div>
-              <div className="flex items-center gap-2 rounded-full border border-forest/15 bg-white pl-1.5 pr-4 focus-within:border-emerald">
-                <div className="relative shrink-0">
-                  <select
-                  value={dialCode}
-                  onChange={(e) => setDialCode(e.target.value)}
-                  aria-label={t('countryCodeLabel')}
-                  className="appearance-none rounded-full bg-transparent py-3 pl-3 pr-6 text-sm text-forest outline-none">
-
-                    {COUNTRY_DIAL_CODES.map((c) =>
-                    <option key={c.iso2} value={c.dial}>{isoToFlag(c.iso2)} {c.dial}</option>
-                    )}
-                  </select>
-                  <ChevronDownIcon className="pointer-events-none absolute right-0.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-forest/30" />
-                </div>
-                <div className="h-5 w-px shrink-0 bg-forest/10" />
-                <PhoneIcon className="h-4.5 w-4.5 shrink-0 text-forest/35" />
-                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('phonePlaceholder')} className="w-full bg-transparent py-3 text-sm text-forest outline-none placeholder:text-forest/35" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="relative">
-                  <CakeIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest/35" />
-                  <DateField value={dateOfBirth} onChange={setDateOfBirth} className={`${inputClass} text-forest/80`} />
-                </div>
-                <div className="relative">
-                  <IdCardIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest/35" />
-                  <input type="text" value={passportNumber} onChange={(e) => setPassportNumber(e.target.value)} placeholder={t('passportNumberPlaceholder')} className={inputClass} />
-                </div>
-              </div>
-              <div className="relative">
-                <LockIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest/35" />
-                <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                minLength={8}
-                value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
-                placeholder={t('passwordMinPlaceholder')}
-                className={`${inputClass} pr-11`} />
-
-                <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-forest/35 hover:text-forest">
-                  {showPassword ? <EyeOffIcon className="h-4.5 w-4.5" /> : <EyeIcon className="h-4.5 w-4.5" />}
-                </button>
-              </div>
-              <div className="relative">
-                <LockIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest/35" />
-                <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                minLength={8}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t('confirmPasswordPlaceholder')}
-                className={inputClass} />
-
-              </div>
-
-              {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</p>}
-
-              <button
-              type="submit"
-              disabled={submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-forest transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-70">
-
-                {submitting && <Loader2Icon className="h-4 w-4 animate-spin" />}
-                {t('createAccountButton')}
-              </button>
-            </motion.form>
-          }
-        </AnimatePresence>
-      </motion.div>
-    </main>);
-
+  return <main className="flex min-h-screen items-center justify-center bg-cream px-4 py-28">
+    <Seo title={t(signup ? 'createAccount' : 'welcomeBack')} description={t(signup ? 'registerSubtitle' : 'loginSubtitle')} noindex />
+    <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-lift sm:p-10">
+      <BackButton className="mb-5" />
+      <img src="/roxaval-icon-dark.png" alt="" className="mx-auto h-12 w-12 object-contain" />
+      <LocalizedHeading className="mt-4 text-center font-display text-2xl font-semibold text-forest">{t(signup ? 'createAccount' : 'welcomeBack')}</LocalizedHeading>
+      <p className="mt-3 text-center text-sm text-forest/65">{t(signup ? 'registerSubtitle' : 'loginSubtitle')}</p>
+      <div className="mt-5 flex gap-3">{[false, true].map(mode => <button key={String(mode)} type="button" disabled={busy} aria-pressed={signup === mode} onClick={() => { setSignup(mode); setTouched({}); setError(''); setPassword(''); setShow(false); }} className={`flex-1 rounded-full px-4 py-2 ${signup === mode ? 'bg-forest text-white' : 'bg-cream text-forest'}`}>{t(mode ? 'register' : 'login')}</button>)}</div>
+      {error && <p id="auth-error" role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+      <form noValidate onBlurCapture={event => { if (!(event.target instanceof HTMLInputElement)) return; const field = event.target.name as AuthField; if (['fullName', 'email', 'phone', 'password'].includes(field)) setTouched(previous => ({ ...previous, [field]: true })); }} onSubmit={submit} className="mt-6 space-y-4" aria-describedby={error ? 'auth-error' : undefined}>
+        {signup && <label className="block text-sm">{t('fullNamePlaceholder')}<input {...fieldProps('fullName')} name="fullName" autoComplete="name" value={fullName} onChange={e => setFullName(e.target.value)} required maxLength={100} disabled={busy} className={inputClass} /></label>}
+        {signup && fieldError('fullName')}
+        <label className="block text-sm">{t('emailPlaceholder')}<input {...fieldProps('email')} name="email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required maxLength={254} disabled={busy} className={inputClass} /></label>
+        {fieldError('email')}
+        {signup && <div>
+          <label htmlFor="register-phone" className="block text-sm">{t('codeLogin.mobile')}</label>
+          <div className="mt-1 flex gap-2">
+            <select name="phoneCountry" aria-label={t('countryCode')} autoComplete="tel-country-code" value={phoneCountry} onChange={e => setPhoneCountry(e.target.value)} disabled={busy} className="w-36 min-w-0 shrink-0 rounded-xl border border-forest/20 bg-white px-2 py-3 text-sm text-forest outline-none focus:border-emerald disabled:opacity-60">
+              {COUNTRY_DIAL_CODES.map(country => <option key={country.iso2} value={country.iso2}>{isoToFlag(country.iso2)} {country.name} ({country.dial})</option>)}
+            </select>
+            <input id="register-phone" {...fieldProps('phone')} name="phone" type="tel" autoComplete="tel-national" placeholder="77 123 4567" value={phone} onChange={e => changePhone(e.target.value)} required maxLength={32} disabled={busy} className={`${inputClass} !mt-0 min-w-0 flex-1`} />
+          </div>
+          {fieldError('phone')}
+          <p id="phone-help" className="mt-2 text-xs text-forest/60">{t('phoneHelp')}</p>
+        </div>}
+        <label className="block text-sm">{t('passwordPlaceholder')}<input {...fieldProps('password')} name="password" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={e => setPassword(e.target.value)} required maxLength={signup ? 72 : 1024} disabled={busy} className={inputClass} /></label>
+        {fieldError('password')}
+        <button type="button" aria-pressed={show} onClick={() => setShow(!show)} className="text-sm text-emerald underline">{t(show ? 'hidePassword' : 'showPassword')}</button>
+        {signup && <p id="password-help" className="text-xs text-forest/60">{t('passwordHelp')}</p>}
+        <button disabled={busy} className="w-full rounded-full bg-gold px-6 py-3 font-semibold text-forest disabled:opacity-60">{t(busy ? 'working' : signup ? 'createAccountButton' : 'signIn')}</button>
+      </form>
+      <Link to="/auth/forgot-password" className="mt-5 block text-center text-sm text-emerald underline">{t('forgotPassword')}</Link>
+      {!signup && <p className="mt-3 text-center text-xs text-forest/60">{t('existingCodeAccount')}</p>}
+    </div>
+  </main>;
 }

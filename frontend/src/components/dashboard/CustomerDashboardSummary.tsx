@@ -4,6 +4,8 @@ import { StatCard } from '../../admin/components/StatCard';
 import { apiGetList } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { useUnreadCount } from '../../hooks/useUnreadCount';
+import { useTranslation } from 'react-i18next';
+import { copy } from '../../i18n';
 
 /**
  * "Welcome {name}!" + 4 stat cards summarizing the customer's current
@@ -12,6 +14,7 @@ import { useUnreadCount } from '../../hooks/useUnreadCount';
  * already set on this page.
  */
 export function CustomerDashboardSummary() {
+  useTranslation('common');
   const { user } = useAuth();
   const unreadNotifications = useUnreadCount();
   const [upcomingTours, setUpcomingTours] = useState(0);
@@ -40,12 +43,12 @@ export function CustomerDashboardSummary() {
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-semibold text-forest">Welcome, {user?.fullName?.split(' ')[0] || 'Traveler'}!</h2>
+      <h2 className="font-display text-2xl font-semibold text-forest">{copy('Welcome, {{name}}!', { name: user?.fullName?.split(' ')[0] || copy('Traveler') })}</h2>
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={BriefcaseIcon} label="Upcoming Tours" value={upcomingTours} accent="emerald" index={0} />
-        <StatCard icon={ClockIcon} label="Pending Inquiries" value={pendingInquiries} accent="gold" index={1} />
-        <StatCard icon={CheckCircle2Icon} label="Confirmed Bookings" value={confirmedBookings} accent="emerald" index={2} />
-        <StatCard icon={BellIcon} label="Unread Notifications" value={unreadNotifications} accent="forest" index={3} />
+        <StatCard icon={BriefcaseIcon} label={copy('Upcoming Tours')} value={upcomingTours} accent="emerald" index={0} />
+        <StatCard icon={ClockIcon} label={copy('Pending Inquiries')} value={pendingInquiries} accent="gold" index={1} />
+        <StatCard icon={CheckCircle2Icon} label={copy('Confirmed Bookings')} value={confirmedBookings} accent="emerald" index={2} />
+        <StatCard icon={BellIcon} label={copy('Unread Notifications')} value={unreadNotifications} accent="forest" index={3} />
       </div>
     </div>);
 

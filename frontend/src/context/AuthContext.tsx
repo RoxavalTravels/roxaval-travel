@@ -29,6 +29,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
+  verifyCustomerCode: (challengeId: string, code: string) => Promise<AuthUser>;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -68,8 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res.user;
   }, []);
 
+  const verifyCustomerCode = useCallback(async (challengeId: string, code: string) => {
+    const res = await apiPost<LoginResponse>('/auth/customer-code/verify', { challengeId, code });
+    setUser(res.user);
+    return res.user;
+  }, []);
+
   const logout = useCallback(async () => {
-    await apiPost('/auth/logout').catch(() => {});
+    await apiPost('/auth/logout').catch(() => undefined);
     setUser(null);
   }, []);
 
@@ -89,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, forgotPassword, resetPassword, changePassword, refreshMe }}>
+    <AuthContext.Provider value={{ user, loading, login, verifyCustomerCode, register, logout, forgotPassword, resetPassword, changePassword, refreshMe }}>
       {children}
     </AuthContext.Provider>);
 

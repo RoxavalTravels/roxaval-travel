@@ -1,3 +1,4 @@
+import { InitialPublicPage, isInitialPublicRoute } from '../components/seo/InitialPublicContent';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -75,6 +76,8 @@ export function Blog() {
   const featured = items[0];
   const rest = items.slice(1);
 
+  if (loading && !error && items.length === 0 && isInitialPublicRoute()) return <InitialPublicPage />;
+
   return (
     <main className="min-h-screen bg-cream pt-16">
       <Seo
@@ -91,7 +94,7 @@ export function Blog() {
           <p className="mx-auto mt-3 max-w-xl text-center font-display text-base italic text-forest/55">{t('list.pageSubtitle')}</p>
 
           {featured &&
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mt-12 grid gap-8 overflow-hidden rounded-[2rem] bg-cream shadow-lift lg:grid-cols-2">
+          <motion.div initial={isInitialPublicRoute() ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mt-12 grid gap-8 overflow-hidden rounded-[2rem] bg-cream shadow-lift lg:grid-cols-2">
               <Link to={`/blog/${featured.slug}`} className="block h-64 overflow-hidden lg:h-full">
                 <img src={resolveImage(featured.featuredImage)} alt={featured.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
               </Link>
@@ -119,7 +122,7 @@ export function Blog() {
 
             <div className="grid gap-6 sm:grid-cols-2">
               {rest.map((post, i) =>
-              <motion.div key={post._id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.4, delay: (i % 4) * 0.08 }}>
+              <motion.div key={post._id} initial={isInitialPublicRoute() ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.4, delay: (i % 4) * 0.08 }}>
                   <ArticleCard post={post} />
                 </motion.div>
               )}

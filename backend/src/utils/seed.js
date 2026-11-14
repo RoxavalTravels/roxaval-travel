@@ -745,7 +745,7 @@ async function seed() {
     user = await User.create({
       fullName: 'Roxaval Super Admin',
       email: adminEmail,
-      password: 'ChangeMe123!',
+      password: process.env.SEED_ADMIN_PASSWORD || (() => { throw new Error('SEED_ADMIN_PASSWORD is required'); })(),
       role: 'superadmin',
     });
     await Admin.create({ user: user._id, department: 'management', isSuperAdmin: true, permissions: ['*'] });

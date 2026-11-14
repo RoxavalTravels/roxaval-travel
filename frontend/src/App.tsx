@@ -1,6 +1,7 @@
 
 import { Suspense, lazy } from 'react';
 import { LanguageRouter } from './i18n/LanguageRouter';
+import { InitialPublicContent } from './components/seo/InitialPublicContent';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 const AdminTranslations = lazy(() => import('./admin/pages/settings/Translations').then(m => ({ default: m.AdminTranslations })));
@@ -53,6 +54,7 @@ const AdminActivitiesList = lazy(() => import('./admin/pages/activities/List').t
 const AdminActivityForm = lazy(() => import('./admin/pages/activities/Form').then((m) => ({ default: m.AdminActivityForm })));
 const AdminHotelsList = lazy(() => import('./admin/pages/hotels/List').then((m) => ({ default: m.AdminHotelsList })));
 const AdminHotelForm = lazy(() => import('./admin/pages/hotels/Form').then((m) => ({ default: m.AdminHotelForm })));
+const AdminSupplierContractRates = lazy(() => import('./admin/pages/supplier-rates/List').then((m) => ({ default: m.AdminSupplierContractRates })));
 const AdminTourGuidesList = lazy(() => import('./admin/pages/tour-guides/List').then((m) => ({ default: m.AdminTourGuidesList })));
 const AdminTourGuideForm = lazy(() => import('./admin/pages/tour-guides/Form').then((m) => ({ default: m.AdminTourGuideForm })));
 const AdminVehiclesList = lazy(() => import('./admin/pages/vehicles/List').then((m) => ({ default: m.AdminVehiclesList })));
@@ -81,9 +83,10 @@ const AdminContactList = lazy(() => import('./admin/pages/contact/List').then((m
 const AdminBirthdaysList = lazy(() => import('./admin/pages/birthdays/List').then((m) => ({ default: m.AdminBirthdaysList })));
 
 const RouteFallback = () =>
+<InitialPublicContent>
 <div className="grid min-h-screen place-items-center bg-cream">
     <div className="h-8 w-8 animate-spin rounded-full border-2 border-forest/20 border-t-forest" />
-  </div>;
+  </div></InitialPublicContent>;
 
 
 export function App() {
@@ -155,6 +158,7 @@ export function App() {
             <Route path="hotels" element={<AdminHotelsList />} />
             <Route path="hotels/new" element={<AdminHotelForm />} />
             <Route path="hotels/:id/edit" element={<AdminHotelForm />} />
+            <Route path="supplier-contract-rates" element={<AdminSupplierContractRates />} />
 
             <Route path="tour-guides" element={<AdminTourGuidesList />} />
             <Route path="tour-guides/new" element={<AdminTourGuideForm />} />

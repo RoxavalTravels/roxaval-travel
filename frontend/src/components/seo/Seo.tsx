@@ -1,4 +1,5 @@
 import { getCurrentLanguage } from '../../i18n';
+import { useEffect, useState } from 'react';
 import { localizedPath, pageTranslation, languages } from '../../i18n/routing';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
@@ -20,6 +21,10 @@ interface SeoProps {
 // and any JSON-LD structured data for that page -- one place instead of
 // each page hand-rolling <head> tags differently.
 export function Seo({ title, description, keywords, image, type = 'website', noindex = false, jsonLd, canonicalPath }: SeoProps) {
+  // Helmet registers during render. Wait for commit so an abandoned Suspense
+  // render cannot leave a stale page registered alongside the next route.
+  const [committed, setCommitted] = useState(false);
+  useEffect(() => { setCommitted(true); }, []);
   const location = useLocation();
   const locale = getCurrentLanguage();
   const page = pageTranslation(location.pathname, locale);
@@ -32,6 +37,8 @@ export function Seo({ title, description, keywords, image, type = 'website', noi
   const canonical = absoluteUrl(localizedPath(canonicalPath || location.pathname, locale));
   const ogImage = absoluteImage(image);
   const jsonLdList = [...(page?.structuredData ? [page.structuredData] : []), ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [])];
+
+  if (!committed) return null;
 
   return (
     <Helmet>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiGetOne, apiPatch, ApiRequestError } from '../../../lib/api';
-import i18n from '../../../i18n';
+import i18n, { EDITABLE_NAMESPACES, applyResourceOverrides } from '../../../i18n';
 import { PageTranslation, Language, localizedPath, setTranslations } from '../../../i18n/routing';
 import { PageHeader } from '../../components/PageHeader';
 
@@ -22,6 +22,12 @@ export function AdminTranslations() {
   const [filter, setFilter] = useState('');
   const [status, setStatus] = useState('');
   const [saving, setSaving] = useState(false);
+  const [, setBundleRevision] = useState(0);
+  useEffect(() => {
+    let active = true;
+    void i18n.loadLanguages(locale).then(() => i18n.loadNamespaces(namespace)).then(() => { if (active) setBundleRevision(n => n + 1); });
+    return () => { active = false; };
+  }, [locale, namespace]);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     params.set('page', page); params.set('locale', locale);
@@ -44,7 +50,7 @@ export function AdminTranslations() {
       const fresh = await apiGetOne<PageTranslation[]>('/translations/pages/admin');
       setRows(fresh);
       const publicRows = await apiGetOne<PageTranslation[]>('/translations/pages');
-      publicRows.forEach(row => Object.entries(row.messages || {}).forEach(([namespace, values]) => i18n.addResourceBundle(row.locale, namespace, values, true, true)));
+      publicRows.forEach(row => Object.entries(row.messages || {}).forEach(([namespace, values]) => applyResourceOverrides(row.locale, namespace, values)));
       setTranslations(publicRows);
       setStatus('Saved. Open the page preview to review your changes.');
     } catch (error) { setStatus(error instanceof ApiRequestError && error.errors?.length ? error.errors.map(item => `${item.field}: ${item.message}`).join(' · ') : error instanceof Error ? error.message : 'Save failed'); }
@@ -63,7 +69,7 @@ export function AdminTranslations() {
       <a className="text-emerald underline" href={localizedPath(page, locale)} target="_blank" rel="noreferrer">Preview saved page ↗</a>
       <section className="space-y-4 rounded-2xl bg-white p-6">
         <h2 className="text-xl font-semibold">Editable interface content</h2>
-        <div className="flex flex-wrap gap-4"><label>Content group<select className="block border rounded-lg p-2" value={namespace} onChange={event => setNamespace(event.target.value)}>{(i18n.options.ns as string[]).map(ns => <option key={ns}>{ns}</option>)}</select></label><label>Find text<input className="block border rounded-lg p-2" value={filter} onChange={event => setFilter(event.target.value)} /></label></div>
+        <div className="flex flex-wrap gap-4"><label>Content group<select className="block border rounded-lg p-2" value={namespace} onChange={event => setNamespace(event.target.value)}>{EDITABLE_NAMESPACES.map(ns => <option key={ns}>{ns}</option>)}</select></label><label>Find text<input className="block border rounded-lg p-2" value={filter} onChange={event => setFilter(event.target.value)} /></label></div>
         {Object.entries(messages).filter(([key, value]) => `${key} ${value}`.toLowerCase().includes(filter.toLowerCase())).map(([key, value]) => <label className="block text-sm" key={key}>{key}<textarea className="mt-1 block w-full rounded-lg border p-3" rows={2} value={overrides[key] ?? value} onChange={event => {
           const bundle = structuredClone(draft.messages?.[namespace] || {});
           const parts = key.split('.'); let cursor = bundle;

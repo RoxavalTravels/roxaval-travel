@@ -101,13 +101,13 @@ export function AdminReviewsList() {
     render: (r) =>
     <div className="flex items-center gap-1.5">
           <button aria-label={`Edit review ${r._id}`} onClick={() => setEditing(r)} className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-cream"><PencilIcon className="h-4 w-4" /></button>
-          {r.status === 'pending' &&
+          {r.status !== 'approved' &&
       <>
               <button aria-label={`Approve review ${r._id}`} onClick={() => moderate(r, 'approved')} className="grid h-8 w-8 place-items-center rounded-lg text-emerald hover:bg-emerald/10"><CheckIcon className="h-4 w-4" /></button>
-              <button aria-label={`Reject review ${r._id}`} onClick={() => moderate(r, 'rejected')} className="grid h-8 w-8 place-items-center rounded-lg text-red-500 hover:bg-red-50"><XIcon className="h-4 w-4" /></button>
             </>
       }
-          <button onClick={() => remove(r)} className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-red-50 hover:text-red-600"><TrashIcon className="h-4 w-4" /></button>
+          {r.status !== 'rejected' && <button aria-label={`Reject review ${r._id}`} onClick={() => moderate(r, 'rejected')} className="grid h-8 w-8 place-items-center rounded-lg text-red-500 hover:bg-red-50"><XIcon className="h-4 w-4" /></button>}
+          <button aria-label={`Delete review ${r._id}`} onClick={() => remove(r)} className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-red-50 hover:text-red-600"><TrashIcon className="h-4 w-4" /></button>
         </div>
 
   }];

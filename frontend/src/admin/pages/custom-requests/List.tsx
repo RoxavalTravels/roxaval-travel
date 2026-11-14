@@ -7,7 +7,8 @@ import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { PriorityBadge } from '../../components/PriorityBadge';
 import { useToast } from '../../components/ToastProvider';
-import { apiPatch, ApiRequestError } from '../../../lib/api';
+import { apiPatch, apiPost, ApiRequestError } from '../../../lib/api';
+import { useConfirm } from '../../components/ConfirmDialog';
 import { formatDate } from '../../../lib/date';
 
 interface AdminCustomRequest {
@@ -44,6 +45,8 @@ export function AdminCustomRequestsList() {
   const [sort, setSort] = useState('-createdAt');
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const toast = useToast();
+  const confirm = useConfirm();
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const { items, meta, loading, error, page, setPage, refetch } = useAdminList<AdminCustomRequest>('/custom-tours', {
     q: search || undefined,
     status: status || undefined,
@@ -86,6 +89,19 @@ export function AdminCustomRequestsList() {
               {assigningId === r._id ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <UserCheckIcon className="h-4 w-4" />}
             </button>
       }
+          {r.status !== 'Booking Confirmed' && <button type="button" disabled={confirmingId !== null} onClick={() => confirm({
+            title: 'Confirm booking?',
+            message: `Confirm ${r.referenceNumber} for ${r.customer?.user?.fullName || 'this customer'} using the saved quotation, dates and travelers? Only continue after the customer has confirmed the booking. A booking will be created or its existing booking confirmed, and the customer notified. This does not mark any payment as paid. A sent, priced quotation is required.`,
+            confirmLabel: 'Confirm Booking',
+            onConfirm: async () => {
+              setConfirmingId(r._id);
+              try {
+                await apiPost(`/bookings/confirm-inquiry/${r._id}`, { customerConfirmed: true });
+                toast('Booking confirmed.'); refetch();
+              } catch (err) { toast(err instanceof ApiRequestError ? err.message : 'Could not confirm booking.', 'error'); }
+              finally { setConfirmingId(null); }
+            }
+          })} className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald hover:bg-cream disabled:opacity-50">{confirmingId === r._id ? 'Confirming…' : 'Confirm Booking'}</button>}
           <Link to={`/admin/custom-requests/${r._id}`} title="View" className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-cream hover:text-forest">
             <EyeIcon className="h-4 w-4" />
           </Link>

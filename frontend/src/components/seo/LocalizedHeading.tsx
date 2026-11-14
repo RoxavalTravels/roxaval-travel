@@ -3,6 +3,7 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { getCurrentLanguage } from '../../i18n';
 import { pageTranslation } from '../../i18n/routing';
+import { isInitialPublicRoute } from './InitialPublicContent';
 
 export function LocalizedHeading({ children, ...props }: ComponentProps<'h1'>) {
   const { pathname } = useLocation();
@@ -14,5 +15,5 @@ export function LocalizedImage({ alt, ...props }: ComponentProps<'img'>) {
 }
 export function LocalizedMotionHeading({ children, ...props }: HTMLMotionProps<'h1'>) {
   const { pathname } = useLocation();
-  return <motion.h1 {...props}>{pageTranslation(pathname, getCurrentLanguage())?.h1 || children}</motion.h1>;
+  return <motion.h1 {...props} initial={isInitialPublicRoute() ? false : props.initial}>{pageTranslation(pathname, getCurrentLanguage())?.h1 || children}</motion.h1>;
 }

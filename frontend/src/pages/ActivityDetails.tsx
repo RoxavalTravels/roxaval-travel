@@ -1,3 +1,4 @@
+import { InitialPublicPage } from '../components/seo/InitialPublicContent';
 import { copy } from '../i18n';
 import { LocalizedMotionHeading } from '../components/seo/LocalizedHeading';
 import { LocalizedImage } from '../components/seo/LocalizedHeading';
@@ -40,7 +41,7 @@ export function ActivityDetails() {
     apiGetOne<Activity>(`/activities/slug/${slug}`).
     then((data) => {
       if (cancelled) return;
-      setActivity(data);
+      setActivity({ ...data, gallery: data.gallery || [], highlights: data.highlights || [], thingsIncluded: data.thingsIncluded || [], thingsToBring: data.thingsToBring || [], destinations: data.destinations || [] });
       return apiGetList<Activity>('/activities', { category: data.category, limit: 4 }).
       then(({ data: list }) => {
         if (cancelled) return;
@@ -55,7 +56,7 @@ export function ActivityDetails() {
     };
   }, [slug]);
 
-  if (loading) return <main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main>;
+  if (loading) return <InitialPublicPage><main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main></InitialPublicPage>;
   if (error || !activity) return <main className="min-h-screen bg-cream pt-24"><ErrorState title={t('detail.notFoundTitle')} message={error || undefined} /></main>;
 
   const relatedDestinations = activity.destinations;

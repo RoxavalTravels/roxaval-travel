@@ -1,4 +1,5 @@
 import { LocalizedHeading } from '../seo/LocalizedHeading';
+import { isInitialPublicRoute } from '../seo/InitialPublicContent';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BreadcrumbBackRow } from './BreadcrumbBackRow';
@@ -32,7 +33,7 @@ export function PageBanner({ eyebrow, title, subtitle, breadcrumbs }: PageBanner
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={isInitialPublicRoute() ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="relative z-10 mx-auto mt-10 max-w-2xl px-4">

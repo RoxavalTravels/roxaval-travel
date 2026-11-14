@@ -1,3 +1,6 @@
+import { InitialPublicPage } from '../components/seo/InitialPublicContent';
+import { GuestReviewForm } from '../components/reviews/GuestReviewForm';
+import { ContentParagraphs } from '../components/ui/ContentParagraphs';
 import { copy } from '../i18n';
 import { LocalizedMotionHeading } from '../components/seo/LocalizedHeading';
 import { LocalizedImage } from '../components/seo/LocalizedHeading';
@@ -80,7 +83,7 @@ export function TourPackageDetails() {
     };
   }, [slug, i18n.resolvedLanguage]);
 
-  if (loading) return <main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main>;
+  if (loading) return <InitialPublicPage><main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main></InitialPublicPage>;
   if (error || !pkg) return <main className="min-h-screen bg-cream pt-24"><ErrorState title={t('detail.notFoundTitle')} message={error || undefined} /></main>;
 
   const displayPrice = pkg.discountPrice ?? pkg.price;
@@ -128,9 +131,9 @@ export function TourPackageDetails() {
               <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-semibold text-white">
                 {pkg.tourType === 'Private' ? <UserIcon className="h-3.5 w-3.5" /> : <Users2Icon className="h-3.5 w-3.5" />} {copy(pkg.tourType)}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-semibold text-white">
+              {pkg.reviewsCount > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-semibold text-white">
                 <StarIcon className="h-3.5 w-3.5 fill-gold text-gold" /> {pkg.rating.toFixed(1)} ({pkg.reviewsCount})
-              </span>
+              </span>}
             </div>
             <LocalizedMotionHeading
               initial={{ opacity: 0, y: 20 }}
@@ -153,7 +156,7 @@ export function TourPackageDetails() {
           {/* Overview */}
           <div>
             <h2 className="font-display text-2xl font-semibold text-forest">{t('detail.overview')}</h2>
-            <p className="mt-3 leading-relaxed text-forest/70">{pkg.description}</p>
+            <ContentParagraphs text={pkg.description} />
             {pkg.highlights.length > 0 &&
             <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                 {pkg.highlights.map((h) =>
@@ -213,7 +216,7 @@ export function TourPackageDetails() {
                         }
                           </div>
                       }
-                        <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-relaxed text-forest/65">{body}</p>
+                        <ContentParagraphs text={body} />
                         {!!day.activities?.length && <div className="mt-3"><h4 className="text-sm font-semibold">{t('detail.activities')}</h4><ul className="mt-1 list-inside list-disc text-sm text-forest/65">{day.activities.map(activity => <li key={activity._id}>{activity.name}</li>)}</ul></div>}
                         {(day.hotel || day.meals && day.meals.length > 0) &&
                       <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-forest/8 pt-3.5">
@@ -316,7 +319,7 @@ export function TourPackageDetails() {
           {/* Reviews */}
           <section className="mt-10" aria-labelledby="package-reviews-title">
               <h2 id="package-reviews-title" className="font-display text-2xl font-semibold text-forest">{t('detail.reviews')}</h2>
-              <p className="mt-3 text-sm text-forest/70">{copy('Travelled with us? Share your experience from your completed booking.')} <Link to="/my-tours" className="font-semibold text-emerald underline">{copy('Review your trip')}</Link></p>
+              <GuestReviewForm key={pkg._id} tourPackage={pkg._id} />
               {reviewError ? <p role="alert" className="mt-4 text-sm text-forest/60">{copy('Reviews are temporarily unavailable. Please try again later.')}</p> : reviews.length === 0 && <p className="mt-4 rounded-3xl bg-white p-6 text-sm text-forest/60">{copy('No reviews yet')}</p>}
               <div className="mt-4 space-y-4">
                 {reviews.map((r) =>

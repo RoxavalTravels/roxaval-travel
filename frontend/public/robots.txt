@@ -1,12 +1,7 @@
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /my-tours
-Disallow: /profile
-Disallow: /account-settings
-Disallow: /notifications
-Disallow: /auth
-Disallow: /reset-password
-Disallow: /search
+# Public pages remain crawlable. Login/account/admin routes (including
+# /en/, /de/ and /fr/ variants) send noindex in their HTML. Crawlers must
+# be able to read that directive. Authentication protects private data.
 
 Sitemap: https://www.roxavaltravels.com/sitemap.xml

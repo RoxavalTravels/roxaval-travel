@@ -1,3 +1,4 @@
+import { customerNotification } from '../../lib/customerNotification';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -115,8 +116,8 @@ export function NotificationBell() {
                     {!n.isRead && <span className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-white ${meta.dot}`} />}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-forest">{n.title}</p>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-forest/60">{n.message}</p>
+                    <p className="text-sm font-semibold text-forest">{customerNotification(n).title}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-forest/60">{customerNotification(n).message}</p>
                   </span>
                 </button>);
 

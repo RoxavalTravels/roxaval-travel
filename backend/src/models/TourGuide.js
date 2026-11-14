@@ -20,7 +20,7 @@ const tourGuideSchema = new mongoose.Schema(
 );
 
 tourGuideSchema.pre('save', function setSlug(next) {
-  if (this.isModified('name')) this.slug = `${slugify(this.name, { lower: true, strict: true })}-${Date.now().toString().slice(-4)}`;
+  if (this.isModified('name')) this.slug = slugify(this.name, { lower: true, strict: true });
   next();
 });
 

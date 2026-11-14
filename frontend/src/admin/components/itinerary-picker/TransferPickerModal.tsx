@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2Icon, SearchIcon } from 'lucide-react';
-import { apiGetList } from '../../../lib/api';
+import { apiGetAll } from '../../../lib/api';
 import { Modal } from '../Modal';
 
 export interface TransferSelection {
@@ -35,6 +35,7 @@ export function TransferPickerModal({ open, onClose, destinationOptions, default
   const [search, setSearch] = useState('');
   const [transfers, setTransfers] = useState<TransferRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const [pickedTransfer, setPickedTransfer] = useState<TransferRow | null>(null);
   const [withDriver, setWithDriver] = useState(true);
@@ -52,12 +53,17 @@ export function TransferPickerModal({ open, onClose, destinationOptions, default
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    const params: Record<string, string | number | undefined> = { limit: 50 };
+    setError('');
+    setPickedTransfer(null);
+    let cancelled = false;
+    const params: Record<string, string | number | undefined> = { status: 'active' };
     if (destination) params.destination = destination;
     if (search) params.q = search;
-    apiGetList<TransferRow>('/transfers', params).
-    then(({ data }) => setTransfers(data)).
-    finally(() => setLoading(false));
+    apiGetAll<TransferRow>('/transfers/admin/all', params).
+    then(({ data }) => { if (!cancelled) setTransfers(data); }).
+    catch(() => { if (!cancelled) { setTransfers([]); setError('Could not load transfer rates. Please reopen the picker to retry.'); } }).
+    finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [open, destination, search]);
 
   const pick = (t: TransferRow) => {
@@ -70,13 +76,14 @@ export function TransferPickerModal({ open, onClose, destinationOptions, default
   const totalCost = unitCost * vehicleCount;
 
   const confirm = () => {
-    if (!pickedTransfer) return;
+    if (!pickedTransfer || !Number.isFinite(totalCost)) return;
     onAdd({ transfer: pickedTransfer._id, name: pickedTransfer.name, withDriver, vehicleCount, cost: totalCost });
     onClose();
   };
 
   return (
     <Modal open={open} onClose={onClose} title="Select Transfer" maxWidth="max-w-3xl">
+      {error && <p role="alert" className="mb-3 text-sm text-red-700">{error}</p>}
       <div className="grid gap-3 sm:grid-cols-2">
         <select value={destination} onChange={(e) => setDestination(e.target.value)} className="rounded-xl border border-forest/15 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald">
           <option value="">All Destinations</option>

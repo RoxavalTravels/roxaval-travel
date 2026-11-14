@@ -12,6 +12,7 @@ import { HotelPartners } from '../components/sections/HotelPartners';
 import { Reviews } from '../components/sections/Reviews';
 import { Blog } from '../components/sections/Blog';
 import { TravelIntroduction } from '../components/sections/TravelIntroduction';
+import { PrivateTours } from '../components/sections/PrivateTours';
 
 export function Home() {
   return (
@@ -23,6 +24,7 @@ export function Home() {
 
       <Hero />
       <TravelIntroduction />
+      <PrivateTours />
       <Destinations />
       <Packages />
       <CustomTourCta />

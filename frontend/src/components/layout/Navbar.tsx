@@ -1,3 +1,4 @@
+import { isInitialPublicRoute } from '../seo/InitialPublicContent';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -100,7 +101,7 @@ export function Navbar() {
 
   return (
     <motion.header
-      initial={{ y: -80 }}
+      initial={isInitialPublicRoute() ? false : { y: -80 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
@@ -162,7 +163,7 @@ export function Navbar() {
                 only: fade in with a slight downward move, ~180ms. */}
             {exploreOpen &&
               <motion.div
-                initial={{ opacity: 0, y: -8 }}
+                initial={isInitialPublicRoute() ? false : { opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
                 className="absolute right-0 mt-2 w-52 rounded-2xl bg-white shadow-lift p-2 overflow-hidden">
@@ -204,7 +205,7 @@ export function Navbar() {
               </button>
               {userMenuOpen &&
               <motion.div
-                initial={{ opacity: 0, y: -8 }}
+                initial={isInitialPublicRoute() ? false : { opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
                 className="absolute right-0 mt-2 w-52 rounded-2xl bg-white shadow-lift p-2 overflow-hidden">
@@ -260,7 +261,7 @@ export function Navbar() {
           time, which matters far more for primary navigation. */}
       {mobileOpen &&
         <motion.div
-          initial={{ height: 0, opacity: 0 }}
+          initial={isInitialPublicRoute() ? false : { height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           transition={{ duration: 0.3 }}
           className="lg:hidden overflow-hidden">

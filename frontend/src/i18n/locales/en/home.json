@@ -96,5 +96,44 @@
       "text": "Walk among tea plantations, enjoy mountain views and make time for the hill country around Ella and Nuwara Eliya. Tell us how you like to travel and we can help bring these experiences together in a personal itinerary.",
       "link": "Plan your custom Sri Lanka tour"
     }
+  },
+  "privateTours": {
+    "title": "Private Sri Lanka Tours with a Chauffeur-Guide",
+    "intro": "Welcome to Roxaval Travels, a Sri Lanka-based tour operator offering private, tailor-made holidays. Every trip is planned around you: your pace, your interests, and your budget. Travel in a comfortable, air-conditioned vehicle with your own English-speaking chauffeur-guide, and see the island without the stress of public transport or fixed group schedules.",
+    "why": {
+      "title": "Why Travel Privately in Sri Lanka",
+      "text": "Sri Lanka is small, but its roads are winding and journeys take longer than the map suggests. A private chauffeur-guide takes care of the driving, the timing, and the local knowledge, so you can stop for a photo, a tea plantation visit, or a roadside fruit stall whenever you like. No crowded buses, no rigid itineraries, and no wasted time.",
+      "link": "Explore Sri Lanka activities"
+    },
+    "destinations": {
+      "title": "Popular Destinations",
+      "items": [
+        "Sigiriya and the Cultural Triangle: climb the ancient Lion Rock fortress and explore Polonnaruwa and Anuradhapura.",
+        "Kandy: visit the Temple of the Tooth and enjoy the hill capital’s lake and gardens.",
+        "Nuwara Eliya and Ella: ride the scenic train through tea country, hike to viewpoints, and see waterfalls.",
+        "Yala and Udawalawe: go on a safari to spot elephants, leopards, and birdlife.",
+        "Mirissa, Bentota, and the South Coast: relax on tropical beaches or go whale watching."
+      ],
+      "link": "Discover Sri Lanka destinations"
+    },
+    "tailorMade": {
+      "title": "Tailor-Made Tour Packages",
+      "text": "Whether you have one week or three, we build your route around your interests. Choose a classic cultural round trip, a wildlife-focused journey, a honeymoon with beach time, or a family holiday with flexible days. Our sample itineraries are a starting point. We adjust hotels, activities, and travel days until the plan fits you.",
+      "link": "Browse Sri Lanka tour packages"
+    },
+    "choose": {
+      "title": "Why Choose Roxaval Travels",
+      "items": [
+        "Registered and local: we are an SLTDA-registered tour operator based in Sri Lanka.",
+        "Private service: your own driver-guide throughout the trip.",
+        "Flexible planning: itineraries built around your preferences, not a fixed package.",
+        "Local support: help from our team before and during your journey."
+      ]
+    },
+    "plan": {
+      "title": "Plan Your Sri Lanka Holiday",
+      "text": "Tell us when you plan to travel, how many travelers, and what you would like to see. We will send you a personalized itinerary and quote, free of charge.",
+      "link": "Plan a custom tour"
+    }
   }
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangleIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, DownloadIcon, EyeIcon, Loader2Icon, MessageCircleIcon, PencilIcon, PlusIcon, SaveIcon, SendIcon, TrashIcon, UserCheckIcon, WandSparklesIcon, XIcon } from 'lucide-react';
-import { apiGetAll, apiGetList, apiGetOne, apiPatch, apiPost, ApiRequestError, API_ORIGIN } from '../../../lib/api';
+import { apiGetAll, apiGetOne, apiPatch, apiPost, ApiRequestError, API_ORIGIN } from '../../../lib/api';
 import { whatsAppLink } from '../../../lib/contact';
 import { formatDate, formatDateTime } from '../../../lib/date';
 import { useToast } from '../../components/ToastProvider';
@@ -548,6 +548,8 @@ export function AdminCustomRequestDetail() {
   const [guideOptions, setGuideOptions] = useState<RefOption[]>([]);
   const [vehicleOptions, setVehicleOptions] = useState<RefOption[]>([]);
   const [vehiclePricePerDay, setVehiclePricePerDay] = useState<Record<string, number>>({});
+  const [catalogError, setCatalogError] = useState('');
+  const previousVehicleDays = useRef(1);
 
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
@@ -603,25 +605,27 @@ export function AdminCustomRequestDetail() {
 
   useEffect(() => {
     Promise.all([
-    apiGetList<{ _id: string; name: string }>('/destinations', { limit: 100 }),
-    apiGetList<{ _id: string; name: string }>('/activities', { limit: 100 }),
+    apiGetAll<{ _id: string; name: string }>('/destinations', { status: 'published' }),
+    apiGetAll<{ _id: string; name: string }>('/activities', { status: 'published' }),
     apiGetAll<{ _id: string; name: string }>('/hotels/admin/all', { sort: 'name' }),
-    apiGetList<{ _id: string; name: string; pricePerDay: number }>('/tour-guides', { limit: 100 }),
-    apiGetList<{ _id: string; name: string; pricePerDay: number }>('/vehicles', { limit: 100 })]
+    apiGetAll<{ _id: string; name: string }>('/tour-guides', { status: 'active' }),
+    apiGetAll<{ _id: string; name: string; pricePerDay: number }>('/vehicles/admin/all')]
     ).then(([d, a, h, g, v]) => {
       setDestOptions(d.data.map((x) => ({ value: x._id, label: x.name })));
       setActivityOptions(a.data.map((x) => ({ value: x._id, label: x.name })));
       setHotelOptions(h.data.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base', numeric: true })).map((x) => ({ value: x._id, label: x.name })));
       setGuideOptions(g.data.map((x) => ({ value: x._id, label: x.name })));
       setVehicleOptions(v.data.map((x) => ({ value: x._id, label: x.name })));
-      setVehiclePricePerDay(Object.fromEntries(v.data.map((x) => [x._id, x.pricePerDay || 0])));
-    });
+      setVehiclePricePerDay(Object.fromEntries(v.data.map((x) => [x._id, x.pricePerDay])));
+      setCatalogError('');
+    }).catch(() => setCatalogError('Could not load quotation rates. Reload this page before saving or sending.'));
   }, []);
 
   useEffect(() => {
     if (!request) return;
     setCurrency(request.estimatedBudget?.currency || 'USD');
     if (request.itinerary && !forceEdit && !['Draft', 'Changes Requested', 'Rejected'].includes(request.itinerary.status)) return;
+    previousVehicleDays.current = request.itinerary?.days.length ?? 1;
     if (request.itinerary) {
       const itin = request.itinerary;
       setTitle(itin.title);
@@ -634,7 +638,7 @@ export function AdminCustomRequestDetail() {
         title: rawItinerary?.days.find((rd) => rd.dayNumber === d.dayNumber)?.title || { ...emptyLocalizedString(), en: d.title },
         schedule: d.schedule,
         destinations: (d.destinations || []).map((x) => x._id),
-        activities: (d.activities || []).map((x) => x._id),
+        activities: Array.from(new Set([...(d.activities || []).map((x) => x._id), ...(d.activityPricing || []).flatMap((x) => x.activity?._id ? [x.activity._id] : [])])),
         customDestinations: d.customDestinations || [],
         customActivities: d.customActivities || [],
         hotel: d.hotel?._id || '',
@@ -646,7 +650,7 @@ export function AdminCustomRequestDetail() {
         numberOfRooms: d.numberOfRooms || 1,
         roomOccupancy: { ...emptyOccupancy(), ...d.roomOccupancy },
         roomCost: d.roomCost || 0,
-        hotelOptions: (d.hotelOptions || []).map((ho) => ({
+        hotelOptions: (d.hotelOptions?.length ? d.hotelOptions : d.hotel ? [{ ...d, selected: true }] : []).map((ho) => ({
           hotel: ho.hotel?._id || '',
           hotelName: ho.hotel?.name,
           roomType: ho.roomType || '',
@@ -938,10 +942,9 @@ export function AdminCustomRequestDetail() {
     });
   };
 
-  const removeActivitySelection = (activityId: string) => {
-    if (pickerDayIndex === null) return;
-    const day = days[pickerDayIndex];
-    patchDayWithCost(pickerDayIndex, {
+  const removeActivitySelection = (dayIndex: number, activityId: string) => {
+    const day = days[dayIndex];
+    patchDayWithCost(dayIndex, {
       activities: day.activities.filter((a) => a !== activityId),
       activityPricing: day.activityPricing.filter((a) => a.activity !== activityId)
     });
@@ -1004,12 +1007,32 @@ export function AdminCustomRequestDetail() {
 
   const markedUpTotal = suggestedTotal + markupAmount;
 
+  const changeVehicle = (nextVehicle: string) => {
+    const oldRate = vehicle ? vehiclePricePerDay[vehicle] : 0;
+    const nextRate = nextVehicle ? vehiclePricePerDay[nextVehicle] : 0;
+    if (!Number.isFinite(oldRate) || !Number.isFinite(nextRate)) {
+      toast('Vehicle rates are unavailable. Reload before changing the vehicle.', 'error'); return;
+    }
+    const difference = (nextRate - oldRate) * days.length;
+    setVehicle(nextVehicle);
+    setBasePrice(value => Math.max(0, Math.round((value + difference) * 100) / 100));
+    setTotalPrice(value => Math.max(0, Math.round((value + difference) * 100) / 100));
+  };
+  useEffect(() => {
+    const difference = days.length - previousVehicleDays.current;
+    previousVehicleDays.current = days.length;
+    if (!difference || !vehicle || !Number.isFinite(vehiclePricePerDay[vehicle])) return;
+    const amount = difference * vehiclePricePerDay[vehicle];
+    setBasePrice(value => Math.max(0, Math.round((value + amount) * 100) / 100));
+    setTotalPrice(value => Math.max(0, Math.round((value + amount) * 100) / 100));
+  }, [days.length, vehicle, vehiclePricePerDay]);
+
   // The quotation always shows one number: hotel + vehicle (+ sightseeing,
   // if included) + markup - discount = the total cost for the whole trip.
   // No per-person division — the client explicitly doesn't want that.
   const useSuggestedTotal = () => {
-    setBasePrice(suggestedTotal);
-    setTotalPrice(markedUpTotal - discount);
+    setBasePrice(Math.round(suggestedTotal * 100) / 100);
+    setTotalPrice(Math.max(0, Math.round((markedUpTotal - discount) * 100) / 100));
   };
 
   const lastLegToDate = routeLegs.length > 0 ? routeLegs[routeLegs.length - 1].toDate : '';
@@ -1165,6 +1188,9 @@ export function AdminCustomRequestDetail() {
 
   const sendItinerary = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (catalogError || (vehicle && !Number.isFinite(vehiclePricePerDay[vehicle]))) {
+      toast(catalogError || 'The selected vehicle rate is unavailable. Reload before sending.', 'error'); return;
+    }
     const missingHotelDay = findMissingHotelDay(days);
     if (missingHotelDay) {
       toast(`Please select a hotel for Day ${missingHotelDay.dayNumber}.`, 'error');
@@ -1197,6 +1223,9 @@ export function AdminCustomRequestDetail() {
   // backend's population logic. This trades one silent save for a
   // guaranteed-accurate preview.
   const previewQuotation = async () => {
+    if (catalogError || (vehicle && !Number.isFinite(vehiclePricePerDay[vehicle]))) {
+      toast(catalogError || 'The selected vehicle rate is unavailable. Reload before previewing.', 'error'); return;
+    }
     setPreviewing(true);
     // Opened synchronously, in direct response to the click, and pointed
     // at the destination only once the draft save succeeds -- a window.open()
@@ -1222,6 +1251,9 @@ export function AdminCustomRequestDetail() {
   // itinerary (hotels/activities/notes/pricing...) without either sending it
   // to the customer or having a preview tab pop open every time.
   const saveDraft = async () => {
+    if (catalogError || (vehicle && !Number.isFinite(vehiclePricePerDay[vehicle]))) {
+      toast(catalogError || 'The selected vehicle rate is unavailable. Reload before saving.', 'error'); return;
+    }
     setSavingDraft(true);
     try {
       await apiPost(`/custom-tours/${id}/itinerary/draft`, buildItineraryPayload());
@@ -1271,6 +1303,10 @@ export function AdminCustomRequestDetail() {
         action={<button onClick={() => handleBack('/admin/custom-requests')} className="rounded-full border border-forest/15 px-5 py-2.5 text-sm font-semibold text-forest hover:bg-cream">Back to list</button>} />
 
 
+      {request.itinerary && <div className="mb-6 flex flex-wrap items-center gap-3">
+        <button type="button" onClick={() => handleBack(`/admin/custom-requests/new?copyFrom=${id}`)} className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald">Copy to New Customer</button>
+        <p className="text-xs text-forest/60">Copies the saved quotation into a separate draft. Save any changes you want to include first.</p>
+      </div>}
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <div className="rounded-2xl bg-white p-6 shadow-soft">
@@ -1702,7 +1738,7 @@ export function AdminCustomRequestDetail() {
                                   </label>
                                   <span className="flex items-center gap-2">
                                     <span>${ho.roomCost.toLocaleString()}</span>
-                                    <button type="button" onClick={() => removeHotelOption(i, hi)} className="text-forest/30 hover:text-red-500"><XIcon className="h-3.5 w-3.5" /></button>
+                                    <button type="button" aria-label={`Remove hotel option ${hi + 1} from day ${day.dayNumber}`} onClick={() => removeHotelOption(i, hi)} className="rounded p-2 text-forest/50 hover:text-red-500"><XIcon className="h-4 w-4" /></button>
                                   </span>
                                 </div>
                           )}
@@ -1727,7 +1763,7 @@ export function AdminCustomRequestDetail() {
                                   <span className="flex shrink-0 items-center gap-2">
                                     <span>${a.cost.toLocaleString()}</span>
                                     <button type="button" onClick={() => toggleActivitySelected(i, a.activity)} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${a.selected ? 'bg-emerald/10 text-emerald' : 'bg-forest/5 text-forest/50'}`}>{a.selected ? 'Included' : 'Alternate'}</button>
-                                    <button type="button" onClick={() => removeActivitySelection(a.activity)} className="text-forest/30 hover:text-red-500"><XIcon className="h-3.5 w-3.5" /></button>
+                                    <button type="button" aria-label={`Remove activity ${a.name || a.activity} from day ${day.dayNumber}`} onClick={() => removeActivitySelection(i, a.activity)} className="rounded p-2 text-forest/50 hover:text-red-500"><XIcon className="h-4 w-4" /></button>
                                   </span>
                                 </div>
                           )}
@@ -1811,9 +1847,11 @@ export function AdminCustomRequestDetail() {
                 {request.guideRequired && <p className="mt-1 text-xs text-forest/60">The customer asked for a tour guide for this trip.</p>}
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
                   <SelectField label="Tour Guide" value={tourGuide} onChange={setTourGuide} options={[{ label: 'None', value: '' }, ...guideOptions]} />
-                  <SelectField label="Vehicle" value={vehicle} onChange={setVehicle} options={[{ label: 'None', value: '' }, ...vehicleOptions]} />
+                  <SelectField label="Vehicle" value={vehicle} onChange={changeVehicle} options={[{ label: 'None', value: '' }, ...vehicleOptions]} />
                 </div>
                 <p className="mt-2 text-xs text-forest/50">Guide cost isn't added to the total separately - the vehicle's day rate already covers the driver/guide.</p>
+                {catalogError && <p role="alert" className="mt-2 text-sm text-red-700">{catalogError}</p>}
+                {vehicle && <p className="mt-2 text-sm text-forest">Vehicle: {currency} {vehiclePricePerDay[vehicle]?.toLocaleString() ?? 'Unavailable'} per day × {days.length} days = {currency} {guideVehicleCost.toLocaleString()}. Selection changes update Base Price and Total Price automatically.</p>}
               </div>
 
               <div className="rounded-2xl border border-emerald/20 bg-emerald/5 p-6">
@@ -1848,9 +1886,9 @@ export function AdminCustomRequestDetail() {
               <div className="rounded-2xl bg-white p-6 shadow-soft">
                 <p className="mb-4 font-display text-sm font-semibold text-forest">Pricing</p>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                  <NumberField label="Base Price" value={basePrice} onChange={setBasePrice} min={0} />
-                  <NumberField label="Markup ($)" value={markupAmount} onChange={setMarkupAmount} min={0} />
-                  <NumberField label="Discount" value={discount} onChange={setDiscount} min={0} />
+                  <NumberField label="Base Price" value={basePrice} onChange={value => { setBasePrice(value); setTotalPrice(Math.max(0, Math.round((value + markupAmount - discount) * 100) / 100)); }} min={0} />
+                  <NumberField label="Markup ($)" value={markupAmount} onChange={value => { setMarkupAmount(value); setTotalPrice(Math.max(0, Math.round((basePrice + value - discount) * 100) / 100)); }} min={0} />
+                  <NumberField label="Discount" value={discount} onChange={value => { setDiscount(value); setTotalPrice(Math.max(0, Math.round((basePrice + markupAmount - value) * 100) / 100)); }} min={0} />
                   <NumberField label="Total Price" value={totalPrice} onChange={setTotalPrice} min={0} />
                   <TextField label="Currency" value={currency} onChange={setCurrency} />
                 </div>
@@ -1862,7 +1900,7 @@ export function AdminCustomRequestDetail() {
                   <CheckboxField label="Hide price / price on request" checked={!showPrice} onChange={(hide) => setShowPrice(!hide)} />
                 </div>
                 <p className="mt-2 text-xs text-forest/50">
-                  Markup is Roxaval's margin on top of the base cost - it's baked into Total Price when you click "Use this amount" above, never shown to the customer directly. Total Price is the full trip cost, not per person.
+                  Markup and discount update Total Price automatically. Use "Use this amount" to apply the complete day-by-day cost calculation. Markup is never shown to the customer directly. Total Price is the full trip cost, not per person.
                 </p>
               </div>
 
@@ -1969,7 +2007,7 @@ export function AdminCustomRequestDetail() {
         travelers={request.travelers}
         selectedIds={days[pickerDayIndex]?.activities || []}
         onAdd={addActivitySelection}
-        onRemove={removeActivitySelection} />
+        onRemove={(activityId) => { if (pickerDayIndex !== null) removeActivitySelection(pickerDayIndex, activityId); }} />
 
       }
       {pickerDayIndex !== null &&

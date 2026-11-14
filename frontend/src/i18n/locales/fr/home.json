@@ -96,5 +96,44 @@
       "text": "Promenez-vous dans les plantations de thé, admirez les paysages montagneux et découvrez les environs d’Ella et de Nuwara Eliya. Dites-nous comment vous aimez voyager : nous vous aiderons à réunir ces expériences dans un itinéraire personnalisé.",
       "link": "Créer votre circuit sur mesure au Sri Lanka"
     }
+  },
+  "privateTours": {
+    "title": "Circuits privés au Sri Lanka avec chauffeur-accompagnateur",
+    "intro": "Bienvenue chez Roxaval Travels, un voyagiste basé au Sri Lanka qui organise des vacances privées sur mesure. Chaque voyage est conçu selon votre rythme, vos centres d’intérêt et votre budget. Découvrez l’île dans un véhicule confortable et climatisé avec votre propre chauffeur-accompagnateur anglophone, sans les contraintes des transports publics ni des horaires de groupe.",
+    "why": {
+      "title": "Pourquoi voyager au Sri Lanka en circuit privé ?",
+      "text": "Le Sri Lanka est petit, mais ses routes sinueuses rendent souvent les trajets plus longs que prévu. Votre chauffeur-accompagnateur s’occupe de la conduite et de l’organisation, tout en partageant sa connaissance du pays. Arrêtez-vous pour une photo, une plantation de thé ou un étal de fruits au bord de la route, selon vos envies. Vous profitez ainsi de chaque journée à votre rythme.",
+      "link": "Explorer les activités au Sri Lanka"
+    },
+    "destinations": {
+      "title": "Destinations incontournables",
+      "items": [
+        "Sigiriya et le Triangle culturel : gravissez l’ancienne forteresse du Rocher du Lion et découvrez Polonnaruwa et Anuradhapura.",
+        "Kandy : visitez le temple de la Dent et profitez du lac et des jardins de cette ancienne capitale royale.",
+        "Nuwara Eliya et Ella : traversez les plantations de thé en train, marchez jusqu’aux points de vue et découvrez les cascades.",
+        "Yala et Udawalawe : partez en safari pour observer éléphants, léopards et oiseaux.",
+        "Mirissa, Bentota et la côte sud : détendez-vous sur des plages tropicales ou partez observer les baleines."
+      ],
+      "link": "Découvrir les destinations du Sri Lanka"
+    },
+    "tailorMade": {
+      "title": "Des circuits sur mesure",
+      "text": "Que vous disposiez d’une semaine ou de trois, nous construisons votre itinéraire selon vos envies. Optez pour un circuit culturel, un séjour consacré à la faune, une lune de miel avec une étape à la plage ou des vacances en famille au programme flexible. Nos exemples d’itinéraires sont un point de départ. Nous adaptons les hôtels, les activités et les journées jusqu’à trouver la formule qui vous convient.",
+      "link": "Consulter les circuits au Sri Lanka"
+    },
+    "choose": {
+      "title": "Pourquoi choisir Roxaval Travels ?",
+      "items": [
+        "Une équipe locale et enregistrée : nous sommes un voyagiste basé au Sri Lanka et enregistré auprès de la SLTDA.",
+        "Un service privé : votre propre chauffeur-accompagnateur tout au long du voyage.",
+        "Une organisation flexible : des itinéraires conçus selon vos préférences.",
+        "Une assistance sur place : notre équipe vous accompagne avant et pendant votre séjour."
+      ]
+    },
+    "plan": {
+      "title": "Préparez vos vacances au Sri Lanka",
+      "text": "Indiquez-nous vos dates, le nombre de voyageurs et les lieux que vous souhaitez découvrir. Nous vous enverrons gratuitement un itinéraire personnalisé et un devis.",
+      "link": "Créer un circuit sur mesure"
+    }
   }
 }

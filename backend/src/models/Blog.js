@@ -47,7 +47,7 @@ const blogSchema = new mongoose.Schema(
 );
 
 blogSchema.pre('save', function setSlug(next) {
-  if (this.isModified('title.en')) this.slug = `${slugify(this.title.en, { lower: true, strict: true })}-${Date.now().toString().slice(-4)}`;
+  if (this.isModified('title.en')) this.slug = slugify(this.title.en, { lower: true, strict: true });
   if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
     this.publishedAt = new Date();
   }

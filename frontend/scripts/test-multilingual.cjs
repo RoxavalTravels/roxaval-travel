@@ -175,7 +175,7 @@ const server = http.createServer((req,res) => {
     await page.getByLabel('Review',{exact:true}).fill('Genuine submitted feedback for this test.');
     await page.getByRole('button',{name:'Save pending review'}).click();
     await page.getByText('Review saved. Approve it to publish.',{exact:true}).waitFor();
-    assert.equal(addedReview.tourPackage,'1');
+    assert.equal(addedReview.tourPackage,1);
     assert.equal(addedReview.rating,5);
     await page.goto('http://127.0.0.1:4179/admin/settings');
     await page.getByLabel('USD to EUR').fill('0.9');

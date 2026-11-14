@@ -1,3 +1,4 @@
+import { customerNotification } from '../../lib/customerNotification';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +25,7 @@ interface NotificationItem {
  * customer notification center and the admin notifications page.
  */
 export function NotificationsPanel() {
-  const { t } = useTranslation('dashboard');
+  const { t, i18n } = useTranslation('dashboard');
   const { items, meta, loading, error, hasMore, loadMore } = useApiList<NotificationItem>('/notifications', {}, 15);
   const [readIds, setReadIds] = React.useState<Set<string>>(new Set());
 
@@ -63,9 +64,9 @@ export function NotificationsPanel() {
                 {!isRead(n) && <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white ${meta.dot}`} />}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="font-display text-sm font-semibold text-forest">{n.title}</p>
-                <p className="mt-1.5 text-sm text-forest/60">{n.message}</p>
-                <p className="mt-2 text-xs text-forest/40">{formatDateTime(n.createdAt)}</p>
+                <p className="font-display text-sm font-semibold text-forest">{customerNotification(n).title}</p>
+                <p className="mt-1.5 text-sm text-forest/60">{customerNotification(n).message}</p>
+                <p className="mt-2 text-xs text-forest/40">{formatDateTime(n.createdAt, undefined, i18n.language)}</p>
               </div>
             </div>);
 

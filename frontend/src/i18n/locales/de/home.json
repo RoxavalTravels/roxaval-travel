@@ -96,5 +96,44 @@
       "text": "Spazieren Sie durch Teeplantagen, genießen Sie Bergpanoramen und nehmen Sie sich Zeit für das Hochland rund um Ella und Nuwara Eliya. Erzählen Sie uns, wie Sie reisen möchten, damit wir diese Erlebnisse zu einer persönlichen Route verbinden können.",
       "link": "Ihre individuelle Sri-Lanka-Reise planen"
     }
+  },
+  "privateTours": {
+    "title": "Private Sri-Lanka-Rundreisen mit Fahrer und Reisebegleiter",
+    "intro": "Willkommen bei Roxaval Travels, Ihrem Reiseveranstalter vor Ort für private, maßgeschneiderte Sri-Lanka-Reisen. Wir planen jede Reise nach Ihrem Tempo, Ihren Interessen und Ihrem Budget. Entdecken Sie die Insel in einem komfortablen, klimatisierten Fahrzeug mit Ihrem eigenen englischsprachigen Fahrer und Reisebegleiter – unabhängig von öffentlichen Verkehrsmitteln und festen Gruppenprogrammen.",
+    "why": {
+      "title": "Warum Sri Lanka privat bereisen?",
+      "text": "Sri Lanka ist klein, doch kurvenreiche Straßen lassen Fahrten oft länger dauern, als die Karte vermuten lässt. Ihr Fahrer und Reisebegleiter kümmert sich um Fahrten und Zeitplanung und teilt sein Wissen über das Land. So bleibt Zeit für Fotostopps, eine Teeplantage oder einen Obststand am Straßenrand. Sie reisen flexibel und in Ihrem eigenen Tempo.",
+      "link": "Aktivitäten in Sri Lanka entdecken"
+    },
+    "destinations": {
+      "title": "Beliebte Reiseziele",
+      "items": [
+        "Sigiriya und das Kulturdreieck: Erklimmen Sie den Löwenfelsen und entdecken Sie Polonnaruwa und Anuradhapura.",
+        "Kandy: Besuchen Sie den Zahntempel und genießen Sie den See und die Gärten der alten Königsstadt.",
+        "Nuwara Eliya und Ella: Fahren Sie mit dem Zug durch das Teeland, wandern Sie zu Aussichtspunkten und entdecken Sie Wasserfälle.",
+        "Yala und Udawalawe: Beobachten Sie auf einer Safari Elefanten, Leoparden und die vielfältige Vogelwelt.",
+        "Mirissa, Bentota und die Südküste: Entspannen Sie an tropischen Stränden oder unternehmen Sie eine Walbeobachtungstour."
+      ],
+      "link": "Sri Lankas Reiseziele kennenlernen"
+    },
+    "tailorMade": {
+      "title": "Maßgeschneiderte Rundreisen",
+      "text": "Ob eine Woche oder drei: Wir gestalten Ihre Route nach Ihren Interessen. Wählen Sie eine klassische Kulturreise, eine Reise mit Schwerpunkt Tierwelt, Flitterwochen mit Strandaufenthalt oder einen Familienurlaub mit flexiblen Tagen. Unsere Reisevorschläge dienen als Ausgangspunkt. Hotels, Aktivitäten und Reisetage passen wir gemeinsam an Ihre Wünsche an.",
+      "link": "Sri-Lanka-Rundreisen ansehen"
+    },
+    "choose": {
+      "title": "Warum Roxaval Travels?",
+      "items": [
+        "Registriert und vor Ort: Wir sind ein bei der SLTDA registrierter Reiseveranstalter mit Sitz in Sri Lanka.",
+        "Privater Service: Ihr eigener Fahrer und Reisebegleiter begleitet Sie während der gesamten Reise.",
+        "Flexible Planung: Ihre Wünsche bestimmen den Reiseverlauf.",
+        "Lokale Betreuung: Unser Team unterstützt Sie vor und während Ihrer Reise."
+      ]
+    },
+    "plan": {
+      "title": "Planen Sie Ihren Sri-Lanka-Urlaub",
+      "text": "Teilen Sie uns Ihren Reisezeitraum, die Anzahl der Reisenden und Ihre Wunschziele mit. Wir erstellen kostenlos einen persönlichen Reiseplan und ein Angebot.",
+      "link": "Individuelle Reise planen"
+    }
   }
 }

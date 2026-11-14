@@ -3,7 +3,7 @@
   "title": "Customer Reviews",
   "subtitle": "Real experiences from travelers who explored Sri Lanka with us.",
   "breadcrumb": "Reviews",
-  "verifiedTraveler": "Verified Traveler",
+  "verifiedTraveler": "Traveler",
   "viaTripadvisor": "via Tripadvisor",
   "reviewCount_one": "{{count}} review",
   "reviewCount_other": "{{count}} reviews",
@@ -20,5 +20,17 @@
   "noReviewsHint": "Be the first to share your Roxaval Travels experience.",
   "tripadvisorTitle": "Read More Reviews on Tripadvisor",
   "tripadvisorSubtitle": "See what travelers are saying about Roxaval Travels on Tripadvisor.",
-  "viewOnTripadvisor": "View on Tripadvisor"
+  "viewOnTripadvisor": "View on Tripadvisor",
+  "form": {
+    "title": "Share your experience",
+    "notice": "No account needed. Your name and feedback will appear only after our team approves your review.",
+    "name": "Your name",
+    "rating": "Your rating",
+    "select": "Choose a rating",
+    "text": "Your review (20–5,000 characters)",
+    "submit": "Submit for approval",
+    "sending": "Submitting…",
+    "success": "Thank you. Your review has been submitted for approval and is not yet public.",
+    "error": "We could not submit your review. Check your details, or try again later if you have submitted several times."
+  }
 }

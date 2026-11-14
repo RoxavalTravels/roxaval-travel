@@ -1,3 +1,4 @@
+import { InitialPublicPage, isInitialPublicRoute } from '../components/seo/InitialPublicContent';
 import { copy } from '../i18n';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useState } from 'react';
@@ -41,6 +42,8 @@ export function Activities() {
     sort
   }, 24);
 
+  if (loading && !error && items.length === 0 && isInitialPublicRoute()) return <InitialPublicPage />;
+
   return (
     <main className="min-h-screen bg-cream pt-24">
       <Seo
@@ -56,7 +59,7 @@ export function Activities() {
           <BreadcrumbBackRow breadcrumbs={[{ label: t('breadcrumb.home'), href: '/' }, { label: t('breadcrumb.activities') }]} />
         </div>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={isInitialPublicRoute() ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="relative z-10 mx-auto max-w-2xl px-4">

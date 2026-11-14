@@ -35,6 +35,7 @@ const navGroups = [
   { to: '/admin/destinations', label: 'Destinations', icon: MapPinIcon },
   { to: '/admin/activities', label: 'Activities', icon: TargetIcon },
   { to: '/admin/hotels', label: 'Hotels', icon: BedDoubleIcon },
+  { to: '/admin/supplier-contract-rates', label: 'Supplier Contract Rates', icon: FileTextIcon },
   { to: '/admin/tour-guides', label: 'Tour Guides', icon: UserIcon },
   { to: '/admin/vehicles', label: 'Vehicles', icon: CarIcon },
   { to: '/admin/transfers', label: 'Transfers', icon: ArrowLeftRightIcon }]

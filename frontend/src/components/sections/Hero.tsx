@@ -1,3 +1,4 @@
+import { isInitialPublicRoute } from '../seo/InitialPublicContent';
 import { useLocation } from 'react-router-dom';
 import { pageTranslation } from '../../i18n/routing';
 import { getCurrentLanguage } from '../../i18n';
@@ -32,13 +33,19 @@ export function Hero() {
       <AnimatePresence mode="popLayout">
         <motion.div
           key={slides[index].image}
-          initial={{ opacity: 0, scale: 1.12 }}
+          initial={isInitialPublicRoute() ? false : { opacity: 0, scale: 1.12 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
           transition={{ opacity: { duration: 1.2 }, scale: { duration: 7, ease: 'linear' } }}
           className="absolute inset-0">
           
-          <img src={slides[index].image} alt={page?.imageAlt || `${slides[index].name}, Sri Lanka`} className="h-full w-full object-cover" />
+          <picture className="block h-full w-full">
+            {index === 0 && <>
+              <source type="image/avif" srcSet="/optimized/hero-sigiriya-640.avif 640w, /optimized/hero-sigiriya-960.avif 960w, /optimized/hero-sigiriya-1376.avif 1376w" sizes="100vw" />
+              <source type="image/webp" srcSet="/optimized/hero-sigiriya-640.webp 640w, /optimized/hero-sigiriya-960.webp 960w, /optimized/hero-sigiriya-1376.webp 1376w" sizes="100vw" />
+            </>}
+            <img src={slides[index].image} alt={page?.imageAlt || `${slides[index].name}, Sri Lanka`} width={1376} height={768} fetchPriority={index === 0 ? 'high' : 'auto'} loading="eager" decoding="async" className="h-full w-full object-cover" />
+          </picture>
         </motion.div>
       </AnimatePresence>
       <div className="absolute inset-0 bg-gradient-to-b from-forest/70 via-forest/40 to-forest/85" />
@@ -46,7 +53,7 @@ export function Hero() {
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={isInitialPublicRoute() ? false : { opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="font-display mt-6 max-w-3xl text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.05] text-white">
@@ -56,7 +63,7 @@ export function Hero() {
         </motion.h1>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={isInitialPublicRoute() ? false : { opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.75 }}
           className="mt-9 flex flex-col sm:flex-row gap-4">

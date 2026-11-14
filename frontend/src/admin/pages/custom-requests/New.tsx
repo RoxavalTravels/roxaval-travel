@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2Icon, SaveIcon, SearchIcon } from 'lucide-react';
 import { apiGetAll, apiPost, ApiRequestError } from '../../../lib/api';
 import { useToast } from '../../components/ToastProvider';
@@ -19,6 +19,8 @@ interface CustomerRow {
 
 export function AdminCustomRequestNew() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const copyFrom = searchParams.get('copyFrom');
   const toast = useToast();
   const [saving, setSaving] = useState(false);
 
@@ -125,8 +127,8 @@ export function AdminCustomRequestNew() {
       specialRequests
     };
     try {
-      const result = await apiPost<{ _id: string }>('/custom-tours/admin/create', payload);
-      toast('Query created.');
+      const result = await apiPost<{ _id: string }>(copyFrom ? `/custom-tours/${encodeURIComponent(copyFrom)}/copy` : '/custom-tours/admin/create', payload);
+      toast(copyFrom ? 'Quotation copied as a draft. Review all rooms, traveler counts and rates before setting the total and sending.' : 'Query created.');
       navigate(`/admin/custom-requests/${result._id}`);
     } catch (err) {
       toast(err instanceof ApiRequestError ? err.message : 'Failed to create query.', 'error');
@@ -137,7 +139,8 @@ export function AdminCustomRequestNew() {
 
   return (
     <div>
-      <PageHeader title="New Query" subtitle="Create a custom tour query on behalf of a phone/email/walk-in lead" />
+      <PageHeader title={copyFrom ? 'Copy Quotation to New Customer' : 'New Query'} subtitle={copyFrom ? 'Create a separate draft from the saved quotation' : 'Create a custom tour query on behalf of a phone/email/walk-in lead'} />
+      {copyFrom && <p className="mb-6 rounded-xl bg-amber-50 p-4 text-sm text-forest">Choose a different customer or create one, then enter the new dates and travelers. The saved itinerary, hotel options, activities and vehicle will be copied. Old room arrangements and item costs are estimates only: review availability, activity counts, room occupancy, wording and rates in the new draft. The final price starts at zero. Customer notes, flights, payments, documents and approvals are not copied. Nothing is sent to the customer automatically.</p>}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-2xl bg-white p-6 shadow-soft">
@@ -166,7 +169,7 @@ export function AdminCustomRequestNew() {
           }
         </div>
 
-        <div className="rounded-2xl bg-white p-6 shadow-soft">
+        {!copyFrom && <div className="rounded-2xl bg-white p-6 shadow-soft">
           <p className="mb-4 font-display text-sm font-semibold text-forest">Lead Details</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <SelectField label="Lead Source" value={leadSource} onChange={setLeadSource} options={LEAD_SOURCE_OPTIONS.map((o) => ({ label: o, value: o }))} />
@@ -175,7 +178,7 @@ export function AdminCustomRequestNew() {
             <TextField label="Company" value={company} onChange={setCompany} placeholder="e.g. Agency name (optional)" />
             <SelectField label="Priority" value={priority} onChange={setPriority} options={PRIORITY_OPTIONS.map((p) => ({ label: p, value: p }))} />
           </div>
-        </div>
+        </div>}
 
         <div className="rounded-2xl bg-white p-6 shadow-soft">
           <p className="mb-4 font-display text-sm font-semibold text-forest">Travel Dates &amp; Travelers</p>
@@ -244,7 +247,7 @@ export function AdminCustomRequestNew() {
           </button>
           <button type="submit" disabled={saving} className="flex items-center gap-2 rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream hover:bg-emerald disabled:opacity-70">
             {saving ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <SaveIcon className="h-4 w-4" />}
-            Create Query
+            {copyFrom ? 'Create Draft Copy' : 'Create Query'}
           </button>
         </div>
       </form>

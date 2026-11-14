@@ -1,3 +1,4 @@
+import { InitialPublicPage } from '../components/seo/InitialPublicContent';
 import { LocalizedImage } from '../components/seo/LocalizedHeading';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
@@ -47,7 +48,7 @@ export function BlogDetails() {
     apiGetOne<BlogPost>(`/blogs/slug/${slug}`).
     then((data) => {
       if (cancelled) return;
-      setPost(data);
+      setPost({ ...data, content: data.content || '', sections: data.sections || [], gallery: data.gallery || [], tags: data.tags || [] });
       return apiGetList<BlogListItem>('/blogs', { category: data.category, limit: 4 }).
       then(({ data: list }) => !cancelled && setRelated(list.filter((p) => p.slug !== slug).slice(0, 3)));
     }).
@@ -59,7 +60,7 @@ export function BlogDetails() {
     };
   }, [slug]);
 
-  if (loading) return <main className="min-h-screen bg-cream pt-24"><LoadingState title={t('details.loadingArticle')} /></main>;
+  if (loading) return <InitialPublicPage><main className="min-h-screen bg-cream pt-24"><LoadingState title={t('details.loadingArticle')} /></main></InitialPublicPage>;
   if (error || !post) return <main className="min-h-screen bg-cream pt-24"><ErrorState title={t('details.articleNotFound')} message={error || undefined} /></main>;
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';

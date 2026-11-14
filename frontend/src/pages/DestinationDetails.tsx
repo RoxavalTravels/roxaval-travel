@@ -1,3 +1,4 @@
+import { InitialPublicPage } from '../components/seo/InitialPublicContent';
 import { copy } from '../i18n';
 import { LocalizedMotionHeading } from '../components/seo/LocalizedHeading';
 import { LocalizedImage } from '../components/seo/LocalizedHeading';
@@ -44,7 +45,7 @@ export function DestinationDetails() {
     apiGetOne<Destination>(`/destinations/slug/${slug}`).
     then((data) => {
       if (cancelled) return;
-      setDestination(data);
+      setDestination({ ...data, gallery: data.gallery || [], whyVisit: data.whyVisit || [], travelTips: data.travelTips || [], attractions: data.attractions || [], popularActivities: data.popularActivities || [], nearbyDestinations: data.nearbyDestinations || [] });
       setPackages([]);
       setActivities([]);
       return Promise.all([
@@ -60,7 +61,7 @@ export function DestinationDetails() {
     };
   }, [slug, t]);
 
-  if (loading) return <main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main>;
+  if (loading) return <InitialPublicPage><main className="min-h-screen bg-cream pt-24"><LoadingState title={t('detail.loading')} /></main></InitialPublicPage>;
   if (error || !destination) return <main className="min-h-screen bg-cream pt-24"><ErrorState title={t('detail.notFoundTitle')} message={error || undefined} /></main>;
 
   const d = destination;
