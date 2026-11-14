@@ -83,7 +83,7 @@ interface JetwingChildPolicy {
 
 interface JetwingEntry {
   _id: string;
-  property?: { hotelId: number | null; matchStatus: string } | null;
+  property?: { hotelId: number | null; matchStatus: string; supplier?: string } | null;
   rates: JetwingRate[];
   childPolicies: JetwingChildPolicy[];
 }
@@ -91,6 +91,7 @@ interface JetwingEntry {
 interface JetwingCombo {
   roomCategory: string;
   mealPlan: string;
+  supplier: string;
   rates: JetwingRate[];
   childPolicies: JetwingChildPolicy[];
 }
@@ -135,7 +136,7 @@ function jetwingCombos(entries: JetwingEntry[], hotelId: string): JetwingCombo[]
     for (const rate of entry.rates) {
       const key = `${rate.roomCategory}__${rate.mealPlan}`;
       if (!combos.has(key)) {
-        combos.set(key, { roomCategory: rate.roomCategory, mealPlan: rate.mealPlan, rates: [], childPolicies: [] });
+        combos.set(key, { roomCategory: rate.roomCategory, mealPlan: rate.mealPlan, supplier: entry.property?.supplier || 'Supplier', rates: [], childPolicies: [] });
       }
       combos.get(key)!.rates.push(rate);
     }
@@ -282,7 +283,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     onConfirm({
       hotel: pickedHotel._id,
       hotelName: pickedHotel.name,
-      roomType: pickedRoomType ? pickedRoomType.name : `${pickedJetwingCombo!.roomCategory} (Jetwing contract rate)`,
+      roomType: pickedRoomType ? pickedRoomType.name : `${pickedJetwingCombo!.roomCategory} (${pickedJetwingCombo!.supplier} contract rate)`,
       roomTypeId: pickedRoomType ? pickedRoomType._id : '',
       mealPlan: pickedRoomType ? pickedRoomType.mealPlan || '' : pickedJetwingCombo!.mealPlan,
       numberOfRooms: Math.max(1, roomCount),
@@ -350,7 +351,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
                       <td className="p-2 text-forest">{h.name} {h.starRating ? `(${h.starRating}★)` : ''}</td>
                       <td className="p-2 text-forest">
                         {combo.roomCategory}
-                        <span className="ml-1 rounded-full bg-gold/30 px-1.5 py-0.5 text-[9px] font-semibold text-forest" title="Private Jetwing contract rate — admin cost basis only, never shown to customers">JETWING</span>
+                        <span className="ml-1 rounded-full bg-gold/30 px-1.5 py-0.5 text-[9px] font-semibold text-forest" title={`Private ${combo.supplier} contract rate — admin cost basis only, never shown to customers`}>{combo.supplier.toUpperCase()}</span>
                       </td>
                       <td className="p-2 text-forest/60">
                         {combo.mealPlan}
@@ -396,7 +397,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
       <div className="mt-4 rounded-xl border border-emerald/20 bg-emerald/5 p-4">
           <p className="text-sm font-semibold text-forest">
             {pickedHotel.name} - {pickedRoomType ? pickedRoomType.name : pickedJetwingCombo!.roomCategory}
-            {pickedJetwingCombo && <span className="ml-2 text-xs font-normal text-forest/50">(private Jetwing contract rate — internal cost, not shown to customers)</span>}
+            {pickedJetwingCombo && <span className="ml-2 text-xs font-normal text-forest/50">(private {pickedJetwingCombo.supplier} contract rate — internal cost, not shown to customers)</span>}
           </p>
           <p className="mt-1 text-xs text-forest/50">Set how many of each occupancy type to book for this day.</p>
           {jetwingNeedsReview &&
