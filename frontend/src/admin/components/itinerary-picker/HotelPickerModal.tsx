@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarIcon, Loader2Icon, SearchIcon, TriangleAlertIcon } from 'lucide-react';
-import { apiGetAll } from '../../../lib/api';
+import { apiGetAll, apiGetList } from '../../../lib/api';
 import { formatDate } from '../../../lib/date';
 import { Modal } from '../Modal';
 
@@ -50,6 +50,51 @@ interface HotelRow {
   roomTypes: RoomTypeRow[];
 }
 
+// Private Jetwing supplier-contract shapes (admin-only data, never shown to
+// customers). Occupancy fields are nullable here (unlike the public room
+// pricing model) because a contract genuinely omits some combinations
+// (e.g. Triple not offered for a given category) — a missing price must
+// never be treated as zero, so those fields stay disabled, not defaulted.
+interface JetwingRate {
+  _id: string;
+  roomCategory: string;
+  mealPlan: string;
+  periodLabel?: string | null;
+  validFrom?: string | null;
+  validTo?: string | null;
+  currency: string;
+  singleRate?: string | null;
+  doubleRate?: string | null;
+  tripleRate?: string | null;
+  quadRate?: string | null;
+  extraBedRate?: string | null;
+  normalizationStatus: 'verified' | 'needs_review';
+}
+
+interface JetwingChildPolicy {
+  policyType: 'child' | 'infant_cot' | 'child_limit' | 'other';
+  mealPlan?: string | null;
+  rateAmount?: string | null;
+  includesExtraBed?: boolean | null;
+  isFree: boolean;
+  policyText: string;
+  normalizationStatus: 'verified' | 'needs_review';
+}
+
+interface JetwingEntry {
+  _id: string;
+  property?: { hotelId: number | null; matchStatus: string } | null;
+  rates: JetwingRate[];
+  childPolicies: JetwingChildPolicy[];
+}
+
+interface JetwingCombo {
+  roomCategory: string;
+  mealPlan: string;
+  rates: JetwingRate[];
+  childPolicies: JetwingChildPolicy[];
+}
+
 const emptyOccupancy = (): RoomOccupancy => ({ single: 0, double: 0, triple: 0, quad: 0, extraBed: 0, childWithBed: 0, childNoBed: 0, infant: 0 });
 
 const OCCUPANCY_FIELDS: { key: keyof RoomOccupancy; label: string }[] = [
@@ -80,6 +125,70 @@ function resolveRate(rt: RoomTypeRow, travelDate?: string): { pricing: RoomOccup
   return { pricing: rt.pricing || emptyOccupancy(), currency: 'USD', seasonal: false };
 }
 
+// Groups a hotel's private Jetwing rate rows by (room category, meal plan),
+// each holding every seasonal period so the right one can be picked by date.
+function jetwingCombos(entries: JetwingEntry[], hotelId: string): JetwingCombo[] {
+  const numericId = Number(hotelId);
+  const combos = new Map<string, JetwingCombo>();
+  for (const entry of entries) {
+    if (!entry.property || entry.property.hotelId !== numericId) continue;
+    for (const rate of entry.rates) {
+      const key = `${rate.roomCategory}__${rate.mealPlan}`;
+      if (!combos.has(key)) {
+        combos.set(key, { roomCategory: rate.roomCategory, mealPlan: rate.mealPlan, rates: [], childPolicies: [] });
+      }
+      combos.get(key)!.rates.push(rate);
+    }
+    for (const policy of entry.childPolicies) {
+      // Child policies are entry-level (not tied to a single room category),
+      // so attach them to every combo this entry contributed rates to.
+      for (const rate of entry.rates) {
+        const key = `${rate.roomCategory}__${rate.mealPlan}`;
+        const combo = combos.get(key);
+        if (combo && !combo.childPolicies.includes(policy)) combo.childPolicies.push(policy);
+      }
+    }
+  }
+  return Array.from(combos.values());
+}
+
+// Picks the period covering `travelDate` from a combo's rate rows, the same
+// date-matching rule used for public seasonal rates.
+function resolveJetwingPeriod(combo: JetwingCombo, travelDate?: string): JetwingRate | null {
+  if (travelDate && combo.rates.length) {
+    const d = new Date(travelDate).getTime();
+    const match = combo.rates.find((r) => {
+      if (!r.validFrom || !r.validTo) return false;
+      const from = new Date(r.validFrom).getTime();
+      const to = new Date(r.validTo).getTime();
+      return d >= from && d <= to;
+    });
+    if (match) return match;
+  }
+  return combo.rates[0] || null;
+}
+
+const toNumber = (value?: string | null): number | null => (value == null ? null : Number(value));
+
+// Maps a matched Jetwing period + its child policies onto the shared
+// RoomOccupancy shape so the existing subtotal math can be reused. Any
+// occupancy the contract doesn't price stays null (never silently zero).
+function jetwingPricing(period: JetwingRate, childPolicies: JetwingChildPolicy[]): Partial<Record<keyof RoomOccupancy, number | null>> {
+  const childWithBed = childPolicies.find((p) => p.policyType === 'child' && p.includesExtraBed && !p.isFree && (p.mealPlan == null || p.mealPlan === period.mealPlan));
+  const childNoBed = childPolicies.find((p) => p.policyType === 'child' && p.includesExtraBed === false && !p.isFree && (p.mealPlan == null || p.mealPlan === period.mealPlan));
+  const infant = childPolicies.find((p) => p.policyType === 'infant_cot');
+  return {
+    single: toNumber(period.singleRate),
+    double: toNumber(period.doubleRate),
+    triple: toNumber(period.tripleRate),
+    quad: toNumber(period.quadRate),
+    extraBed: toNumber(period.extraBedRate),
+    childWithBed: childWithBed ? toNumber(childWithBed.rateAmount) : infant?.isFree === false ? null : 0,
+    childNoBed: childNoBed ? toNumber(childNoBed.rateAmount) : 0,
+    infant: infant ? (infant.isFree ? 0 : toNumber(infant.rateAmount)) : 0
+  };
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -96,9 +205,11 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
   const [search, setSearch] = useState('');
   const [hotels, setHotels] = useState<HotelRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [jetwingEntries, setJetwingEntries] = useState<JetwingEntry[]>([]);
 
   const [pickedHotel, setPickedHotel] = useState<HotelRow | null>(null);
   const [pickedRoomType, setPickedRoomType] = useState<RoomTypeRow | null>(null);
+  const [pickedJetwingCombo, setPickedJetwingCombo] = useState<JetwingCombo | null>(null);
   const [occupancy, setOccupancy] = useState<RoomOccupancy>(emptyOccupancy());
 
   useEffect(() => {
@@ -106,6 +217,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     setDestination(defaultDestination || '');
     setPickedHotel(null);
     setPickedRoomType(null);
+    setPickedJetwingCombo(null);
     setOccupancy(emptyOccupancy());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultDestination]);
@@ -126,25 +238,53 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     return () => { active = false; };
   }, [open, destination, starRating, mealPlan, search]);
 
+  // Fetched once per modal session (not per filter change): there are only
+  // ~90 private Jetwing source entries total, far cheaper than one request
+  // per hotel row, and this never includes net rates for anyone but admins
+  // (same auth-gated endpoint the private rate-review screen already uses).
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    apiGetList<JetwingEntry>('/supplier-contract-rates', { limit: 100 }).
+    then(({ data }) => { if (active) setJetwingEntries(data); }).
+    catch(() => { if (active) setJetwingEntries([]); });
+    return () => { active = false; };
+  }, [open]);
+
   const selectRoomType = (hotel: HotelRow, rt: RoomTypeRow) => {
     setPickedHotel(hotel);
     setPickedRoomType(rt);
+    setPickedJetwingCombo(null);
     setOccupancy(emptyOccupancy());
   };
 
-  const resolved = pickedRoomType ? resolveRate(pickedRoomType, travelDate) : { pricing: emptyOccupancy(), currency: 'USD', seasonal: false };
-  const rate = resolved.pricing;
-  const subtotal = OCCUPANCY_FIELDS.reduce((sum, f) => sum + occupancy[f.key] * (rate[f.key] || 0), 0);
+  const selectJetwingCombo = (hotel: HotelRow, combo: JetwingCombo) => {
+    setPickedHotel(hotel);
+    setPickedRoomType(null);
+    setPickedJetwingCombo(combo);
+    setOccupancy(emptyOccupancy());
+  };
+
+  const resolvedPublic = pickedRoomType ? resolveRate(pickedRoomType, travelDate) : null;
+  const resolvedJetwingPeriod = pickedJetwingCombo ? resolveJetwingPeriod(pickedJetwingCombo, travelDate) : null;
+  const jetwingNeedsReview = resolvedJetwingPeriod?.normalizationStatus === 'needs_review';
+  const rate: Partial<Record<keyof RoomOccupancy, number | null>> = resolvedPublic ?
+  resolvedPublic.pricing :
+  resolvedJetwingPeriod && pickedJetwingCombo ?
+  jetwingPricing(resolvedJetwingPeriod, pickedJetwingCombo.childPolicies) :
+  emptyOccupancy();
+  const currency = resolvedPublic?.currency || resolvedJetwingPeriod?.currency || 'USD';
+  const subtotal = jetwingNeedsReview ? 0 : OCCUPANCY_FIELDS.reduce((sum, f) => sum + occupancy[f.key] * (rate[f.key] || 0), 0);
   const roomCount = occupancy.single + occupancy.double + occupancy.triple + occupancy.quad;
 
   const confirm = () => {
-    if (!pickedHotel || !pickedRoomType || subtotal <= 0) return;
+    if (!pickedHotel || (!pickedRoomType && !pickedJetwingCombo) || subtotal <= 0) return;
     onConfirm({
       hotel: pickedHotel._id,
       hotelName: pickedHotel.name,
-      roomType: pickedRoomType.name,
-      roomTypeId: pickedRoomType._id,
-      mealPlan: pickedRoomType.mealPlan || '',
+      roomType: pickedRoomType ? pickedRoomType.name : `${pickedJetwingCombo!.roomCategory} (Jetwing contract rate)`,
+      roomTypeId: pickedRoomType ? pickedRoomType._id : '',
+      mealPlan: pickedRoomType ? pickedRoomType.mealPlan || '' : pickedJetwingCombo!.mealPlan,
       numberOfRooms: Math.max(1, roomCount),
       roomOccupancy: occupancy,
       roomCost: subtotal
@@ -199,55 +339,96 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
               </tr>
             </thead>
             <tbody>
-              {hotels.flatMap((h) =>
-            !h.roomTypes.length ? [<tr key={h._id} className="border-t border-forest/5"><td className="p-2">{h.name}</td><td colSpan={9} className="p-2 text-forest/60">Add room types in Hotels before selecting this hotel for a quotation.</td></tr>] : h.roomTypes.map((rt) => {
-              const rowRate = resolveRate(rt, travelDate);
-              return (
-                <tr key={`${h._id}-${rt._id}`} className={`border-t border-forest/5 ${pickedHotel?._id === h._id && pickedRoomType?._id === rt._id ? 'bg-emerald/10' : ''}`}>
-                    <td className="p-2 text-forest">{h.name} {h.starRating ? `(${h.starRating}★)` : ''}</td>
-                    <td className="p-2 text-forest">{rt.name}</td>
-                    <td className="p-2 text-forest/60">
-                      {rt.mealPlan || '-'}
-                      {rowRate.seasonal && <span className="ml-1 rounded-full bg-emerald/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald" title="Rate for this day's travel date">SEASON</span>}
-                      {rowRate.currency !== 'USD' && <span className="ml-1 text-[9px] font-semibold text-forest/40">{rowRate.currency}</span>}
-                    </td>
-                    {OCCUPANCY_FIELDS.map((f) => <td key={f.key} className="p-2 text-right text-forest/70">{rowRate.pricing[f.key] || 0}</td>)}
-                    <td className="p-2 text-right">
-                      <button type="button" onClick={() => selectRoomType(h, rt)} className="rounded-full bg-forest px-3 py-1 text-[11px] font-semibold text-white hover:bg-emerald">Select</button>
-                    </td>
-                  </tr>);
+              {hotels.flatMap((h) => {
+              const combos = jetwingCombos(jetwingEntries, h._id);
+              const jetwingRows = combos.map((combo) => {
+                const period = resolveJetwingPeriod(combo, travelDate);
+                const needsReview = period?.normalizationStatus === 'needs_review';
+                const pricing = period ? jetwingPricing(period, combo.childPolicies) : emptyOccupancy();
+                return (
+                  <tr key={`${h._id}-jetwing-${combo.roomCategory}-${combo.mealPlan}`} className={`border-t border-forest/5 bg-gold/5 ${pickedHotel?._id === h._id && pickedJetwingCombo === combo ? 'bg-emerald/10' : ''}`}>
+                      <td className="p-2 text-forest">{h.name} {h.starRating ? `(${h.starRating}★)` : ''}</td>
+                      <td className="p-2 text-forest">
+                        {combo.roomCategory}
+                        <span className="ml-1 rounded-full bg-gold/30 px-1.5 py-0.5 text-[9px] font-semibold text-forest" title="Private Jetwing contract rate — admin cost basis only, never shown to customers">JETWING</span>
+                      </td>
+                      <td className="p-2 text-forest/60">
+                        {combo.mealPlan}
+                        {period && <span className="ml-1 rounded-full bg-emerald/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald" title="Rate for this day's travel date">{period.periodLabel || 'SEASON'}</span>}
+                        {needsReview && <span className="ml-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-semibold text-red-600" title="This rate needs manual review before use">REVIEW</span>}
+                      </td>
+                      {OCCUPANCY_FIELDS.map((f) => <td key={f.key} className="p-2 text-right text-forest/70">{pricing[f.key] == null ? '—' : pricing[f.key]}</td>)}
+                      <td className="p-2 text-right">
+                        <button type="button" onClick={() => selectJetwingCombo(h, combo)} className="rounded-full bg-forest px-3 py-1 text-[11px] font-semibold text-white hover:bg-emerald">Select</button>
+                      </td>
+                    </tr>);
 
-            }
-            )
-            )}
+              });
+              const publicRows = !h.roomTypes.length ?
+              combos.length ? [] : [<tr key={h._id}><td className="p-2">{h.name}</td><td colSpan={9} className="p-2 text-forest/60">Add room types in Hotels before selecting this hotel for a quotation.</td></tr>] :
+              h.roomTypes.map((rt) => {
+                const rowRate = resolveRate(rt, travelDate);
+                return (
+                  <tr key={`${h._id}-${rt._id}`} className={`border-t border-forest/5 ${pickedHotel?._id === h._id && pickedRoomType?._id === rt._id ? 'bg-emerald/10' : ''}`}>
+                      <td className="p-2 text-forest">{h.name} {h.starRating ? `(${h.starRating}★)` : ''}</td>
+                      <td className="p-2 text-forest">{rt.name}</td>
+                      <td className="p-2 text-forest/60">
+                        {rt.mealPlan || '-'}
+                        {rowRate.seasonal && <span className="ml-1 rounded-full bg-emerald/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald" title="Rate for this day's travel date">SEASON</span>}
+                        {rowRate.currency !== 'USD' && <span className="ml-1 text-[9px] font-semibold text-forest/40">{rowRate.currency}</span>}
+                      </td>
+                      {OCCUPANCY_FIELDS.map((f) => <td key={f.key} className="p-2 text-right text-forest/70">{rowRate.pricing[f.key] || 0}</td>)}
+                      <td className="p-2 text-right">
+                        <button type="button" onClick={() => selectRoomType(h, rt)} className="rounded-full bg-forest px-3 py-1 text-[11px] font-semibold text-white hover:bg-emerald">Select</button>
+                      </td>
+                    </tr>);
+
+              });
+              return [...jetwingRows, ...publicRows];
+            })}
               {!loading && hotels.length === 0 && <tr><td colSpan={10} className="p-4 text-center text-forest/40">No hotels match these filters.</td></tr>}
             </tbody>
           </table>
         }
       </div>
 
-      {pickedHotel && pickedRoomType &&
+      {pickedHotel && (pickedRoomType || pickedJetwingCombo) &&
       <div className="mt-4 rounded-xl border border-emerald/20 bg-emerald/5 p-4">
-          <p className="text-sm font-semibold text-forest">{pickedHotel.name} - {pickedRoomType.name}</p>
+          <p className="text-sm font-semibold text-forest">
+            {pickedHotel.name} - {pickedRoomType ? pickedRoomType.name : pickedJetwingCombo!.roomCategory}
+            {pickedJetwingCombo && <span className="ml-2 text-xs font-normal text-forest/50">(private Jetwing contract rate — internal cost, not shown to customers)</span>}
+          </p>
           <p className="mt-1 text-xs text-forest/50">Set how many of each occupancy type to book for this day.</p>
+          {jetwingNeedsReview &&
+          <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs text-red-600">
+              This rate is flagged for manual review and can't be auto-calculated. Check the exact source excerpt on the Supplier Contract Rates screen before using it.
+            </p>
+          }
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {OCCUPANCY_FIELDS.map((f) =>
-          <div key={f.key}>
-                <label className="mb-1 block text-[11px] font-semibold uppercase text-forest/50">{f.label} (${rate[f.key] || 0})</label>
-                <input
-              type="number"
-              min={0}
-              value={occupancy[f.key]}
-              onChange={(e) => setOccupancy((prev) => ({ ...prev, [f.key]: Number(e.target.value) || 0 }))}
-              className="w-full rounded-lg border border-forest/15 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-emerald" />
+            {OCCUPANCY_FIELDS.map((f) => {
+            const unavailable = rate[f.key] == null;
+            return (
+              <div key={f.key}>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase text-forest/50">
+                    {f.label} {unavailable ? '(not offered)' : `($${rate[f.key]})`}
+                  </label>
+                  <input
+                  type="number"
+                  min={0}
+                  disabled={unavailable || jetwingNeedsReview}
+                  value={occupancy[f.key]}
+                  onChange={(e) => setOccupancy((prev) => ({ ...prev, [f.key]: Number(e.target.value) || 0 }))}
+                  className="w-full rounded-lg border border-forest/15 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-emerald disabled:bg-forest/5 disabled:text-forest/30" />
 
-              </div>
+                </div>);
+
+          }
           )}
           </div>
           <div className="mt-3 flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-forest">Subtotal: ${subtotal.toLocaleString()}</p>
-              {subtotal <= 0 &&
+              <p className="text-sm font-semibold text-forest">Subtotal: {currency} {subtotal.toLocaleString()}</p>
+              {subtotal <= 0 && !jetwingNeedsReview &&
               <p className="mt-0.5 text-xs text-red-500">Enter at least one room above to set a cost before confirming.</p>
               }
             </div>
