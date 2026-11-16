@@ -1,5 +1,6 @@
 <?php
 // Set ROXAVAL_BACKEND_PATH in the host configuration if Laravel is elsewhere.
+ob_start('ob_gzhandler'); // The web server's own compression doesn't cover this dynamic PHP response; compress it here instead.
 $backend = getenv('ROXAVAL_BACKEND_PATH') ?: getenv('REDIRECT_ROXAVAL_BACKEND_PATH') ?: __DIR__.'/roxaval-backend-php';
 if (!is_file($backend.'/vendor/autoload.php')) {
     http_response_code(503);
