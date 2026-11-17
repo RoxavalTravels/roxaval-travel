@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangleIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, DownloadIcon, EyeIcon, Loader2Icon, MessageCircleIcon, PencilIcon, PlusIcon, SaveIcon, SendIcon, TrashIcon, UserCheckIcon, WandSparklesIcon, XIcon } from 'lucide-react';
 import { apiGetAll, apiGetOne, apiPatch, apiPost, ApiRequestError, API_ORIGIN } from '../../../lib/api';
 import { whatsAppLink } from '../../../lib/contact';
@@ -360,7 +360,7 @@ interface RawItineraryFields {
 interface RequestDetail {
   _id: string;
   referenceNumber: string;
-  customer?: { user?: { fullName?: string; email?: string; phone?: string }; country?: string; dateOfBirth?: string; passportNumber?: string };
+  customer?: { _id: string; user?: { fullName?: string; email?: string; phone?: string }; country?: string; dateOfBirth?: string; passportNumber?: string };
   travelDates: { startDate: string; endDate: string; isFlexible: boolean };
   travelers: { adults: number; children: number; infants: number; childAges?: number[]; infantAges?: number[] };
   leadSource?: string;
@@ -535,6 +535,7 @@ export function AdminCustomRequestDetail() {
   const [request, setRequest] = useState<RequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
+  const [confirmingBooking, setConfirmingBooking] = useState(false);
   const [sending, setSending] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
@@ -1093,6 +1094,37 @@ export function AdminCustomRequestDetail() {
     }
   };
 
+  // For a lead confirmed off-site (WhatsApp/phone/email) rather than
+  // through the customer's own "Accept Itinerary" click -- creates the
+  // real Booking record (same endpoint used by BookingService::adminCreateFromItinerary)
+  // so it shows up on the main Bookings page and documents can be generated.
+  const confirmBookingAsAdmin = () => {
+    if (!request?.customer || !request.itinerary) return;
+    confirm({
+      title: 'Confirm this booking?',
+      message: `This creates a real booking for ${request.customer.user?.fullName || 'this customer'} using the travel date and traveler count already on this request. Use this when the customer confirmed over WhatsApp/phone rather than accepting online.`,
+      confirmLabel: 'Confirm Booking',
+      onConfirm: async () => {
+        setConfirmingBooking(true);
+        try {
+          const booking = await apiPost<{ _id: string; bookingReference: string }>('/bookings/admin/create', {
+            customer: request.customer!._id,
+            itinerary: request.itinerary!._id,
+            travelDate: request.travelDates.startDate,
+            travelers: request.travelers,
+          });
+          toast(`Booking ${booking.bookingReference} created.`);
+          load();
+          navigate(`/admin/bookings/${booking._id}`);
+        } catch (err) {
+          toast(err instanceof ApiRequestError ? err.message : 'Failed to confirm booking.', 'error');
+        } finally {
+          setConfirmingBooking(false);
+        }
+      },
+    });
+  };
+
   const savePriority = async (value: string) => {
     setSavingPriority(true);
     try {
@@ -1518,6 +1550,15 @@ export function AdminCustomRequestDetail() {
 
                       <MessageCircleIcon className="h-3.5 w-3.5" /> Send via WhatsApp
                     </a>
+                }
+                  {request.linkedBooking ?
+                <Link to={`/admin/bookings/${request.linkedBooking._id}`} className="flex items-center gap-1.5 rounded-full border border-forest/15 px-3.5 py-1.5 text-xs font-semibold text-forest hover:bg-cream">
+                      <EyeIcon className="h-3.5 w-3.5" /> View Booking
+                    </Link> :
+                ['Sent', 'Accepted'].includes(request.itinerary.status) &&
+                <button type="button" disabled={confirmingBooking} onClick={confirmBookingAsAdmin} className="flex items-center gap-1.5 rounded-full bg-forest px-3.5 py-1.5 text-xs font-semibold text-cream hover:bg-emerald disabled:opacity-60">
+                      <CheckIcon className="h-3.5 w-3.5" /> Confirm Booking
+                    </button>
                 }
                   <StatusBadge status={request.itinerary.status} />
                 </div>

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { EyeIcon, Loader2Icon, PlusIcon, SearchIcon, UserCheckIcon } from 'lucide-react';
+import { EyeIcon, Loader2Icon, PlusIcon, SearchIcon, UserCheckIcon, XCircleIcon } from 'lucide-react';
 import { useAdminList } from '../../hooks/useAdminList';
 import { DataTable, Column } from '../../components/DataTable';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 import { PriorityBadge } from '../../components/PriorityBadge';
 import { useToast } from '../../components/ToastProvider';
-import { apiPatch, apiPost, ApiRequestError } from '../../../lib/api';
+import { apiDelete, apiPatch, apiPost, ApiRequestError } from '../../../lib/api';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { formatDate } from '../../../lib/date';
 
@@ -89,19 +89,35 @@ export function AdminCustomRequestsList() {
               {assigningId === r._id ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <UserCheckIcon className="h-4 w-4" />}
             </button>
       }
-          {r.status !== 'Booking Confirmed' && <button type="button" disabled={confirmingId !== null} onClick={() => confirm({
+          {r.status !== 'Booking Confirmed' ? <button type="button" disabled={confirmingId !== null} onClick={() => confirm({
             title: 'Confirm booking?',
             message: `Confirm ${r.referenceNumber} for ${r.customer?.user?.fullName || 'this customer'} using the saved quotation, dates and travelers? Only continue after the customer has confirmed the booking. A booking will be created or its existing booking confirmed, and the customer notified. This does not mark any payment as paid. A sent, priced quotation is required.`,
             confirmLabel: 'Confirm Booking',
             onConfirm: async () => {
               setConfirmingId(r._id);
               try {
-                await apiPost(`/bookings/confirm-inquiry/${r._id}`, { customerConfirmed: true });
+                await apiPost(`/bookings/confirm-inquiry/${r._id}`);
                 toast('Booking confirmed.'); refetch();
               } catch (err) { toast(err instanceof ApiRequestError ? err.message : 'Could not confirm booking.', 'error'); }
               finally { setConfirmingId(null); }
             }
-          })} className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald hover:bg-cream disabled:opacity-50">{confirmingId === r._id ? 'Confirming…' : 'Confirm Booking'}</button>}
+          })} className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald hover:bg-cream disabled:opacity-50">{confirmingId === r._id ? 'Confirming…' : 'Confirm Booking'}</button> :
+          <button type="button" disabled={confirmingId !== null} onClick={() => confirm({
+            title: 'Un-confirm this booking?',
+            message: `Undo the confirmation for ${r.referenceNumber}? Only possible while no payment has been recorded yet -- use this to correct a confirmation that was clicked by mistake. The customer will be notified that it's under review again.`,
+            confirmLabel: 'Unconfirm Booking',
+            tone: 'danger',
+            onConfirm: async () => {
+              setConfirmingId(r._id);
+              try {
+                await apiDelete(`/bookings/confirm-inquiry/${r._id}`);
+                toast('Booking confirmation undone.'); refetch();
+              } catch (err) { toast(err instanceof ApiRequestError ? err.message : 'Could not un-confirm booking.', 'error'); }
+              finally { setConfirmingId(null); }
+            }
+          })} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-cream disabled:opacity-50">
+            {confirmingId === r._id ? 'Undoing…' : <><XCircleIcon className="h-3.5 w-3.5" /> Unconfirm</>}
+          </button>}
           <Link to={`/admin/custom-requests/${r._id}`} title="View" className="grid h-8 w-8 place-items-center rounded-lg text-forest/60 hover:bg-cream hover:text-forest">
             <EyeIcon className="h-4 w-4" />
           </Link>
