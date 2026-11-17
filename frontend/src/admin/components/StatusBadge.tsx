@@ -30,7 +30,13 @@ const STATUS_STYLES: Record<string, string> = {
   responded: 'bg-emerald/10 text-emerald',
   rejected: 'bg-red-50 text-red-600',
   cancelled: 'bg-red-50 text-red-600',
-  refunded: 'bg-red-50 text-red-600'
+  refunded: 'bg-red-50 text-red-600',
+  'fully paid': 'bg-emerald/10 text-emerald',
+  'partially paid': 'bg-gold/15 text-gold',
+  unpaid: 'bg-forest/8 text-forest/60',
+  installment: 'bg-gold/15 text-gold',
+  full: 'bg-emerald/10 text-emerald',
+  voided: 'bg-red-50 text-red-600'
 };
 
 export function StatusBadge({ status, label = status }: { status: string; label?: string }) {

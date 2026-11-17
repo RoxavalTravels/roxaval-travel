@@ -6,7 +6,11 @@ export const API_ORIGIN = API_BASE_URL.replace(/\/api\/v\d+\/?$/, '');
 // New private documents and receipts use authenticated API download URLs.
 // Prefix the API origin for legacy relative links.
 export const resolveFileUrl = (url: string) => (/^https?:\/\//i.test(url) ? url : `${API_ORIGIN}${url}`);
-export const documentFileUrl = (documentId: string) => `${API_BASE_URL}/documents/${documentId}/file`;
+// download=true forces a Content-Disposition: attachment response instead
+// of the default inline view -- same endpoint, same file, just how the
+// browser is told to handle it (open in-tab for Preview/Print vs. save to
+// disk for Download).
+export const documentFileUrl = (documentId: string, download = false) => `${API_BASE_URL}/documents/${documentId}/file${download ? '?download=true' : ''}`;
 export interface ApiMeta {
   total: number;
   page: number;

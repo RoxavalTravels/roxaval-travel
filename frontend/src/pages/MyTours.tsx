@@ -46,7 +46,7 @@ interface BookingItem {
   itinerary?: { _id: string; title?: string; pricing?: { totalPrice: number } };
   travelDate: string;
   travelers: { adults: number; children: number; infants: number };
-  pricing: { subtotal: number; discount: number; totalAmount: number; advanceAmount: number; balanceAmount: number; amountPaid: number; currency: string };
+  pricing: { subtotal: number; discount: number; totalAmount: number; advanceAmount: number; balanceAmount: number; amountPaid: number; currency: string; advancePercentage?: number };
   status: string;
   specialRequests: string;
   statusHistory: { status: string; note: string; at: string }[];
@@ -424,7 +424,7 @@ function BookingsTab({ initialSelectedId }: {initialSelectedId?: string;}) {
 
             <div className="mt-5 space-y-1.5 border-t border-forest/10 pt-4 text-sm">
               <div className="flex justify-between"><span className="text-forest/60">{copy("Total")}</span><span className="font-semibold text-forest">{formatMoney(selected.pricing.totalAmount, selected.pricing.currency)}</span></div>
-              <div className="flex justify-between"><span className="text-forest/60">{copy("Advance (30%)")}</span><span className="text-forest">{formatMoney(selected.pricing.advanceAmount, selected.pricing.currency)}</span></div>
+              <div className="flex justify-between"><span className="text-forest/60">{copy("Advance")} {selected.pricing.advancePercentage != null ? `(${selected.pricing.advancePercentage}%)` : ''}</span><span className="text-forest">{formatMoney(selected.pricing.advanceAmount, selected.pricing.currency)}</span></div>
               <div className="flex justify-between border-t border-forest/10 pt-1.5"><span className="text-forest/60">{copy("Paid so far")}</span><span className="font-semibold text-emerald">{formatMoney((selected.pricing.amountPaid || 0), selected.pricing.currency)}</span></div>
               <div className="flex justify-between"><span className="text-forest/60">{copy("Remaining")}</span><span className="font-semibold text-forest">{formatMoney(Math.max(Math.round((selected.pricing.totalAmount - (selected.pricing.amountPaid || 0)) * 100) / 100, 0), selected.pricing.currency)}</span></div>
             </div>
