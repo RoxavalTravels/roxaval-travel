@@ -67,6 +67,33 @@ export function AdminCustomRequestsList() {
     }
   };
 
+  // price is only sent on the retry after the backend says one is needed
+  // (no sent/priced quotation yet) -- the common case (a priced quotation
+  // already exists) never prompts for it at all.
+  const confirmBooking = async (r: AdminCustomRequest, price?: string) => {
+    setConfirmingId(r._id);
+    try {
+      await apiPost(`/bookings/confirm-inquiry/${r._id}`, price ? { price: Number(price) } : undefined);
+      toast('Booking confirmed.');
+      refetch();
+    } catch (err) {
+      const message = err instanceof ApiRequestError ? err.message : 'Could not confirm booking.';
+      if (!price && message.includes('enter a price')) {
+        confirm({
+          title: 'Enter a price to confirm',
+          message: `${r.referenceNumber} has no sent, priced quotation yet. Enter the agreed total price (USD) to confirm this booking directly, skipping the Itinerary Builder. The customer will be notified.`,
+          confirmLabel: 'Confirm Booking',
+          input: { label: 'Total price (USD)', type: 'number', placeholder: 'e.g. 1200', required: true },
+          onConfirm: (value) => confirmBooking(r, value),
+        });
+      } else {
+        toast(message, 'error');
+      }
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
   const columns: Column<AdminCustomRequest>[] = [
   { header: 'Inquiry ID', render: (r) => <span className="font-mono text-xs font-semibold">{r.referenceNumber}</span> },
   { header: 'Customer', render: (r) => r.customer?.user?.fullName || '-' },
@@ -91,16 +118,9 @@ export function AdminCustomRequestsList() {
       }
           {r.status !== 'Booking Confirmed' ? <button type="button" disabled={confirmingId !== null} onClick={() => confirm({
             title: 'Confirm booking?',
-            message: `Confirm ${r.referenceNumber} for ${r.customer?.user?.fullName || 'this customer'} using the saved quotation, dates and travelers? Only continue after the customer has confirmed the booking. A booking will be created or its existing booking confirmed, and the customer notified. This does not mark any payment as paid. A sent, priced quotation is required.`,
+            message: `Confirm ${r.referenceNumber} for ${r.customer?.user?.fullName || 'this customer'} using the saved quotation, dates and travelers? Only continue after the customer has confirmed the booking. A booking will be created or its existing booking confirmed, and the customer notified. This does not mark any payment as paid. If there's no sent, priced quotation yet, you'll be asked for a price next.`,
             confirmLabel: 'Confirm Booking',
-            onConfirm: async () => {
-              setConfirmingId(r._id);
-              try {
-                await apiPost(`/bookings/confirm-inquiry/${r._id}`);
-                toast('Booking confirmed.'); refetch();
-              } catch (err) { toast(err instanceof ApiRequestError ? err.message : 'Could not confirm booking.', 'error'); }
-              finally { setConfirmingId(null); }
-            }
+            onConfirm: () => confirmBooking(r)
           })} className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald hover:bg-cream disabled:opacity-50">{confirmingId === r._id ? 'Confirming…' : 'Confirm Booking'}</button> :
           <button type="button" disabled={confirmingId !== null} onClick={() => confirm({
             title: 'Un-confirm this booking?',

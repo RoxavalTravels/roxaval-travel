@@ -7,7 +7,10 @@ interface ConfirmOptions {
   message: string;
   confirmLabel?: string;
   tone?: 'danger' | 'default';
-  onConfirm: () => Promise<void> | void;
+  // Optional single input collected inside the dialog itself (e.g. a quick
+  // price), so a caller doesn't need its own modal just for one field.
+  input?: { label: string; type?: 'number' | 'text'; placeholder?: string; required?: boolean };
+  onConfirm: (value?: string) => Promise<void> | void;
 }
 
 interface ConfirmContextValue {
@@ -19,14 +22,20 @@ const ConfirmContext = React.createContext<ConfirmContextValue | null>(null);
 export function ConfirmDialogProvider({ children }: { children: React.ReactNode }) {
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
   const [busy, setBusy] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
-  const confirm = (opts: ConfirmOptions) => setOptions(opts);
+  const confirm = (opts: ConfirmOptions) => {
+    setOptions(opts);
+    setInputValue('');
+  };
+
+  const inputMissing = !!options?.input?.required && inputValue.trim() === '';
 
   const handleConfirm = async () => {
-    if (!options) return;
+    if (!options || inputMissing) return;
     setBusy(true);
     try {
-      await options.onConfirm();
+      await options.onConfirm(options.input ? inputValue : undefined);
       setOptions(null);
     } finally {
       setBusy(false);
@@ -57,6 +66,19 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
               </span>
               <h3 className="font-display mt-4 text-lg font-semibold text-forest">{options.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-forest/60">{options.message}</p>
+              {options.input &&
+              <div className="mt-4 text-left">
+                  <label className="mb-1 block text-xs font-semibold text-forest/70">{options.input.label}</label>
+                  <input
+                  autoFocus
+                  type={options.input.type || 'text'}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={options.input.placeholder}
+                  className="w-full rounded-xl border border-forest/15 px-3.5 py-2.5 text-sm outline-none focus:border-emerald" />
+
+                </div>
+              }
               <div className="mt-6 flex gap-3">
                 <button
                 disabled={busy}
@@ -66,7 +88,7 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
                   Cancel
                 </button>
                 <button
-                disabled={busy}
+                disabled={busy || inputMissing}
                 onClick={handleConfirm}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-70 ${
                 options.tone === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-forest hover:bg-emerald'}`
