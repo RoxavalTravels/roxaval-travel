@@ -33,10 +33,15 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
 
   const handleConfirm = async () => {
     if (!options || inputMissing) return;
+    const current = options;
     setBusy(true);
     try {
-      await options.onConfirm(options.input ? inputValue : undefined);
-      setOptions(null);
+      await current.onConfirm(current.input ? inputValue : undefined);
+      // onConfirm may itself have called confirm() again (e.g. to chain a
+      // second dialog, like asking for a price after a first attempt
+      // fails) -- only close if that didn't happen, otherwise this would
+      // immediately clobber the new dialog shut.
+      setOptions((o) => o === current ? null : o);
     } finally {
       setBusy(false);
     }
