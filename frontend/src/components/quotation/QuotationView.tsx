@@ -2,9 +2,9 @@ import { formatMoney } from '../../lib/money';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeftIcon, ArrowRightIcon, BedDoubleIcon, CalendarIcon, CarIcon, LanguagesIcon, Loader2Icon, MapPinIcon, PlaneIcon, PrinterIcon, StarIcon, UsersIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, BedDoubleIcon, CalendarIcon, CarIcon, CheckCircleIcon, LanguagesIcon, Loader2Icon, MapPinIcon, PlaneIcon, PrinterIcon, StarIcon, UsersIcon } from 'lucide-react';
 import { WHATSAPP_DISPLAY_SL, CONTACT_EMAIL, WEBSITE_DISPLAY } from '../../lib/contact';
-import { apiGetOne } from '../../lib/api';
+import { apiGetOne, apiPatch } from '../../lib/api';
 import { getCurrentLanguage, SUPPORTED_LANGUAGES, type SupportedLanguageCode } from '../../i18n';
 import { NotesBlock } from './NotesBlock';
 import { RouteMap } from './RouteMap';
@@ -56,6 +56,16 @@ interface RoomOccupancy {
   infant: number;
 }
 
+export interface QuotationHotelOption {
+  optionKey?: string;
+  hotel?: HotelRef;
+  roomType?: string;
+  roomTypeRef?: { name: string };
+  mealPlan?: string;
+  numberOfRooms?: number;
+  roomOccupancy?: RoomOccupancy;
+}
+
 export interface QuotationDay {
   dayNumber: number;
   date?: string;
@@ -72,6 +82,7 @@ export interface QuotationDay {
   mealPlan?: string;
   numberOfRooms?: number;
   roomOccupancy?: RoomOccupancy;
+  hotelOptions?: QuotationHotelOption[];
   activityPricing?: { activity?: ActivityRef; adultCount: number; childCount: number; infantCount: number; selected?: boolean }[];
   transfers?: { transfer?: TransferRef; vehicleCount: number; selected?: boolean }[];
   flights?: { airline?: string; flightNumber?: string; from?: string; to?: string; departureTime?: string; arrivalTime?: string; selected?: boolean }[];
@@ -108,6 +119,9 @@ export interface QuotationItinerary {
   customerFacingNotes?: string;
   vehicle?: QuotationVehicle;
   tourGuide?: QuotationGuide;
+  hotelOptionLabels?: Record<string, string> | null;
+  hotelOptionPrices?: Record<string, { basePrice: number; discount: number; totalPrice: number }> | null;
+  confirmedHotelOption?: string | null;
 }
 
 export interface QuotationRequest {
@@ -209,6 +223,12 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
   const [request, setRequest] = useState<QuotationRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [preparingPrint, setPreparingPrint] = useState(false);
+  const [viewingOptionKey, setViewingOptionKey] = useState<string>('A');
+  const [confirmingOption, setConfirmingOption] = useState<string | null>(null);
+  const [confirmedOption, setConfirmedOption] = useState<string | null>(null);
+
+  const isCustomerView = endpoint.includes('/my-requests/');
+  const requestId = endpoint.split('/').filter(Boolean).pop();
 
   // The route map needs to resize (and often re-fetch different-zoom tiles)
   // for the print layout -- calling window.print() immediately after that
@@ -230,10 +250,33 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
     let cancelled = false;
     setLoading(true);
     apiGetOne<QuotationRequest>(endpoint, { lang: docLang }).
-      then((r) => { if (!cancelled) setRequest(r); }).
+      then((r) => {
+        if (!cancelled) {
+          setRequest(r);
+          const labels = r.itinerary?.hotelOptionLabels;
+          const confirmed = r.itinerary?.confirmedHotelOption;
+          if (labels) {
+            const firstKey = Object.keys(labels)[0] ?? 'A';
+            setViewingOptionKey(confirmed ?? firstKey);
+            setConfirmedOption(confirmed ?? null);
+          }
+        }
+      }).
       finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [endpoint, docLang]);
+
+  const handleConfirmOption = async (optionKey: string) => {
+    if (!requestId || confirmingOption) return;
+    setConfirmingOption(optionKey);
+    try {
+      await apiPatch(`/custom-tours/${requestId}/confirm-hotel-option`, { optionKey });
+      setConfirmedOption(optionKey);
+      setViewingOptionKey(optionKey);
+    } finally {
+      setConfirmingOption(null);
+    }
+  };
 
   if (loading && !request) {
     return <div className="grid min-h-screen place-items-center bg-cream"><Loader2Icon className="h-6 w-6 animate-spin text-forest/40" /></div>;
@@ -306,10 +349,22 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
               <p className="font-display text-2xl font-semibold text-forest sm:text-3xl">{itin.title || t('defaultTitle', { days: days.length })}</p>
               <p className="mt-1 text-sm text-forest/50">{t('quotationNo', { ref: request.referenceNumber })}</p>
             </div>
-            {showPrice && <div className="rounded-2xl bg-forest px-5 py-3 text-right text-white">
+            {showPrice && !itin.hotelOptionLabels && <div className="rounded-2xl bg-forest px-5 py-3 text-right text-white">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-white/60">{t('totalCost')}</p>
               <p className="font-display text-xl font-bold">{formatMoney(itin.pricing.totalPrice, itin.pricing.currency, docLang)}</p>
             </div>}
+            {showPrice && itin.hotelOptionLabels && (() => {
+              const optPrices = itin.hotelOptionPrices;
+              const activeKey = confirmedOption ?? viewingOptionKey;
+              const price = optPrices?.[activeKey]?.totalPrice;
+              if (!price) return null;
+              return (
+                <div className="rounded-2xl bg-forest px-5 py-3 text-right text-white">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-white/60">Option {activeKey}{itin.hotelOptionLabels[activeKey] ? ` · ${itin.hotelOptionLabels[activeKey]}` : ''}</p>
+                  <p className="font-display text-xl font-bold">{formatMoney(price, itin.pricing.currency, docLang)}</p>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-forest/70">
@@ -391,7 +446,49 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
                     </div>
                   )}
 
-                  {d.hotel &&
+                  {itin.hotelOptionLabels && d.hotelOptions && d.hotelOptions.length > 0 ? (() => {
+                    const labels = itin.hotelOptionLabels!;
+                    const opt = d.hotelOptions!.find((o) => o.optionKey === viewingOptionKey);
+                    return (
+                      <div className="print:break-inside-avoid">
+                        <div className="mb-2 flex flex-wrap gap-1">
+                          {Object.entries(labels).map(([key, label]) => (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => setViewingOptionKey(key)}
+                              className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition-colors ${viewingOptionKey === key ? 'bg-forest text-white' : 'border border-forest/20 bg-white text-forest/70 hover:text-forest'}`}
+                            >
+                              {confirmedOption === key && <CheckCircleIcon className="h-3 w-3 text-emerald" />}
+                              {key}: {label}
+                            </button>
+                          ))}
+                        </div>
+                        {opt?.hotel ? (
+                          <div className="flex gap-3 rounded-xl border border-emerald/20 bg-emerald/5 p-3">
+                            {opt.hotel.images?.[0] && <img src={opt.hotel.images[0]} alt={opt.hotel.name} className="h-24 w-32 shrink-0 rounded-lg object-cover" />}
+                            <div className="min-w-0">
+                              <p className="flex items-center gap-1.5 text-sm font-semibold text-forest">
+                                <BedDoubleIcon className="h-3.5 w-3.5 text-emerald" /> {opt.hotel.name}
+                                {Boolean(opt.hotel.starRating) &&
+                                  <span className="flex items-center text-gold">{Array.from({ length: opt.hotel.starRating || 0 }).map((_, s) => <StarIcon key={s} className="h-3 w-3 fill-gold" />)}</span>
+                                }
+                              </p>
+                              <p className="text-xs text-forest/50">{opt.hotel.destination?.name}{opt.hotel.address ? ` · ${opt.hotel.address}` : ''}</p>
+                              <p className="mt-1 text-xs text-forest/70">
+                                {t('checkIn')} {fmtDate(d.date)} · {t('checkOut')} {nextDate(d.date)}
+                                {(opt.roomTypeRef?.name || opt.roomType) && <> · {t('room')}: {opt.roomTypeRef?.name || opt.roomType}</>}
+                                {opt.mealPlan && <> · {opt.mealPlan}</>}
+                              </p>
+                              {opt.hotel.description && <p className="mt-1 text-xs leading-relaxed text-forest/60 line-clamp-3">{opt.hotel.description}</p>}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-forest/40 italic">No hotel assigned for this option</p>
+                        )}
+                      </div>
+                    );
+                  })() : d.hotel &&
                     <div className="flex gap-3 rounded-xl border border-emerald/20 bg-emerald/5 p-3 print:break-inside-avoid">
                       {d.hotel.images?.[0] && <img src={d.hotel.images[0]} alt={d.hotel.name} className="h-24 w-32 shrink-0 rounded-lg object-cover" />}
                       <div className="min-w-0">
@@ -454,22 +551,69 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
 
         {/* Financial summary */}
         <div className="mt-10 border-t border-forest/10 pt-6 print:mt-6 print:break-inside-avoid">
-          <p className="font-display text-lg font-semibold text-forest">{showPrice ? t('financialSummary') : t('accommodationSummary')} {showPrice && <span className="text-sm font-normal text-forest/50">[ in {itin.pricing.currency} ]</span>}</p>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-xs">
-              <thead>
-                <tr className="border-b border-forest/10 text-forest/50">
-                  <th className="py-2 pr-3 font-semibold">{t('tableHotel')}</th>
-                  <th className="py-2 pr-3 font-semibold">{t('tableDestination')}</th>
-                  <th className="py-2 pr-3 font-semibold">{t('tableRoomType')}</th>
-                  <th className="py-2 pr-3 font-semibold">{t('tableMealPlan')}</th>
-                  <th className="py-2 pr-3 font-semibold">{t('tableRooms')}</th>
-                  <th className="py-2 font-semibold">{t('tableStay')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mergeConsecutiveHotelStays(days).map((row, i) => {
-                  return (
+          <p className="font-display text-lg font-semibold text-forest">{showPrice ? t('financialSummary') : t('accommodationSummary')} {showPrice && !itin.hotelOptionLabels && <span className="text-sm font-normal text-forest/50">[ in {itin.pricing.currency} ]</span>}</p>
+
+          {itin.hotelOptionLabels ? (
+            /* Multi-option: per-option hotel tables */
+            <div className="mt-3 space-y-6">
+              {Object.entries(itin.hotelOptionLabels).map(([key, label]) => {
+                const optPrice = itin.hotelOptionPrices?.[key];
+                return (
+                  <div key={key}>
+                    <p className="mb-1.5 text-sm font-semibold text-forest">Option {key}: {label} {showPrice && optPrice && <span className="font-normal text-forest/50">[ in {itin.pricing.currency} ]</span>}</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[500px] text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-forest/10 text-forest/50">
+                            <th className="py-2 pr-3 font-semibold">{t('tableHotel')}</th>
+                            <th className="py-2 pr-3 font-semibold">{t('tableDestination')}</th>
+                            <th className="py-2 pr-3 font-semibold">{t('tableRoomType')}</th>
+                            <th className="py-2 pr-3 font-semibold">{t('tableMealPlan')}</th>
+                            <th className="py-2 font-semibold">{t('tableStay')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {days.filter((d) => d.hotelOptions?.some((o) => o.optionKey === key && o.hotel)).map((d) => {
+                            const opt = d.hotelOptions!.find((o) => o.optionKey === key);
+                            return (
+                              <tr key={d.dayNumber} className="border-b border-forest/5">
+                                <td className="py-2 pr-3 text-forest">{opt?.hotel?.name}{opt?.hotel?.starRating ? ` (${opt.hotel.starRating}★)` : ''}</td>
+                                <td className="py-2 pr-3 text-forest/70">{opt?.hotel?.destination?.name}</td>
+                                <td className="py-2 pr-3 text-forest/70">{opt?.roomTypeRef?.name || opt?.roomType || '-'}</td>
+                                <td className="py-2 pr-3 text-forest/70">{opt?.mealPlan || '-'}</td>
+                                <td className="py-2 text-forest/70">{fmtDate(d.date)} → {nextDate(d.date)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    {showPrice && optPrice && (
+                      <div className="mt-2 flex flex-col items-end gap-0.5 text-xs">
+                        {optPrice.discount > 0 && <p className="text-forest/50">{t('discount')}: {formatMoney(optPrice.discount, itin.pricing.currency, docLang)}</p>}
+                        <p className="font-semibold text-forest">{t('total')}: {formatMoney(optPrice.totalPrice, itin.pricing.currency, docLang)}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Single-option: existing merged stays table */
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-xs">
+                <thead>
+                  <tr className="border-b border-forest/10 text-forest/50">
+                    <th className="py-2 pr-3 font-semibold">{t('tableHotel')}</th>
+                    <th className="py-2 pr-3 font-semibold">{t('tableDestination')}</th>
+                    <th className="py-2 pr-3 font-semibold">{t('tableRoomType')}</th>
+                    <th className="py-2 pr-3 font-semibold">{t('tableMealPlan')}</th>
+                    <th className="py-2 pr-3 font-semibold">{t('tableRooms')}</th>
+                    <th className="py-2 font-semibold">{t('tableStay')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mergeConsecutiveHotelStays(days).map((row, i) => (
                     <tr key={i} className="border-b border-forest/5">
                       <td className="py-2 pr-3 text-forest">{row.hotel?.name}{row.hotel?.starRating ? ` (${row.hotel.starRating}★)` : ''}</td>
                       <td className="py-2 pr-3 text-forest/70">{row.hotel?.destination?.name}</td>
@@ -478,14 +622,14 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
                       <td className="py-2 pr-3 text-forest/70">{occupancyLabel(row.occupancy)}</td>
                       <td className="py-2 text-forest/70">{fmtDate(row.firstDate)} → {nextDate(row.lastDate)}</td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div className="mt-4 flex flex-col items-end gap-1 border-t border-forest/10 pt-4">
-            {showPrice ? (
+            {showPrice && !itin.hotelOptionLabels ? (
               <>
                 {itin.pricing.discount > 0 &&
                   <p className="text-xs text-forest/50">{t('discount')}: {formatMoney(itin.pricing.discount, itin.pricing.currency, docLang)}</p>
@@ -499,6 +643,51 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
               {itin.sightseeingIncluded === false ? t('sightseeingNotIncluded') : t('sightseeingIncluded')}
             </span>
           </div>
+
+          {/* Hotel option selection (customer view only, multi-option quotations) */}
+          {isCustomerView && itin.hotelOptionLabels && (
+            <div className="mt-6 rounded-2xl border border-forest/10 bg-cream/50 p-4 print:hidden">
+              <p className="font-display text-sm font-semibold text-forest">
+                {confirmedOption ? '✓ Your Selected Option' : 'Choose Your Preferred Hotel Tier'}
+              </p>
+              {confirmedOption && (
+                <p className="mt-1 text-xs text-forest/60">
+                  You selected <span className="font-semibold text-emerald">Option {confirmedOption}: {itin.hotelOptionLabels[confirmedOption]}</span>. You can change your selection before confirming the tour.
+                </p>
+              )}
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {Object.entries(itin.hotelOptionLabels).map(([key, label]) => {
+                  const price = itin.hotelOptionPrices?.[key];
+                  const isSelected = confirmedOption === key;
+                  const isConfirming = confirmingOption === key;
+                  return (
+                    <div key={key} className={`rounded-xl border p-3 transition-colors ${isSelected ? 'border-emerald bg-emerald/5' : 'border-forest/15 bg-white'}`}>
+                      <div className="flex items-center gap-2">
+                        {isSelected && <CheckCircleIcon className="h-4 w-4 shrink-0 text-emerald" />}
+                        <p className="font-semibold text-forest text-sm">Option {key}: {label}</p>
+                      </div>
+                      {showPrice && price && (
+                        <p className="mt-1 text-lg font-bold text-forest">{formatMoney(price.totalPrice, itin.pricing.currency, docLang)}</p>
+                      )}
+                      {isSelected ? (
+                        <p className="mt-2 text-[11px] font-semibold text-emerald">Currently selected</p>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={!!confirmingOption}
+                          onClick={() => handleConfirmOption(key)}
+                          className="mt-2 flex items-center gap-1.5 rounded-full bg-forest px-3 py-1.5 text-[11px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {isConfirming && <Loader2Icon className="h-3 w-3 animate-spin" />}
+                          Select this option
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Inclusions / Exclusions */}
