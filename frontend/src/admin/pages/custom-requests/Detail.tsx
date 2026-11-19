@@ -256,6 +256,7 @@ interface FlightEntry {
 }
 
 interface HotelOptionEntry {
+  optionKey?: string;
   hotel: string;
   hotelName?: string;
   roomType: string;
@@ -323,7 +324,7 @@ interface ItineraryDetail {
   title: string;
   summary: string;
   bannerImage?: string;
-  days: { dayNumber: number; date?: string; title: string; schedule: string; destinations?: { _id: string; name: string }[]; activities?: { _id: string; name: string }[]; customDestinations?: string[]; customActivities?: string[]; hotel?: { _id: string; name: string }; roomType?: string; roomTypeRef?: { _id: string; name: string }; mealPlan?: string; numberOfRooms?: number; roomOccupancy?: RoomOccupancy; roomCost?: number; hotelOptions?: { hotel?: { _id: string; name: string }; roomType?: string; roomTypeRef?: { _id: string; name: string }; mealPlan?: string; numberOfRooms?: number; roomOccupancy?: RoomOccupancy; roomCost?: number; selected?: boolean }[]; meals: string[]; transport: string; activityPricing?: { activity?: { _id: string; name: string }; adultCount: number; childCount: number; infantCount: number; cost: number; selected?: boolean }[]; transfers?: { transfer?: { _id: string; name: string; supplier?: string }; withDriver: boolean; vehicleCount: number; cost: number; selected?: boolean }[]; flights?: { airline?: string; flightNumber?: string; from?: string; to?: string; departureTime?: string; arrivalTime?: string; cost?: number; selected?: boolean }[]; dayCost?: number; arrivalTime?: string; departureTime?: string; travelTime?: string; notes: string }[];
+  days: { dayNumber: number; date?: string; title: string; schedule: string; destinations?: { _id: string; name: string }[]; activities?: { _id: string; name: string }[]; customDestinations?: string[]; customActivities?: string[]; hotel?: { _id: string; name: string }; roomType?: string; roomTypeRef?: { _id: string; name: string }; mealPlan?: string; numberOfRooms?: number; roomOccupancy?: RoomOccupancy; roomCost?: number; hotelOptions?: { optionKey?: string; hotel?: { _id: string; name: string }; roomType?: string; roomTypeRef?: { _id: string; name: string }; mealPlan?: string; numberOfRooms?: number; roomOccupancy?: RoomOccupancy; roomCost?: number; selected?: boolean }[]; meals: string[]; transport: string; activityPricing?: { activity?: { _id: string; name: string }; adultCount: number; childCount: number; infantCount: number; cost: number; selected?: boolean }[]; transfers?: { transfer?: { _id: string; name: string; supplier?: string }; withDriver: boolean; vehicleCount: number; cost: number; selected?: boolean }[]; flights?: { airline?: string; flightNumber?: string; from?: string; to?: string; departureTime?: string; arrivalTime?: string; cost?: number; selected?: boolean }[]; dayCost?: number; arrivalTime?: string; departureTime?: string; travelTime?: string; notes: string }[];
   hotels: { _id: string; name: string }[];
   tourGuide?: { _id: string; name: string };
   vehicle?: { _id: string; name: string };
@@ -339,6 +340,9 @@ interface ItineraryDetail {
   status: string;
   version: number;
   versionHistory: ItineraryVersion[];
+  hotelOptionLabels?: Record<string, string> | null;
+  hotelOptionPrices?: Record<string, { basePrice: number; discount: number; totalPrice: number }> | null;
+  confirmedHotelOption?: string | null;
 }
 
 // Separate from ItineraryDetail on purpose: the normal (non-raw) fetch
@@ -574,6 +578,10 @@ export function AdminCustomRequestDetail() {
   const [inclusions, setInclusions] = useState<LocalizedString>(DEFAULT_INCLUSIONS);
   const [exclusions, setExclusions] = useState<LocalizedString>(DEFAULT_EXCLUSIONS);
   const [rawItinerary, setRawItinerary] = useState<RawItineraryFields | null>(null);
+  const [hotelOptionLabels, setHotelOptionLabels] = useState<Record<string, string> | null>(null);
+  const [hotelOptionPrices, setHotelOptionPrices] = useState<Record<string, { basePrice: number; discount: number; totalPrice: number }>>({});
+  const [confirmedHotelOption, setConfirmedHotelOption] = useState<string | null>(null);
+  const [activeOptionKey, setActiveOptionKey] = useState('A');
 
   const [routeLegs, setRouteLegs] = useState<RouteLeg[]>([]);
   const [legDeparture, setLegDeparture] = useState('');
@@ -652,6 +660,7 @@ export function AdminCustomRequestDetail() {
         roomOccupancy: { ...emptyOccupancy(), ...d.roomOccupancy },
         roomCost: d.roomCost || 0,
         hotelOptions: (d.hotelOptions?.length ? d.hotelOptions : d.hotel ? [{ ...d, selected: true }] : []).map((ho) => ({
+          optionKey: ho.optionKey ?? undefined,
           hotel: ho.hotel?._id || '',
           hotelName: ho.hotel?.name,
           roomType: ho.roomType || '',
@@ -700,6 +709,12 @@ export function AdminCustomRequestDetail() {
       setHotels(itin.hotels.map((h) => h._id));
       setTourGuide(itin.tourGuide?._id || '');
       setVehicle(itin.vehicle?._id || '');
+      setHotelOptionLabels(itin.hotelOptionLabels ?? null);
+      setHotelOptionPrices(itin.hotelOptionPrices ?? {});
+      setConfirmedHotelOption(itin.confirmedHotelOption ?? null);
+      if (itin.hotelOptionLabels) {
+        setActiveOptionKey(Object.keys(itin.hotelOptionLabels)[0] || 'A');
+      }
       setBasePrice(itin.pricing.basePrice);
       setMarkupAmount(itin.pricing.markupAmount ?? 0);
       setDiscount(itin.pricing.discount);
@@ -747,6 +762,10 @@ export function AdminCustomRequestDetail() {
       setInclusions(DEFAULT_INCLUSIONS);
       setExclusions(DEFAULT_EXCLUSIONS);
       setCustomerFacingNotes(DEFAULT_CUSTOMER_FACING_NOTES);
+      setHotelOptionLabels(null);
+      setHotelOptionPrices({});
+      setConfirmedHotelOption(null);
+      setActiveOptionKey('A');
       setRouteLegs([]);
       // Route Builder's first leg needs a real start date before any day
       // gets one — without it every day.date stays '', so hotel picks never
@@ -906,7 +925,10 @@ export function AdminCustomRequestDetail() {
   // hotel/roomType/numberOfRooms/roomOccupancy/roomCost so hotel vouchers/PDFs
   // (which only read those) are unaffected.
   const mirrorPrimaryHotel = (day: Pick<ItineraryDayForm, 'hotelOptions'>) => {
-    const primary = day.hotelOptions.find((h) => h.selected);
+    // Multi-option: mirror the first Option A hotel; single-option: mirror selected
+    const primary = hotelOptionLabels !== null
+      ? day.hotelOptions.find((h) => h.optionKey === 'A') ?? day.hotelOptions[0]
+      : day.hotelOptions.find((h) => h.selected);
     return primary ?
     { hotel: primary.hotel, roomType: primary.roomType, roomTypeId: primary.roomTypeId, mealPlan: primary.mealPlan, numberOfRooms: primary.numberOfRooms, roomOccupancy: primary.roomOccupancy, roomCost: primary.roomCost } :
     { hotel: '', roomType: '', roomTypeId: '', mealPlan: '', numberOfRooms: 1, roomOccupancy: emptyOccupancy(), roomCost: 0 };
@@ -915,7 +937,13 @@ export function AdminCustomRequestDetail() {
   const applyHotelSelection = (sel: { hotel: string; hotelName: string; roomType: string; roomTypeId: string; mealPlan: string; numberOfRooms: number; roomOccupancy: RoomOccupancy; roomCost: number }) => {
     if (pickerDayIndex === null) return;
     const day = days[pickerDayIndex];
-    const option: HotelOptionEntry = { ...sel, selected: day.hotelOptions.length === 0 };
+    let option: HotelOptionEntry;
+    if (hotelOptionLabels !== null) {
+      // Multi-option: assign to the currently active option key; no selected flag needed
+      option = { ...sel, optionKey: activeOptionKey, selected: false };
+    } else {
+      option = { ...sel, selected: day.hotelOptions.length === 0 };
+    }
     const nextOptions = [...day.hotelOptions, option];
     patchDayWithCost(pickerDayIndex, { hotelOptions: nextOptions, ...mirrorPrimaryHotel({ hotelOptions: nextOptions }) });
   };
@@ -932,6 +960,56 @@ export function AdminCustomRequestDetail() {
     let nextOptions = day.hotelOptions.filter((_, i) => i !== optionIndex);
     if (wasPrimary && nextOptions.length > 0) nextOptions = nextOptions.map((h, i) => ({ ...h, selected: i === 0 }));
     patchDayWithCost(dayIndex, { hotelOptions: nextOptions, ...mirrorPrimaryHotel({ hotelOptions: nextOptions }) });
+  };
+
+  const OPTION_KEY_SEQUENCE = 'ABCDEFGHIJ';
+
+  const enableMultiOption = () => {
+    const labels: Record<string, string> = { A: 'Option A', B: 'Option B' };
+    setHotelOptionLabels(labels);
+    setHotelOptionPrices({ A: { basePrice, discount, totalPrice }, B: { basePrice: 0, discount: 0, totalPrice: 0 } });
+    setActiveOptionKey('A');
+    // Assign existing hotels to Option A
+    setDays((prev) => prev.map((d) => ({
+      ...d,
+      hotelOptions: d.hotelOptions.map((h) => ({ ...h, optionKey: 'A', selected: false }))
+    })));
+  };
+
+  const disableMultiOption = () => {
+    // Keep only Option A hotels and restore single-option flow
+    setDays((prev) => prev.map((d) => {
+      const aOptions = d.hotelOptions.filter((h) => !h.optionKey || h.optionKey === 'A');
+      const restored = aOptions.map((h, i) => ({ ...h, optionKey: undefined, selected: i === 0 }));
+      return { ...d, hotelOptions: restored, ...mirrorPrimaryHotel({ hotelOptions: restored }) };
+    }));
+    setHotelOptionLabels(null);
+    setHotelOptionPrices({});
+    setConfirmedHotelOption(null);
+    setActiveOptionKey('A');
+  };
+
+  const addOptionKey = () => {
+    if (!hotelOptionLabels) return;
+    const usedKeys = Object.keys(hotelOptionLabels);
+    const nextKey = OPTION_KEY_SEQUENCE.split('').find((k) => !usedKeys.includes(k));
+    if (!nextKey) return;
+    setHotelOptionLabels((prev) => ({ ...prev!, [nextKey]: `Option ${nextKey}` }));
+    setHotelOptionPrices((prev) => ({ ...prev, [nextKey]: { basePrice: 0, discount: 0, totalPrice: 0 } }));
+    setActiveOptionKey(nextKey);
+  };
+
+  const removeOptionKey = (key: string) => {
+    if (!hotelOptionLabels || key === 'A') return;
+    const { [key]: _, ...rest } = hotelOptionLabels;
+    const { [key]: __, ...restPrices } = hotelOptionPrices;
+    setHotelOptionLabels(rest);
+    setHotelOptionPrices(restPrices);
+    setDays((prev) => prev.map((d) => ({
+      ...d,
+      hotelOptions: d.hotelOptions.filter((h) => h.optionKey !== key)
+    })));
+    if (activeOptionKey === key) setActiveOptionKey('A');
   };
 
   const addActivitySelection = (sel: { activity: string; name: string; adultCount: number; childCount: number; infantCount: number; cost: number }) => {
@@ -1193,6 +1271,11 @@ export function AdminCustomRequestDetail() {
   const findMissingHotelDay = (list: ItineraryDayForm[]) => {
     if (list.length === 0) return null;
     const lastDayNumber = Math.max(...list.map((d) => d.dayNumber));
+    if (hotelOptionLabels !== null) {
+      // Multi-option: each overnight day needs at least one hotel per option key
+      const keys = Object.keys(hotelOptionLabels);
+      return list.find((d) => d.dayNumber !== lastDayNumber && keys.some((k) => !d.hotelOptions.some((h) => h.optionKey === k))) || null;
+    }
     return list.find((d) => d.dayNumber !== lastDayNumber && !d.hotel) || null;
   };
 
@@ -1216,6 +1299,9 @@ export function AdminCustomRequestDetail() {
     cancellationPolicy,
     inclusions,
     exclusions,
+    hotelOptionLabels: hotelOptionLabels ?? undefined,
+    hotelOptionPrices: hotelOptionLabels ? hotelOptionPrices : undefined,
+    confirmedHotelOption: confirmedHotelOption ?? undefined,
   });
 
   const sendItinerary = async (e: React.FormEvent) => {
@@ -1737,6 +1823,56 @@ export function AdminCustomRequestDetail() {
               </div>
 
               <div className="rounded-2xl bg-white p-6 shadow-soft">
+                <div className="mb-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-display text-sm font-semibold text-forest">Multiple Hotel Options</p>
+                      <p className="mt-0.5 text-xs text-forest/50">Present Option A, B, C… per day so the customer can choose their preferred tier.</p>
+                    </div>
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <span className="text-xs text-forest/60">{hotelOptionLabels !== null ? 'On' : 'Off'}</span>
+                      <span className="relative inline-block h-5 w-9">
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          checked={hotelOptionLabels !== null}
+                          onChange={() => hotelOptionLabels !== null ? disableMultiOption() : enableMultiOption()}
+                        />
+                        <span className={`block h-5 w-9 rounded-full transition-colors ${hotelOptionLabels !== null ? 'bg-emerald' : 'bg-forest/20'}`} />
+                        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${hotelOptionLabels !== null ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                      </span>
+                    </label>
+                  </div>
+                  {hotelOptionLabels !== null && (
+                    <div className="mt-3 rounded-xl border border-forest/10 bg-cream/50 p-3">
+                      <p className="mb-2 text-xs font-semibold uppercase text-forest/50">Option Labels</p>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(hotelOptionLabels).map(([key, label]) => (
+                          <div key={key} className="flex items-center gap-1 rounded-lg border border-forest/15 bg-white px-2 py-1">
+                            <span className="text-xs font-bold text-emerald">{key}</span>
+                            <input
+                              className="w-28 bg-transparent text-xs text-forest outline-none"
+                              value={label}
+                              onChange={(e) => setHotelOptionLabels((prev) => ({ ...prev!, [key]: e.target.value }))}
+                            />
+                            {key !== 'A' && (
+                              <button type="button" onClick={() => removeOptionKey(key)} className="ml-1 text-forest/30 hover:text-red-500">
+                                <XIcon className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        {Object.keys(hotelOptionLabels).length < 5 && (
+                          <button type="button" onClick={addOptionKey} className="flex items-center gap-1 rounded-lg border border-dashed border-emerald/40 px-2 py-1 text-xs text-emerald hover:border-emerald">
+                            <PlusIcon className="h-3 w-3" /> Add Option
+                          </button>
+                        )}
+                      </div>
+                      <p className="mt-2 text-[11px] text-forest/40">Option A is the default. Hotels are assigned per day per option key using the tab in each day below.</p>
+                    </div>
+                  )}
+                </div>
+
                 <RepeatSection label="Day-by-Day Plan" onAdd={addDay} addLabel="Add Day">
                   {days.map((day, i) =>
                 <CollapsibleRow
@@ -1746,7 +1882,12 @@ export function AdminCustomRequestDetail() {
                   summary={
                   <>
                         Day {day.dayNumber}{day.date ? ` · ${formatDate(day.date)}` : ''} · {day.title.en || '(untitled)'}
-                        {day.hotel ? ` · ${hotelOptions.find((h) => h.value === day.hotel)?.label || ''}` : ''}
+                        {hotelOptionLabels !== null
+                          ? Object.keys(hotelOptionLabels).map((k) => {
+                              const h = day.hotelOptions.find((o) => o.optionKey === k);
+                              return h ? ` · ${k}: ${h.hotelName || hotelOptions.find((o) => o.value === h.hotel)?.label || ''}` : ` · ${k}: —`;
+                            }).join('')
+                          : day.hotel ? ` · ${hotelOptions.find((h) => h.value === day.hotel)?.label || ''}` : ''}
                       </>}
 
                   actions={
@@ -1765,28 +1906,71 @@ export function AdminCustomRequestDetail() {
                         <TranslatedTextarea label="Title" value={day.title} onChange={(v) => updateDay(i, { title: v })} required rows={2} />
                         <TextField label="Date" type="date" value={day.date} onChange={(v) => updateDay(i, { date: v })} />
                         <div className="sm:col-span-2 rounded-xl border border-forest/10 p-3">
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold uppercase text-forest/50">Hotel {day.hotelOptions.length > 0 ? `(${day.hotelOptions.length} option${day.hotelOptions.length > 1 ? 's' : ''})` : ''}</p>
-                            <button type="button" onClick={() => openPicker(i, 'hotel')} className="text-xs font-semibold text-emerald hover:underline">Add Option</button>
-                          </div>
-                          {day.hotelOptions.length > 0 ?
-                        <div className="mt-2 space-y-1.5">
-                              {day.hotelOptions.map((ho, hi) =>
-                          <div key={hi} className={`flex items-center justify-between rounded-lg p-2 text-sm ${ho.selected ? 'bg-emerald/10 text-forest' : 'text-forest/60'}`}>
-                                  <label className="flex flex-1 cursor-pointer items-center gap-2">
-                                    <input type="radio" checked={ho.selected} onChange={() => setPrimaryHotelOption(i, hi)} className="h-3.5 w-3.5 text-emerald focus:ring-emerald" />
-                                    <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} - {ho.roomType}{ho.mealPlan ? ` (${ho.mealPlan})` : ''} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''}){ho.selected ? '' : ' · alternate'}</span>
-                                  </label>
-                                  <span className="flex items-center gap-2">
-                                    <span>${ho.roomCost.toLocaleString()}</span>
-                                    <button type="button" aria-label={`Remove hotel option ${hi + 1} from day ${day.dayNumber}`} onClick={() => removeHotelOption(i, hi)} className="rounded p-2 text-forest/50 hover:text-red-500"><XIcon className="h-4 w-4" /></button>
-                                  </span>
+                          {hotelOptionLabels !== null ? (
+                            <>
+                              <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                                {Object.entries(hotelOptionLabels).map(([key, lbl]) => (
+                                  <button
+                                    key={key}
+                                    type="button"
+                                    onClick={() => setActiveOptionKey(key)}
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${activeOptionKey === key ? 'bg-emerald text-white' : 'bg-forest/5 text-forest/60 hover:bg-forest/10'}`}
+                                  >
+                                    {key}: {lbl}
+                                  </button>
+                                ))}
+                                <button type="button" onClick={() => openPicker(i, 'hotel')} className="ml-auto text-xs font-semibold text-emerald hover:underline">
+                                  + Add for {activeOptionKey}
+                                </button>
+                              </div>
+                              {(() => {
+                                const optHotels = day.hotelOptions.filter((h) => h.optionKey === activeOptionKey);
+                                return optHotels.length > 0 ? (
+                                  <div className="space-y-1.5">
+                                    {optHotels.map((ho) => {
+                                      const hi = day.hotelOptions.indexOf(ho);
+                                      return (
+                                        <div key={hi} className="flex items-center justify-between rounded-lg bg-emerald/5 p-2 text-sm text-forest">
+                                          <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} — {ho.roomType}{ho.mealPlan ? ` (${ho.mealPlan})` : ''} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''})</span>
+                                          <span className="flex items-center gap-2">
+                                            <span>${ho.roomCost.toLocaleString()}</span>
+                                            <button type="button" onClick={() => removeHotelOption(i, hi)} className="rounded p-2 text-forest/50 hover:text-red-500"><XIcon className="h-4 w-4" /></button>
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-forest/40">No hotel for Option {activeOptionKey} yet.</p>
+                                );
+                              })()}
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold uppercase text-forest/50">Hotel {day.hotelOptions.length > 0 ? `(${day.hotelOptions.length} option${day.hotelOptions.length > 1 ? 's' : ''})` : ''}</p>
+                                <button type="button" onClick={() => openPicker(i, 'hotel')} className="text-xs font-semibold text-emerald hover:underline">Add Option</button>
+                              </div>
+                              {day.hotelOptions.length > 0 ? (
+                                <div className="mt-2 space-y-1.5">
+                                  {day.hotelOptions.map((ho, hi) =>
+                                    <div key={hi} className={`flex items-center justify-between rounded-lg p-2 text-sm ${ho.selected ? 'bg-emerald/10 text-forest' : 'text-forest/60'}`}>
+                                      <label className="flex flex-1 cursor-pointer items-center gap-2">
+                                        <input type="radio" checked={ho.selected} onChange={() => setPrimaryHotelOption(i, hi)} className="h-3.5 w-3.5 text-emerald focus:ring-emerald" />
+                                        <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} - {ho.roomType}{ho.mealPlan ? ` (${ho.mealPlan})` : ''} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''}){ho.selected ? '' : ' · alternate'}</span>
+                                      </label>
+                                      <span className="flex items-center gap-2">
+                                        <span>${ho.roomCost.toLocaleString()}</span>
+                                        <button type="button" aria-label={`Remove hotel option ${hi + 1} from day ${day.dayNumber}`} onClick={() => removeHotelOption(i, hi)} className="rounded p-2 text-forest/50 hover:text-red-500"><XIcon className="h-4 w-4" /></button>
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
+                              ) : (
+                                <p className="mt-1 text-xs text-forest/40">Not selected yet.</p>
+                              )}
+                            </>
                           )}
-                            </div> :
-
-                        <p className="mt-1 text-xs text-forest/40">Not selected yet.</p>
-                        }
                         </div>
                         <div className="sm:col-span-2">
                           <TextAreaField label="Schedule" value={day.schedule} onChange={(v) => updateDay(i, { schedule: v })} rows={2} />
@@ -1926,8 +2110,39 @@ export function AdminCustomRequestDetail() {
 
               <div className="rounded-2xl bg-white p-6 shadow-soft">
                 <p className="mb-4 font-display text-sm font-semibold text-forest">Pricing</p>
+                {hotelOptionLabels !== null && (
+                  <div className="mb-4 rounded-xl border border-forest/10 bg-cream/50 p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase text-forest/50">Per-Option Prices ({currency})</p>
+                    <div className="space-y-2">
+                      {Object.entries(hotelOptionLabels).map(([key, lbl]) => (
+                        <div key={key} className="grid grid-cols-[6rem_1fr_1fr_1fr] items-end gap-2">
+                          <p className="pb-2 text-sm font-semibold text-forest">{key}: {lbl}</p>
+                          <NumberField
+                            label="Base Price"
+                            value={hotelOptionPrices[key]?.basePrice ?? 0}
+                            onChange={(v) => setHotelOptionPrices((p) => ({ ...p, [key]: { ...p[key] ?? { discount: 0, totalPrice: 0 }, basePrice: v, totalPrice: Math.max(0, v - (p[key]?.discount ?? 0)) } }))}
+                            min={0}
+                          />
+                          <NumberField
+                            label="Discount"
+                            value={hotelOptionPrices[key]?.discount ?? 0}
+                            onChange={(v) => setHotelOptionPrices((p) => ({ ...p, [key]: { ...p[key] ?? { basePrice: 0, totalPrice: 0 }, discount: v, totalPrice: Math.max(0, (p[key]?.basePrice ?? 0) - v) } }))}
+                            min={0}
+                          />
+                          <NumberField
+                            label="Total Price"
+                            value={hotelOptionPrices[key]?.totalPrice ?? 0}
+                            onChange={(v) => setHotelOptionPrices((p) => ({ ...p, [key]: { ...p[key] ?? { basePrice: 0, discount: 0 }, totalPrice: v } }))}
+                            min={0}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-[11px] text-forest/40">Set a total price for each option. The customer will see all options with their prices.</p>
+                  </div>
+                )}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                  <NumberField label="Base Price" value={basePrice} onChange={value => { setBasePrice(value); setTotalPrice(Math.max(0, Math.round((value + markupAmount - discount) * 100) / 100)); }} min={0} />
+                  <NumberField label={hotelOptionLabels !== null ? 'Default Total Price' : 'Base Price'} value={basePrice} onChange={value => { setBasePrice(value); setTotalPrice(Math.max(0, Math.round((value + markupAmount - discount) * 100) / 100)); }} min={0} />
                   <NumberField label="Markup ($)" value={markupAmount} onChange={value => { setMarkupAmount(value); setTotalPrice(Math.max(0, Math.round((basePrice + value - discount) * 100) / 100)); }} min={0} />
                   <NumberField label="Discount" value={discount} onChange={value => { setDiscount(value); setTotalPrice(Math.max(0, Math.round((basePrice + markupAmount - value) * 100) / 100)); }} min={0} />
                   <NumberField label="Total Price" value={totalPrice} onChange={setTotalPrice} min={0} />
