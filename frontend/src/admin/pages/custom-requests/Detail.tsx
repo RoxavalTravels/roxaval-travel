@@ -1719,12 +1719,40 @@ export function AdminCustomRequestDetail() {
                 }
                 </div>
               }
-              <div className="mt-4 flex items-center justify-between border-t border-forest/10 pt-4">
-                <div>
-                  <span className="text-sm text-forest/60">Total Price</span>
-                  <p className="text-xs text-forest/40">{request.itinerary.sightseeingIncluded === false ? 'Sightseeing & activities not included' : 'Includes sightseeing & activities'}</p>
-                </div>
-                <span className="font-display text-xl font-semibold text-forest">{request.itinerary.pricing.currency} {request.itinerary.pricing.totalPrice.toLocaleString()}</span>
+              <div className="mt-4 border-t border-forest/10 pt-4">
+                <p className="mb-3 text-xs text-forest/40">{request.itinerary.sightseeingIncluded === false ? 'Sightseeing & activities not included' : 'Includes sightseeing & activities'}</p>
+                {request.itinerary.hotelOptionLabels && request.itinerary.hotelOptionPrices ? (
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-forest/10 text-forest/40">
+                        <th className="pb-1.5 text-left font-semibold">Option</th>
+                        <th className="pb-1.5 text-right font-semibold">Base</th>
+                        <th className="pb-1.5 text-right font-semibold">Discount</th>
+                        <th className="pb-1.5 text-right font-semibold">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(request.itinerary.hotelOptionLabels).map(([key, label]) => {
+                        const p = request.itinerary!.hotelOptionPrices?.[key];
+                        const isConfirmed = request.itinerary!.confirmedHotelOption === key;
+                        const cur = request.itinerary!.pricing.currency;
+                        return (
+                          <tr key={key} className={`border-b border-forest/5 ${isConfirmed ? 'text-emerald' : 'text-forest'}`}>
+                            <td className="py-1.5 font-semibold">{key}: {label}{isConfirmed ? ' ✓' : ''}</td>
+                            <td className="py-1.5 text-right">{p ? `${cur} ${p.basePrice.toLocaleString()}` : '—'}</td>
+                            <td className="py-1.5 text-right">{p?.discount ? `${cur} ${p.discount.toLocaleString()}` : '—'}</td>
+                            <td className="py-1.5 text-right font-semibold">{p ? `${cur} ${p.totalPrice.toLocaleString()}` : '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-forest/60">Total Price</span>
+                    <span className="font-display text-xl font-semibold text-forest">{request.itinerary.pricing.currency} {request.itinerary.pricing.totalPrice.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
             </div> :
 
