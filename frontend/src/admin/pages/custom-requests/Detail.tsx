@@ -1474,7 +1474,7 @@ export function AdminCustomRequestDetail() {
                     <dd className="flex items-center gap-1.5">
                       <input type="date" value={draftStartDate} onChange={(e) => setDraftStartDate(e.target.value)} className="rounded-lg border border-forest/15 bg-white px-2 py-1 text-xs text-forest outline-none focus:border-emerald" />
                       <span className="text-forest/40">–</span>
-                      <input type="date" value={draftEndDate} onChange={(e) => setDraftEndDate(e.target.value)} className="rounded-lg border border-forest/15 bg-white px-2 py-1 text-xs text-forest outline-none focus:border-emerald" />
+                      <input type="date" value={draftEndDate} onChange={(e) => setDraftEndDate(e.target.value)} min={draftStartDate || undefined} className="rounded-lg border border-forest/15 bg-white px-2 py-1 text-xs text-forest outline-none focus:border-emerald" />
                     </dd>
                   </div>
                   <div className="flex justify-end gap-2">

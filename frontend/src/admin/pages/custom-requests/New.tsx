@@ -184,7 +184,7 @@ export function AdminCustomRequestNew() {
           <p className="mb-4 font-display text-sm font-semibold text-forest">Travel Dates &amp; Travelers</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <TextField label="From Date" type="date" value={startDate} onChange={setStartDate} required />
-            <TextField label="To Date" type="date" value={endDate} onChange={setEndDate} required />
+            <TextField label="To Date" type="date" value={endDate} onChange={setEndDate} min={startDate || undefined} required />
             <NumberField label="Adults" value={adults} onChange={setAdults} min={1} required />
             <NumberField label="Children (5-11)" value={children} onChange={setChildren} min={0} />
             <NumberField label="Infants (under 5)" value={infants} onChange={setInfants} min={0} />
