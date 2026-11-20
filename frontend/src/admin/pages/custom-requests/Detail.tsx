@@ -1650,6 +1650,12 @@ export function AdminCustomRequestDetail() {
                 </div>
               </div>
               {request.itinerary.summary && <p className="mt-2 text-sm text-forest/60">{request.itinerary.summary}</p>}
+              {request.itinerary.confirmedHotelOption && request.itinerary.hotelOptionLabels && (
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">
+                  <CheckIcon className="h-3 w-3" />
+                  Customer selected Option {request.itinerary.confirmedHotelOption}: {request.itinerary.hotelOptionLabels[request.itinerary.confirmedHotelOption]}
+                </div>
+              )}
               {(request.itinerary.tourGuide || request.itinerary.vehicle) &&
             <p className="mt-2 text-xs text-forest/60">
                   {request.itinerary.tourGuide && <span>Guide: {request.itinerary.tourGuide.name}</span>}
@@ -1869,6 +1875,12 @@ export function AdminCustomRequestDetail() {
                         )}
                       </div>
                       <p className="mt-2 text-[11px] text-forest/40">Option A is the default. Hotels are assigned per day per option key using the tab in each day below.</p>
+                      {confirmedHotelOption && (
+                        <p className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald">
+                          <CheckIcon className="h-3 w-3" />
+                          Customer confirmed: Option {confirmedHotelOption} — {hotelOptionLabels![confirmedHotelOption] ?? ''}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

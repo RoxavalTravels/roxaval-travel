@@ -553,6 +553,17 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
         <div className="mt-10 border-t border-forest/10 pt-6 print:mt-6 print:break-inside-avoid">
           <p className="font-display text-lg font-semibold text-forest">{showPrice ? t('financialSummary') : t('accommodationSummary')} {showPrice && !itin.hotelOptionLabels && <span className="text-sm font-normal text-forest/50">[ in {itin.pricing.currency} ]</span>}</p>
 
+          {itin.hotelOptionLabels && (confirmedOption || itin.confirmedHotelOption) && (() => {
+            const key = confirmedOption || itin.confirmedHotelOption!;
+            const label = itin.hotelOptionLabels![key];
+            return (
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald print:hidden">
+                <CheckCircleIcon className="h-3.5 w-3.5" />
+                {isCustomerView ? 'You selected' : 'Customer selected'}: Option {key}{label ? ` — ${label}` : ''}
+              </div>
+            );
+          })()}
+
           {itin.hotelOptionLabels ? (
             /* Multi-option: per-option hotel tables */
             <div className="mt-3 space-y-6">
