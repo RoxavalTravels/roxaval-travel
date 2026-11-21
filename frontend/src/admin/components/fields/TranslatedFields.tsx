@@ -87,7 +87,8 @@ interface TranslatedInputProps {
 }
 
 /** Single-line text field with EN/DE/FR tabs — EN is the required baseline, DE/FR fall back to it on the live site when left blank. */
-export function TranslatedInput({ label, value, onChange, required, placeholder }: TranslatedInputProps) {
+export function TranslatedInput({ label, value: rawValue, onChange, required, placeholder }: TranslatedInputProps) {
+  const value = rawValue ?? emptyLocalizedString();
   const [lang, setLang] = useState<keyof LocalizedString>('en');
   return (
     <div>
@@ -118,7 +119,8 @@ interface TranslatedTextareaProps {
   rows?: number;
 }
 
-export function TranslatedTextarea({ label, value, onChange, required, rows = 4 }: TranslatedTextareaProps) {
+export function TranslatedTextarea({ label, value: rawValue, onChange, required, rows = 4 }: TranslatedTextareaProps) {
+  const value = rawValue ?? emptyLocalizedString();
   const [lang, setLang] = useState<keyof LocalizedString>('en');
   return (
     <div>
@@ -153,7 +155,8 @@ interface TranslatedTagListInputProps {
  * tab (the structural source of truth); DE/FR tabs only translate the text
  * of items that already exist, keeping all three arrays the same length.
  */
-export function TranslatedTagListInput({ label, value, onChange, placeholder = 'Type and press Enter' }: TranslatedTagListInputProps) {
+export function TranslatedTagListInput({ label, value: rawValue, onChange, placeholder = 'Type and press Enter' }: TranslatedTagListInputProps) {
+  const value = rawValue ?? [];
   const [lang, setLang] = useState<keyof LocalizedString>('en');
   const [draft, setDraft] = useState('');
 

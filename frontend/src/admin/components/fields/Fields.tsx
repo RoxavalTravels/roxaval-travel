@@ -362,7 +362,7 @@ export function ImageUploader({ label, value, onChange, multiple = true }: Image
   return (
     <FieldWrap label={label}>
       <div className="flex flex-wrap gap-3">
-        {value.map((url, i) =>
+        {(value ?? []).map((url, i) =>
         <div key={url + i} className="group relative h-20 w-20 overflow-hidden rounded-xl border border-forest/10">
             <img src={url} alt="" className="h-full w-full object-cover" />
             <button
