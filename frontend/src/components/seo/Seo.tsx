@@ -36,7 +36,16 @@ export function Seo({ title, description, keywords, image, type = 'website', noi
   const socialDescription = page?.socialDescription || description;
   const canonical = absoluteUrl(localizedPath(canonicalPath || location.pathname, locale));
   const ogImage = absoluteImage(image);
-  const jsonLdList = [...(page?.structuredData ? [page.structuredData] : []), ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [])];
+  const pageSchemas = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+  // The server graph already carries Organization/Breadcrumb/entity nodes for crawlers that
+  // skip JavaScript; where this page supplies a richer node of the same type, keep only that one.
+  const dedupable = ['TravelAgency', 'BreadcrumbList', 'TouristTrip', 'TouristDestination', 'TouristAttraction', 'BlogPosting'];
+  const pageTypes = new Set(pageSchemas.map((schema) => (schema as { '@type'?: string })['@type']));
+  const serverGraph = page?.structuredData as { '@graph'?: { '@type'?: string }[] } | undefined;
+  const serverSchema = serverGraph?.['@graph']
+    ? { ...serverGraph, '@graph': serverGraph['@graph'].filter((node) => !(dedupable.includes(node['@type'] ?? '') && pageTypes.has(node['@type']))) }
+    : serverGraph;
+  const jsonLdList = [...(serverSchema ? [serverSchema] : []), ...pageSchemas];
 
   if (!committed) return null;
 
