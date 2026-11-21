@@ -71,6 +71,9 @@ const emptySeasonalRate = (): SeasonalRate => ({ validFrom: '', validTo: '', cur
 const emptyContactPerson = (): ContactPerson => ({ name: '', phone: '', email: '' });
 // Always pad/truncate to exactly 3 rows for a fixed, predictable form layout —
 // none of the 3 are required, empty ones are dropped again before submit.
+// Imported/legacy hotels can have null localized fields or null amenity lists; the form must never crash on them.
+const toLocalized = (v?: Partial<LocalizedString> | null): LocalizedString => ({ ...emptyLocalizedString(), ...(v || {}) });
+const toLocalizedList = (v?: (Partial<LocalizedString> | null)[] | null): LocalizedString[] => (Array.isArray(v) ? v : []).filter(Boolean).map((x) => toLocalized(x));
 const toThreeContactPersons = (list?: ContactPerson[]): ContactPerson[] => {
   const base = (list || []).slice(0, 3).map((c) => ({ name: c.name || '', phone: c.phone || '', email: c.email || '' }));
   while (base.length < 3) base.push(emptyContactPerson());
@@ -114,20 +117,25 @@ export function AdminHotelForm() {
     if (!isEdit) return;
     apiGetOne<HotelDetail>(`/hotels/${id}`, { raw: true }).
     then((h) => {
-      setName(h.name);
-      setCategory(h.category);
-      setStarRating(h.starRating);
+      setName(toLocalized(h.name));
+      setCategory(h.category || 'Standard');
+      setStarRating(h.starRating || 3);
       setDestination(h.destination?._id || '');
-      setAddress(h.address);
-      setDescription(h.description);
-      setImages(h.images || []);
+      setAddress(toLocalized(h.address));
+      setDescription(toLocalized(h.description));
+      setImages(Array.isArray(h.images) ? h.images : []);
       const known = new Set(MEAL_PLAN_OPTIONS);
-      setAmenities((h.amenities || []).filter((a) => !known.has(a.en)));
-      setMealPlans((h.amenities || []).filter((a) => known.has(a.en)).map((a) => a.en));
+      const amen = toLocalizedList(h.amenities);
+      setAmenities(amen.filter((a) => !known.has(a.en)));
+      setMealPlans(amen.filter((a) => known.has(a.en)).map((a) => a.en));
       setRoomTypes(
         h.roomTypes?.length ?
         h.roomTypes.map((r) => ({
           ...r,
+          name: toLocalized(r.name),
+          amenities: toLocalizedList(r.amenities),
+          maxOccupancy: r.maxOccupancy || 2,
+          pricePerNight: r.pricePerNight || 0,
           mealPlan: r.mealPlan || 'Bed & Breakfast',
           pricing: { ...emptyOccupancyPricing(), ...r.pricing },
           seasonalRates: (r.seasonalRates || []).map((s) => ({
@@ -144,9 +152,10 @@ export function AdminHotelForm() {
       setContactPhone(h.contactPhone || '');
       setContactEmail(h.contactEmail || '');
       setContactPersons(toThreeContactPersons(h.contactPersons));
-      setIsPartner(h.isPartner);
-      setStatus(h.status);
+      setIsPartner(h.isPartner ?? true);
+      setStatus(h.status || 'active');
     }).
+    catch((err) => toast(err instanceof ApiRequestError ? err.message : 'Failed to load hotel.', 'error')).
     finally(() => setLoading(false));
   }, [id, isEdit]);
 
