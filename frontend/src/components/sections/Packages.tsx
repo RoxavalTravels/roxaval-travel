@@ -16,12 +16,12 @@ export function Packages() {
     let cancelled = false;
     setLoading(true);
 
-    apiGetList<TourPackage>('/packages', { isFeatured: true, limit: 8, sort: '-rating' }).
+    apiGetList<TourPackage>('/packages', { view: 'card', isFeatured: true, limit: 8, sort: '-rating' }).
     then(async ({ data }) => {
       // Admin hasn't marked anything "Feature on homepage" yet — fall back to
       // the newest published packages so the section is never empty.
       if (!cancelled && data.length === 0) {
-        const fallback = await apiGetList<TourPackage>('/packages', { limit: 8, sort: '-createdAt' });
+        const fallback = await apiGetList<TourPackage>('/packages', { view: 'card', limit: 8, sort: '-createdAt' });
         if (!cancelled) setPackages(fallback.data);
         return;
       }

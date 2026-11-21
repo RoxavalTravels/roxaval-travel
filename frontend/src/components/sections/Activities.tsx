@@ -1,3 +1,4 @@
+import { OptImg } from '../ui/OptImg';
 
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -33,7 +34,7 @@ export function Activities() {
             whileHover={{ y: -8 }}
             className="group relative h-80 overflow-hidden rounded-3xl">
             
-              <img src={a.image} alt={copy(a.name)} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <OptImg w={800} src={a.image} alt={copy(a.name)} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
               <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/40 to-transparent transition-opacity group-hover:from-forest/95" />
               <div className="absolute inset-0 flex flex-col justify-end p-5">
                 <h3 className="font-display text-xl font-semibold text-white">{copy(a.name)}</h3>

@@ -1,3 +1,4 @@
+import { OptImg } from '../components/ui/OptImg';
 import { InitialPublicPage } from '../components/seo/InitialPublicContent';
 import { copy } from '../i18n';
 import { LocalizedMotionHeading } from '../components/seo/LocalizedHeading';
@@ -49,7 +50,7 @@ export function DestinationDetails() {
       setPackages([]);
       setActivities([]);
       return Promise.all([
-        apiGetList<TourPackage>('/packages', { destinations: data._id, limit: 3 }).then(({ data: list }) => !cancelled && setPackages(list)).catch(() => { /* Related content is optional; preserve the destination page. */ }),
+        apiGetList<TourPackage>('/packages', { view: 'card', destinations: data._id, limit: 3 }).then(({ data: list }) => !cancelled && setPackages(list)).catch(() => { /* Related content is optional; preserve the destination page. */ }),
         apiGetList<Activity>('/activities', { destinations: data._id, limit: 6 }).then(({ data: list }) => !cancelled && setActivities(list)).catch(() => { /* Related content is optional; preserve the destination page. */ }),
       ]);
     }).
@@ -80,7 +81,7 @@ export function DestinationDetails() {
 
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
-        <LocalizedImage
+        <LocalizedImage w={1280}
           src={d.heroImage}
           alt={`${d.name}, Sri Lanka${d.tag ? ` - ${copy(d.tag)} destination` : ''}`}
           onError={(e) => {
@@ -159,7 +160,7 @@ export function DestinationDetails() {
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {d.gallery.map((src, i) =>
               <div key={i} className="aspect-square overflow-hidden rounded-2xl">
-                    <img
+                    <OptImg w={800}
                   src={src}
                   alt={`${d.name} ${i + 1}`}
                   loading="lazy"
@@ -201,7 +202,7 @@ export function DestinationDetails() {
               <div className="mt-4 grid gap-5 sm:grid-cols-2">
                 {d.attractions.map((a) =>
               <div key={a._id} className="overflow-hidden rounded-3xl bg-white shadow-soft">
-                    {a.images[0] && <img src={a.images[0]} alt={a.name} loading="lazy" className="h-40 w-full object-cover" />}
+                    {a.images[0] && <OptImg w={800} src={a.images[0]} alt={a.name} loading="lazy" className="h-40 w-full object-cover" />}
                     <div className="p-5">
                       <h3 className="font-display text-base font-semibold text-forest">{a.name}</h3>
                       <p className="mt-1.5 text-sm text-forest/65 line-clamp-3">{a.description}</p>

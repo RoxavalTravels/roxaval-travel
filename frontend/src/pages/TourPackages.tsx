@@ -35,6 +35,7 @@ export function TourPackages() {
   ];
 
   const { items, meta, loading, error, hasMore, loadMore } = useApiList<TourPackage>('/packages', {
+    view: 'card',
     q: search || undefined,
     category: category || undefined,
     tourType: tourType || undefined,

@@ -1,3 +1,4 @@
+import { OptImg } from '../components/ui/OptImg';
 import { InitialPublicPage } from '../components/seo/InitialPublicContent';
 import { copy } from '../i18n';
 import { LocalizedMotionHeading } from '../components/seo/LocalizedHeading';
@@ -75,7 +76,7 @@ export function ActivityDetails() {
 
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
-        <LocalizedImage src={activity.image} alt={`${activity.name}, Sri Lanka${activity.category ? ` - ${copy(activity.category)}` : ''}`} className="absolute inset-0 h-full w-full object-cover" />
+        <LocalizedImage w={1280} src={activity.image} alt={`${activity.name}, Sri Lanka${activity.category ? ` - ${copy(activity.category)}` : ''}`} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/40 to-forest/10" />
         <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-4 py-6 sm:px-6 lg:px-8">
           <BreadcrumbBackRow breadcrumbs={[{ label: t('breadcrumb.home'), href: '/' }, { label: t('breadcrumb.activities'), href: '/activities' }, { label: activity.name }]} />
@@ -133,7 +134,7 @@ export function ActivityDetails() {
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {activity.gallery.map((src, i) =>
               <div key={i} className="aspect-square overflow-hidden rounded-2xl">
-                    <img src={src} alt={`${activity.name} ${i + 1}`} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" />
+                    <OptImg w={800} src={src} alt={`${activity.name} ${i + 1}`} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" />
                   </div>
               )}
               </div>

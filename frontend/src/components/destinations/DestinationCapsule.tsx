@@ -1,3 +1,4 @@
+import { OptImg } from '../ui/OptImg';
 import { copy } from '../../i18n';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -24,7 +25,7 @@ export function DestinationCapsule({ destination, index = 0 }: DestinationCapsul
           transition={{ type: 'spring', stiffness: 260, damping: 20 }}
           className="relative aspect-[3/4] overflow-hidden rounded-[2.5rem] shadow-soft transition-shadow duration-500 group-hover:shadow-lift">
 
-          <img
+          <OptImg w={800}
             src={destination.heroImage}
             alt={destination.name}
             loading="lazy"

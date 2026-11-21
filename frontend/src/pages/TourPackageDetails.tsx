@@ -1,3 +1,4 @@
+import { OptImg } from '../components/ui/OptImg';
 import { InitialPublicPage } from '../components/seo/InitialPublicContent';
 import { GuestReviewForm } from '../components/reviews/GuestReviewForm';
 import { ContentParagraphs } from '../components/ui/ContentParagraphs';
@@ -72,7 +73,7 @@ export function TourPackageDetails() {
       setPkg(data);
       return Promise.all([
       apiGetList<Review>('/reviews', { tourPackage: data._id, limit: 10 }).then(({ data: r }) => !cancelled && setReviews(r)).catch(() => !cancelled && setReviewError(true)),
-      apiGetList<TourPackage>('/packages', { category: data.category, limit: 4 }).then(({ data: list }) => !cancelled && setRelated(list.filter((p) => p._id !== data._id).slice(0, 3))).catch(() => !cancelled && setRelated([]))]
+      apiGetList<TourPackage>('/packages', { view: 'card', category: data.category, limit: 4 }).then(({ data: list }) => !cancelled && setRelated(list.filter((p) => p._id !== data._id).slice(0, 3))).catch(() => !cancelled && setRelated([]))]
       );
     }).
     catch((err: Error) => !cancelled && setError(err.message)).
@@ -121,7 +122,7 @@ export function TourPackageDetails() {
 
       {/* Hero */}
       <section className="relative h-[65vh] min-h-[460px] w-full overflow-hidden">
-        <LocalizedImage src={pkg.heroImage || pkg.gallery?.[0] || '/image-unavailable.svg'} alt={pkg.name} className="absolute inset-0 h-full w-full object-cover" />
+        <LocalizedImage w={1280} src={pkg.heroImage || pkg.gallery?.[0] || '/image-unavailable.svg'} alt={pkg.name} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/40 to-forest/10" />
         <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-between px-4 py-6 sm:px-6 lg:px-8">
           <BreadcrumbBackRow breadcrumbs={[{ label: t('breadcrumb.home'), href: '/' }, { label: t('breadcrumb.packages'), href: '/packages' }, { label: pkg.name }]} />
@@ -178,7 +179,7 @@ export function TourPackageDetails() {
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {pkg.gallery.map((src, i) =>
               <div key={i} className="aspect-square overflow-hidden rounded-2xl">
-                    <img src={src} alt={`${pkg.name} ${i + 1}`} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" />
+                    <OptImg w={800} src={src} alt={`${pkg.name} ${i + 1}`} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" />
                   </div>
               )}
               </div>

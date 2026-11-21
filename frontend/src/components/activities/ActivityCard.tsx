@@ -1,3 +1,4 @@
+import { OptImg } from '../ui/OptImg';
 import { copy } from '../../i18n';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -30,7 +31,7 @@ export function ActivityCard({ activity, index = 0 }: ActivityCardProps) {
       className="group flex flex-col overflow-hidden rounded-3xl bg-cream shadow-soft transition-shadow hover:shadow-lift">
 
       <div className="relative h-52 overflow-hidden">
-        <img src={activity.image} alt={activity.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+        <OptImg w={800} src={activity.image} alt={activity.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
         <span className="absolute top-4 left-4 rounded-full bg-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-forest">{copy(activity.category)}</span>
         <span className={`absolute top-4 right-4 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur ${difficultyStyles[activity.difficultyLevel]}`}>
           {copy(activity.difficultyLevel)}

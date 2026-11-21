@@ -1,3 +1,4 @@
+import { OptImg } from '../components/ui/OptImg';
 import { InitialPublicPage } from '../components/seo/InitialPublicContent';
 import { LocalizedImage } from '../components/seo/LocalizedHeading';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
@@ -122,7 +123,7 @@ export function BlogDetails() {
 
         <div className="mx-auto max-w-md px-4 sm:max-w-lg sm:px-6">
           <div className="overflow-hidden rounded-t-[5rem] rounded-b-[2rem] shadow-2xl ring-8 ring-white sm:rounded-t-[7rem]">
-            <LocalizedImage src={resolveImage(post.featuredImage)} alt={post.title} className="h-[26rem] w-full object-cover sm:h-[32rem]" />
+            <LocalizedImage w={1280} src={resolveImage(post.featuredImage)} alt={post.title} className="h-[26rem] w-full object-cover sm:h-[32rem]" />
           </div>
         </div>
 
@@ -148,7 +149,7 @@ export function BlogDetails() {
             <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.6 }}>
                 {s.image &&
               <div className="-mx-4 mb-8 overflow-hidden rounded-[1.5rem] shadow-lift ring-1 ring-gold/20 sm:-mx-6 sm:rounded-[2rem]">
-                    <img src={resolveImage(s.image)} alt={s.heading} loading="lazy" className="h-72 w-full object-cover sm:h-[26rem]" />
+                    <OptImg w={1280} src={resolveImage(s.image)} alt={s.heading} loading="lazy" className="h-72 w-full object-cover sm:h-[26rem]" />
                   </div>
               }
                 <div className="text-center">
@@ -187,7 +188,7 @@ export function BlogDetails() {
                 {related.map((p) =>
               <Link key={p._id} to={`/blog/${p.slug}`} className="group block overflow-hidden rounded-3xl bg-[#faf3e8] shadow-soft transition-shadow hover:shadow-lift">
                     <div className="h-40 overflow-hidden">
-                      <img src={resolveImage(p.featuredImage)} alt={p.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                      <OptImg w={800} src={resolveImage(p.featuredImage)} alt={p.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     </div>
                     <div className="p-5">
                       <h3 className="font-display text-base font-semibold text-[#3a2b1f] transition-colors group-hover:text-gold line-clamp-2">{p.title}</h3>
@@ -224,7 +225,7 @@ export function BlogDetails() {
           </div>
           <div className="mx-auto mt-10 max-w-4xl px-4 sm:px-6">
             <div className="overflow-hidden rounded-[2rem] shadow-2xl ring-[10px] ring-white/50 sm:rounded-[2.5rem]">
-              <LocalizedImage src={resolveImage(post.featuredImage)} alt={post.title} className="h-60 w-full object-cover sm:h-[26rem]" />
+              <LocalizedImage w={1280} src={resolveImage(post.featuredImage)} alt={post.title} className="h-60 w-full object-cover sm:h-[26rem]" />
             </div>
           </div>
         </div>
@@ -258,7 +259,7 @@ export function BlogDetails() {
             className="grid items-center gap-8 overflow-hidden rounded-[2rem] bg-white/[0.04] p-3 ring-1 ring-white/10 lg:grid-cols-2 lg:gap-0 lg:p-0">
 
               <div className={`overflow-hidden rounded-[1.5rem] lg:rounded-none lg:h-full ${i % 2 === 1 ? 'lg:order-last' : ''}`}>
-                <img src={resolveImage(s.image)} alt={s.heading} loading="lazy" className="h-56 w-full object-cover sm:h-72 lg:h-full lg:min-h-[20rem]" />
+                <OptImg w={1280} src={resolveImage(s.image)} alt={s.heading} loading="lazy" className="h-56 w-full object-cover sm:h-72 lg:h-full lg:min-h-[20rem]" />
               </div>
               <div className="px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
                 <h2 className="font-display text-xl font-semibold text-white sm:text-2xl">{s.heading}</h2>
@@ -304,7 +305,7 @@ export function BlogDetails() {
                 {related.map((p) =>
               <Link key={p._id} to={`/blog/${p.slug}`} className="group block overflow-hidden rounded-3xl bg-white/[0.04] ring-1 ring-white/10 transition-colors hover:bg-white/[0.07]">
                     <div className="h-40 overflow-hidden">
-                      <img src={resolveImage(p.featuredImage)} alt={p.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                      <OptImg w={800} src={resolveImage(p.featuredImage)} alt={p.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     </div>
                     <div className="p-5">
                       <h3 className="font-display text-base font-semibold text-white transition-colors group-hover:text-sky-300 line-clamp-2">{p.title}</h3>
@@ -331,7 +332,7 @@ export function BlogDetails() {
 
       <article className="mx-auto grid max-w-5xl gap-10 px-4 py-14 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="overflow-hidden rounded-[2rem] shadow-lift">
-          <LocalizedImage src={resolveImage(post.featuredImage)} alt={post.title} className="h-72 w-full object-cover sm:h-[420px]" />
+          <LocalizedImage w={1280} src={resolveImage(post.featuredImage)} alt={post.title} className="h-72 w-full object-cover sm:h-[420px]" />
         </motion.div>
 
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-forest/10 pb-6">
@@ -376,7 +377,7 @@ export function BlogDetails() {
                 </div>
                 {s.image &&
             <div className={`overflow-hidden rounded-[2rem] shadow-soft ${i % 2 === 1 ? 'lg:order-first' : ''}`}>
-                    <img src={resolveImage(s.image)} alt={s.heading} loading="lazy" className="h-64 w-full object-cover sm:h-96" />
+                    <OptImg w={1280} src={resolveImage(s.image)} alt={s.heading} loading="lazy" className="h-64 w-full object-cover sm:h-96" />
                   </div>
             }
               </motion.div>
@@ -390,7 +391,7 @@ export function BlogDetails() {
 
         {post.gallery?.length > 0 &&
         <div className="grid gap-4 sm:grid-cols-3">
-            {post.gallery.map((img, i) => <img key={i} src={resolveImage(img)} alt={`${post.title} - photo ${i + 1}`} loading="lazy" className="h-48 w-full rounded-2xl object-cover" />)}
+            {post.gallery.map((img, i) => <OptImg w={800} key={i} src={resolveImage(img)} alt={`${post.title} - photo ${i + 1}`} loading="lazy" className="h-48 w-full rounded-2xl object-cover" />)}
           </div>
         }
 
@@ -412,7 +413,7 @@ export function BlogDetails() {
               {related.map((p) =>
             <Link key={p._id} to={`/blog/${p.slug}`} className="group block overflow-hidden rounded-3xl bg-cream shadow-soft transition-shadow hover:shadow-lift">
                   <div className="h-40 overflow-hidden">
-                    <img src={resolveImage(p.featuredImage)} alt={p.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <OptImg w={800} src={resolveImage(p.featuredImage)} alt={p.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   </div>
                   <div className="p-5">
                     <h3 className="font-display text-base font-semibold text-forest transition-colors group-hover:text-emerald line-clamp-2">{p.title}</h3>

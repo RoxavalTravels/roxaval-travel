@@ -1,3 +1,4 @@
+import { OptImg } from '../components/ui/OptImg';
 import { InitialPublicPage, isInitialPublicRoute } from '../components/seo/InitialPublicContent';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
@@ -25,7 +26,7 @@ function ArticleCard({ post, large = false }: {post: BlogListItem;large?: boolea
   return (
     <Link to={`/blog/${post.slug}`} className="group block overflow-hidden rounded-3xl bg-white shadow-soft transition-shadow hover:shadow-lift">
       <div className={`overflow-hidden ${large ? 'h-72 sm:h-96' : 'h-48'}`}>
-        <img src={resolveImage(post.featuredImage)} alt={post.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+        <OptImg w={800} src={resolveImage(post.featuredImage)} alt={post.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
       </div>
       <div className="p-6">
         <div className="flex items-center gap-3 text-xs text-forest/50">
@@ -47,7 +48,7 @@ function SidebarList({ title, icon: Icon, posts }: {title: string;icon: React.Co
       <div className="mt-4 space-y-4">
         {posts.map((p) =>
         <Link key={p._id} to={`/blog/${p.slug}`} className="flex gap-3 group">
-            <img src={resolveImage(p.featuredImage)} alt={p.title} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
+            <OptImg w={160} src={resolveImage(p.featuredImage)} alt={p.title} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
             <div>
               <p className="text-sm font-medium text-forest transition-colors group-hover:text-emerald line-clamp-2">{p.title}</p>
               <p className="mt-1 text-xs text-forest/40">{formatDate(p.publishedAt || p.createdAt)}</p>
@@ -96,7 +97,7 @@ export function Blog() {
           {featured &&
           <motion.div initial={isInitialPublicRoute() ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mt-12 grid gap-8 overflow-hidden rounded-[2rem] bg-cream shadow-lift lg:grid-cols-2">
               <Link to={`/blog/${featured.slug}`} className="block h-64 overflow-hidden lg:h-full">
-                <img src={resolveImage(featured.featuredImage)} alt={featured.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
+                <OptImg w={1280} src={resolveImage(featured.featuredImage)} alt={featured.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
               </Link>
               <div className="flex flex-col justify-center p-8 sm:p-12">
                 <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-forest"><FlameIcon className="h-3.5 w-3.5 text-gold" /> {t('list.featuredStory')}</span>

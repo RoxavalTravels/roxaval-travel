@@ -1,3 +1,4 @@
+import { OptImg } from '../components/ui/OptImg';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -16,7 +17,7 @@ function ResultCard({ item }: {item: SearchResultItem;}) {
   <>
       <div className="h-40 w-full overflow-hidden bg-cream">
         {item.image ?
-      <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /> :
+      <OptImg w={480} src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /> :
 
       <div className="grid h-full w-full place-items-center text-forest/20"><SearchIcon className="h-8 w-8" /></div>
       }

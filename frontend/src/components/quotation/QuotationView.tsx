@@ -1,3 +1,4 @@
+import { OptImg } from '../ui/OptImg';
 import { formatMoney } from '../../lib/money';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -416,7 +417,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
                   }
                   {activities.map((a, i) =>
                     <div key={i} className="flex gap-3 rounded-xl border border-forest/10 p-3 print:break-inside-avoid">
-                      {a.activity?.image && <img src={a.activity.image} alt={a.activity.name} className="h-20 w-28 shrink-0 rounded-lg object-cover" />}
+                      {a.activity?.image && <OptImg w={480} src={a.activity.image} alt={a.activity.name} className="h-20 w-28 shrink-0 rounded-lg object-cover" />}
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-forest">{a.activity?.name}</p>
                         <p className="text-[11px] font-medium uppercase tracking-wide text-emerald">{a.activity?.category || t('sightseeing')}</p>
@@ -466,7 +467,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
                         </div>
                         {opt?.hotel ? (
                           <div className="flex gap-3 rounded-xl border border-emerald/20 bg-emerald/5 p-3">
-                            {opt.hotel.images?.[0] && <img src={opt.hotel.images[0]} alt={opt.hotel.name} className="h-24 w-32 shrink-0 rounded-lg object-cover" />}
+                            {opt.hotel.images?.[0] && <OptImg w={480} src={opt.hotel.images[0]} alt={opt.hotel.name} className="h-24 w-32 shrink-0 rounded-lg object-cover" />}
                             <div className="min-w-0">
                               <p className="flex items-center gap-1.5 text-sm font-semibold text-forest">
                                 <BedDoubleIcon className="h-3.5 w-3.5 text-emerald" /> {opt.hotel.name}
@@ -490,7 +491,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
                     );
                   })() : d.hotel &&
                     <div className="flex gap-3 rounded-xl border border-emerald/20 bg-emerald/5 p-3 print:break-inside-avoid">
-                      {d.hotel.images?.[0] && <img src={d.hotel.images[0]} alt={d.hotel.name} className="h-24 w-32 shrink-0 rounded-lg object-cover" />}
+                      {d.hotel.images?.[0] && <OptImg w={480} src={d.hotel.images[0]} alt={d.hotel.name} className="h-24 w-32 shrink-0 rounded-lg object-cover" />}
                       <div className="min-w-0">
                         <p className="flex items-center gap-1.5 text-sm font-semibold text-forest">
                           <BedDoubleIcon className="h-3.5 w-3.5 text-emerald" /> {d.hotel.name}
@@ -519,7 +520,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
         <div className="mt-10 grid gap-6 border-t border-forest/10 pt-6 print:mt-6 print:break-inside-avoid sm:grid-cols-2">
             {itin.vehicle &&
           <div className="flex gap-3 rounded-xl border border-emerald/20 bg-emerald/5 p-3">
-                {itin.vehicle.images?.[0] && <img src={itin.vehicle.images[0]} alt={itin.vehicle.name} className="h-24 w-32 shrink-0 rounded-lg object-cover" />}
+                {itin.vehicle.images?.[0] && <OptImg w={480} src={itin.vehicle.images[0]} alt={itin.vehicle.name} className="h-24 w-32 shrink-0 rounded-lg object-cover" />}
                 <div className="min-w-0">
                   <p className="flex items-center gap-1.5 text-sm font-semibold text-forest"><CarIcon className="h-3.5 w-3.5 text-emerald" /> {t('vehicle')}</p>
                   <p className="mt-1 text-sm text-forest">{itin.vehicle.name}</p>
@@ -533,7 +534,7 @@ export function QuotationView({ endpoint, backHref }: { endpoint: string; backHr
           }
             {itin.tourGuide &&
           <div className="flex gap-3 rounded-xl border border-emerald/20 bg-emerald/5 p-3">
-                {itin.tourGuide.photo && <img src={itin.tourGuide.photo} alt={itin.tourGuide.name} className="h-24 w-24 shrink-0 rounded-lg object-cover" />}
+                {itin.tourGuide.photo && <OptImg w={160} src={itin.tourGuide.photo} alt={itin.tourGuide.name} className="h-24 w-24 shrink-0 rounded-lg object-cover" />}
                 <div className="min-w-0">
                   <p className="flex items-center gap-1.5 text-sm font-semibold text-forest"><UsersIcon className="h-3.5 w-3.5 text-emerald" /> {t('tourGuide')}</p>
                   <p className="mt-1 text-sm text-forest">{itin.tourGuide.name}</p>

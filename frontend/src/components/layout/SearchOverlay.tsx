@@ -1,3 +1,4 @@
+import { OptImg } from '../ui/OptImg';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -131,7 +132,7 @@ export function SearchOverlay({ open, onClose }: Props) {
                 className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors ${item.href ? 'cursor-pointer hover:bg-cream' : 'cursor-default'}`}>
 
                       {item.image ?
-                <img src={item.image} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" /> :
+                <OptImg w={160} src={item.image} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" /> :
 
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-cream text-forest/30">
                           <SearchIcon className="h-4 w-4" />

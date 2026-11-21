@@ -1,3 +1,4 @@
+import { OptImg } from '../ui/OptImg';
 import { copy } from '../../i18n';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -383,7 +384,7 @@ export function CustomTourWizard() {
               <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
                   {destinations.map((d) =>
                 <div key={d._id} onClick={() => toggleSelection('selectedDestinations', d._id)} className={`group relative cursor-pointer overflow-hidden rounded-2xl border-2 transition-all ${formData.selectedDestinations.includes(d._id) ? 'border-emerald shadow-md' : 'border-transparent'}`}>
-                      <img src={d.heroImage} alt={d.name} className="h-32 w-full object-cover transition-transform group-hover:scale-105" />
+                      <OptImg w={480} src={d.heroImage} alt={d.name} className="h-32 w-full object-cover transition-transform group-hover:scale-105" />
                       <div className="absolute inset-0 bg-gradient-to-t from-forest/90 to-transparent p-3 flex flex-col justify-end">
                         <p className="text-sm font-semibold text-white flex items-center gap-1"><MapPinIcon className="w-3 h-3 text-gold" /> {d.name}</p>
                       </div>
@@ -421,7 +422,7 @@ export function CustomTourWizard() {
               <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
                   {activitiesForSelectedDestinations.map((a) =>
                 <div key={a._id} onClick={() => toggleSelection('selectedActivities', a._id)} className={`group relative cursor-pointer overflow-hidden rounded-2xl border-2 transition-all ${formData.selectedActivities.includes(a._id) ? 'border-emerald shadow-md' : 'border-transparent'}`}>
-                      <img src={a.image} alt={a.name} className="h-32 w-full object-cover transition-transform group-hover:scale-105" />
+                      <OptImg w={480} src={a.image} alt={a.name} className="h-32 w-full object-cover transition-transform group-hover:scale-105" />
                       <div className="absolute inset-0 bg-gradient-to-t from-forest/90 to-transparent p-3 flex flex-col justify-end">
                         <p className="text-sm font-semibold text-white flex items-center gap-1"><TargetIcon className="w-3 h-3 text-gold" /> {a.name}</p>
                       </div>

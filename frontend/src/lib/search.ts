@@ -67,7 +67,7 @@ export async function searchAll(query: string, limit = 5): Promise<SearchResults
   if (!q) return EMPTY_RESULTS;
 
   const [packages, destinations, activities, hotels, blog] = await Promise.all([
-  apiGetList<RawPackage>('/packages', { q, limit }).
+  apiGetList<RawPackage>('/packages', { view: 'card', q, limit }).
   then(({ data }) => data.map((p): SearchResultItem => ({
     id: p._id,
     category: 'Tour Packages',

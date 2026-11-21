@@ -1,3 +1,4 @@
+import { OptImg } from '../ui/OptImg';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -51,7 +52,7 @@ export function Blog() {
             className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-soft transition-shadow hover:shadow-lift">
 
               <Link to={`/blog/${b.slug}`} className="relative h-36 overflow-hidden">
-                <img src={resolveImage(b.featuredImage)} alt={b.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <OptImg w={800} src={resolveImage(b.featuredImage)} alt={b.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 <span className="absolute top-3 left-3 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-emerald">{b.category}</span>
               </Link>
               <div className="flex flex-1 flex-col p-4">
