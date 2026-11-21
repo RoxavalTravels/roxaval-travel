@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { apiGetOne, apiPatch, apiPost } from '../lib/api';
+import { apiGetOne, apiPatch, apiPost, refreshSession } from '../lib/api';
 
 export interface AuthUser {
   _id: string;
@@ -46,8 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshMe = useCallback(async () => {
     try {
-      const { user: me } = await apiGetOne<{ user: AuthUser }>('/auth/me');
-      setUser(me);
+      // /auth/session always answers 200, so a logged-out visitor causes no failing request (and no console error).
+      let session = await apiGetOne<{ user: AuthUser | null; canRefresh: boolean }>('/auth/session');
+      if (!session.user && session.canRefresh && (await refreshSession())) {
+        session = await apiGetOne<{ user: AuthUser | null; canRefresh: boolean }>('/auth/session');
+      }
+      setUser(session.user ?? null);
     } catch {
       setUser(null);
     }

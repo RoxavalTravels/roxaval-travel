@@ -14,11 +14,11 @@ interface HotelPartner {
 }
 
 const HOTEL_PARTNERS: HotelPartner[] = [
-{ name: 'Amaya Resorts', logo: 'https://upload.wikimedia.org/wikipedia/en/3/31/Amaya_Resorts_%26_Spas_logo.jpeg' },
-{ name: 'Browns Hotels', logo: 'https://dz3vy4jhqsnnj.cloudfront.net/2025/03/browns-logo-white-full-1-1-1.png', crop: { width: 321, height: 133, left: -130, top: 3 } },
-{ name: 'Cinnamon Hotels', logo: 'https://api.liabots.ai/files/cinnamon/chat-widget-icons/bubble2.png' },
-{ name: 'Teardrop Hotels', logo: 'https://pbs.twimg.com/profile_images/821617386122002432/f_QPimTQ_400x400.jpg' },
-{ name: '98 Acres', logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_c4ACAmZgmv4IOUrCY8OUFq7tt_69smfb8HCDsFUSo33tAozQl3CHPRZgyCc5T9g&s=10&ec=121924574' }];
+{ name: 'Amaya Resorts', logo: '/partners/amaya.jpg' },
+{ name: 'Browns Hotels', logo: '/partners/browns.png', crop: { width: 321, height: 133, left: -130, top: 3 } },
+{ name: 'Cinnamon Hotels', logo: '/partners/cinnamon.png' },
+{ name: 'Teardrop Hotels', logo: '/partners/teardrop.jpg' },
+{ name: '98 Acres', logo: '/partners/98-acres.jpg' }];
 
 
 // Duplicated once so the CSS marquee can loop seamlessly at -50% translateX.

@@ -62,7 +62,7 @@ export function Blog() {
                 <Link to={`/blog/${b.slug}`} className="font-display mt-1.5 text-sm font-semibold leading-snug text-forest group-hover:text-emerald transition-colors line-clamp-2">{b.title}</Link>
                 <p className="mt-1.5 flex-1 line-clamp-2 text-xs leading-relaxed text-forest/65">{b.excerpt}</p>
                 <Link to={`/blog/${b.slug}`} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-emerald">
-                  {t('blog.readMore')} <ArrowRightIcon className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                  {t('blog.readMore')}<span className="sr-only">: {b.title}</span> <ArrowRightIcon className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
             </motion.article>

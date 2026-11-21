@@ -70,6 +70,9 @@ async function tryRefresh(): Promise<boolean> {
   return refreshPromise;
 }
 
+// Used by the session probe: ask for a fresh access token only when the server says a refresh cookie exists.
+export { tryRefresh as refreshSession };
+
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;

@@ -8,16 +8,20 @@ type OptImgProps = Omit<ComponentProps<'img'>, 'src'> & { src?: string | null; w
 export function OptImg({ src, w, loading = 'lazy', decoding = 'async', onError, ...rest }: OptImgProps) {
   const original = src || '';
   const optimized = optimizeImageUrl(original, w);
+  // Wikimedia sets a tracking cookie on every image; a credential-less CORS request (it allows any origin) stops it.
+  const crossOrigin = /^https:\/\/upload\.wikimedia\.org\//.test(optimized) ? 'anonymous' : undefined;
   return (
     <img
       {...rest}
       src={optimized}
+      crossOrigin={crossOrigin}
       loading={loading}
       decoding={decoding}
       onError={(e) => {
         const img = e.currentTarget;
         if (optimized !== original && !img.dataset.optFallback) {
           img.dataset.optFallback = 'true';
+          img.removeAttribute('crossorigin');
           img.src = original;
           return;
         }
