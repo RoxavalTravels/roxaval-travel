@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarIcon, Loader2Icon, SearchIcon, TriangleAlertIcon } from 'lucide-react';
-import { apiGetAll, apiGetList } from '../../../lib/api';
+import { apiGetAll } from '../../../lib/api';
 import { formatDate } from '../../../lib/date';
 import { Modal } from '../Modal';
 
@@ -255,14 +255,14 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     return () => { active = false; };
   }, [open, destination, starRating, mealPlan, search]);
 
-  // Fetched once per modal session (not per filter change): there are only
-  // ~90 private Jetwing source entries total, far cheaper than one request
-  // per hotel row, and this never includes net rates for anyone but admins
-  // (same auth-gated endpoint the private rate-review screen already uses).
+  // Fetched once per modal session (not per filter change), following every page of results: the API returns at most
+  // 100 entries per page and there are now several hundred supplier entries, so reading only the first page left
+  // most suppliers' private rates out of the picker. This is the same auth-gated, admin-only endpoint the private
+  // rate-review screen uses.
   useEffect(() => {
     if (!open) return;
     let active = true;
-    apiGetList<JetwingEntry>('/supplier-contract-rates', { limit: 100 }).
+    apiGetAll<JetwingEntry>('/supplier-contract-rates').
     then(({ data }) => { if (active) setJetwingEntries(data); }).
     catch(() => { if (active) setJetwingEntries([]); });
     return () => { active = false; };
