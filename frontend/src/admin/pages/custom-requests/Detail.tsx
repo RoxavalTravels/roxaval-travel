@@ -1203,6 +1203,21 @@ export function AdminCustomRequestDetail() {
     });
   };
 
+  const [choosingOption, setChoosingOption] = useState<string | null>(null);
+  // Records the option the customer chose outside the website (WhatsApp, phone, email). The booking is priced from it.
+  const chooseOption = async (key: string) => {
+    setChoosingOption(key);
+    try {
+      await apiPatch(`/custom-tours/${id}/hotel-option`, { optionKey: key });
+      toast(`Option ${key} recorded as the customer's choice.`);
+      load();
+    } catch (err) {
+      toast(err instanceof ApiRequestError ? err.message : 'Failed to record the chosen option.', 'error');
+    } finally {
+      setChoosingOption(null);
+    }
+  };
+
   const savePriority = async (value: string) => {
     setSavingPriority(true);
     try {
@@ -1653,7 +1668,7 @@ export function AdminCustomRequestDetail() {
               {request.itinerary.confirmedHotelOption && request.itinerary.hotelOptionLabels && (
                 <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">
                   <CheckIcon className="h-3 w-3" />
-                  Customer selected Option {request.itinerary.confirmedHotelOption}: {request.itinerary.hotelOptionLabels[request.itinerary.confirmedHotelOption]}
+                  Option {request.itinerary.confirmedHotelOption} chosen: {request.itinerary.hotelOptionLabels[request.itinerary.confirmedHotelOption]}
                 </div>
               )}
               {(request.itinerary.tourGuide || request.itinerary.vehicle) &&
@@ -1729,6 +1744,7 @@ export function AdminCustomRequestDetail() {
                         <th className="pb-1.5 text-right font-semibold">Base</th>
                         <th className="pb-1.5 text-right font-semibold">Discount</th>
                         <th className="pb-1.5 text-right font-semibold">Total</th>
+                        <th className="pb-1.5 text-right font-semibold">Customer's choice</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1742,6 +1758,13 @@ export function AdminCustomRequestDetail() {
                             <td className="py-1.5 text-right">{p ? `${cur} ${p.basePrice.toLocaleString()}` : '—'}</td>
                             <td className="py-1.5 text-right">{p?.discount ? `${cur} ${p.discount.toLocaleString()}` : '—'}</td>
                             <td className="py-1.5 text-right font-semibold">{p ? `${cur} ${p.totalPrice.toLocaleString()}` : '—'}</td>
+                            <td className="py-1.5 text-right">
+                              {isConfirmed ? <span className="font-semibold">Chosen</span> : (
+                                <button type="button" disabled={choosingOption !== null} onClick={() => chooseOption(key)} className="rounded-full border border-emerald/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald hover:bg-emerald/10 disabled:opacity-50">
+                                  {choosingOption === key ? 'Saving…' : 'Customer chose this'}
+                                </button>
+                              )}
+                            </td>
                           </tr>
                         );
                       })}
