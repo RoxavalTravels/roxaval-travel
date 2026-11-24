@@ -24,6 +24,8 @@ export interface HotelSelection {
   numberOfRooms: number;
   roomOccupancy: RoomOccupancy;
   roomCost: number;
+  /** Set when the admin used a room whose rate could not be verified for the day's date (shown as a badge on the day). */
+  rateWarning?: string;
 }
 
 interface SeasonalRate {
@@ -83,6 +85,7 @@ interface JetwingChildPolicy {
 
 interface JetwingEntry {
   _id: string;
+  recordType?: string;
   property?: { hotelId: number | null; matchStatus: string; supplier?: string } | null;
   rates: JetwingRate[];
   childPolicies: JetwingChildPolicy[];
@@ -113,18 +116,31 @@ const MEAL_PLAN_OPTIONS = ['Room Only', 'Bed & Breakfast', 'Half Board', 'Full B
 
 // Picks the seasonal rate period covering `travelDate`, falling back to the
 // room type's default `pricing` when no period matches (or no date is given).
-function resolveRate(rt: RoomTypeRow, travelDate?: string): { pricing: RoomOccupancy; currency: string; seasonal: boolean } {
-  if (travelDate && rt.seasonalRates?.length) {
-    const d = new Date(travelDate).getTime();
-    const match = rt.seasonalRates.find((s) => {
-      const from = new Date(s.validFrom).getTime();
-      const to = new Date(s.validTo).getTime();
-      return d >= from && d <= to;
-    });
-    if (match) return { pricing: match.pricing, currency: match.currency || 'USD', seasonal: true };
-  }
-  return { pricing: rt.pricing || emptyOccupancy(), currency: 'USD', seasonal: false };
+// 'season' = one valid seasonal rate; 'flat' = room has no seasonal rates at all (its default price is the price);
+// everything else means the price cannot be trusted and the admin must review it (the backend refuses to send such a quotation).
+export type RateStatus = 'season' | 'flat' | 'no-season' | 'overlap' | 'no-date';
+
+const dayOf = (value: string) => value.slice(0, 10);
+const PRICE_KEYS = ['single', 'double', 'triple', 'quad'] as const;
+const priceSig = (p?: Partial<RoomOccupancy>) => PRICE_KEYS.map((k) => Math.round(((p?.[k] as number) || 0) * 100) / 100).join('|');
+
+function resolveRate(rt: RoomTypeRow, travelDate?: string): { pricing: RoomOccupancy; currency: string; seasonal: boolean; status: RateStatus } {
+  const fallback = rt.pricing || emptyOccupancy();
+  const seasons = (rt.seasonalRates || []).filter((s) => s.validFrom && s.validTo);
+  if (!seasons.length) return { pricing: fallback, currency: 'USD', seasonal: false, status: 'flat' };
+  if (!travelDate) return { pricing: fallback, currency: 'USD', seasonal: false, status: 'no-date' };
+  const d = dayOf(travelDate);
+  const matches = seasons.filter((s) => dayOf(s.validFrom) <= d && dayOf(s.validTo) >= d);
+  if (!matches.length) return { pricing: fallback, currency: 'USD', seasonal: false, status: 'no-season' };
+  const conflict = new Set(matches.map((m) => priceSig(m.pricing))).size > 1;
+  return { pricing: matches[0].pricing, currency: matches[0].currency || 'USD', seasonal: true, status: conflict ? 'overlap' : 'season' };
 }
+
+const RATE_PROBLEM_TEXT: Record<Exclude<RateStatus, 'season' | 'flat'>, string> = {
+  'no-season': 'No valid seasonal contract rate was found for this date. The system is falling back to the room\'s default (old) price.',
+  overlap: 'More than one seasonal rate covers this date with different prices, so the correct price is ambiguous.',
+  'no-date': 'This day has no date, so the seasonal rate cannot be verified. Default prices are shown.'
+};
 
 // Groups a hotel's private Jetwing rate rows by (room category, meal plan),
 // each holding every seasonal period so the right one can be picked by date.
@@ -133,6 +149,8 @@ function jetwingCombos(entries: JetwingEntry[], hotelId: string): JetwingCombo[]
   const combos = new Map<string, JetwingCombo>();
   for (const entry of entries) {
     if (!entry.property || entry.property.hotelId !== numericId) continue;
+    // Jetwing DTASO promotions are sold as their own "DTASO Promo" room types, not as part of the normal seasons.
+    if (entry.recordType === 'Tactical offer' && entry.property.supplier === 'Jetwing') continue;
     for (const rate of entry.rates) {
       const key = `${rate.roomCategory}__${rate.mealPlan}`;
       if (!combos.has(key)) {
@@ -155,16 +173,12 @@ function jetwingCombos(entries: JetwingEntry[], hotelId: string): JetwingCombo[]
 
 // Picks the period covering `travelDate` from a combo's rate rows, the same
 // date-matching rule used for public seasonal rates.
+// With a travel date, only a period that really covers it is used: there is no silent fallback to the first period.
 function resolveJetwingPeriod(combo: JetwingCombo, travelDate?: string): JetwingRate | null {
   if (travelDate && combo.rates.length) {
-    const d = new Date(travelDate).getTime();
-    const match = combo.rates.find((r) => {
-      if (!r.validFrom || !r.validTo) return false;
-      const from = new Date(r.validFrom).getTime();
-      const to = new Date(r.validTo).getTime();
-      return d >= from && d <= to;
-    });
-    if (match) return match;
+    const d = dayOf(travelDate);
+    const match = combo.rates.find((r) => r.validFrom && r.validTo && dayOf(r.validFrom) <= d && dayOf(r.validTo) >= d);
+    return match || null;
   }
   return combo.rates[0] || null;
 }
@@ -212,6 +226,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
   const [pickedRoomType, setPickedRoomType] = useState<RoomTypeRow | null>(null);
   const [pickedJetwingCombo, setPickedJetwingCombo] = useState<JetwingCombo | null>(null);
   const [occupancy, setOccupancy] = useState<RoomOccupancy>(emptyOccupancy());
+  const [ackUnverified, setAckUnverified] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -220,6 +235,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     setPickedRoomType(null);
     setPickedJetwingCombo(null);
     setOccupancy(emptyOccupancy());
+    setAckUnverified(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultDestination]);
 
@@ -257,6 +273,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     setPickedRoomType(rt);
     setPickedJetwingCombo(null);
     setOccupancy(emptyOccupancy());
+    setAckUnverified(false);
   };
 
   const selectJetwingCombo = (hotel: HotelRow, combo: JetwingCombo) => {
@@ -264,6 +281,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
     setPickedRoomType(null);
     setPickedJetwingCombo(combo);
     setOccupancy(emptyOccupancy());
+    setAckUnverified(false);
   };
 
   const resolvedPublic = pickedRoomType ? resolveRate(pickedRoomType, travelDate) : null;
@@ -278,9 +296,19 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
   const subtotal = jetwingNeedsReview ? 0 : OCCUPANCY_FIELDS.reduce((sum, f) => sum + occupancy[f.key] * (rate[f.key] || 0), 0);
   const roomCount = occupancy.single + occupancy.double + occupancy.triple + occupancy.quad;
 
+  // What (if anything) makes the selected room's price untrustworthy for this date.
+  const zeroRateFields = (['single', 'double', 'triple', 'quad'] as const).filter((k) => occupancy[k] > 0 && !(rate[k] && (rate[k] as number) > 0));
+  const roomStatus: RateStatus | null = resolvedPublic ? resolvedPublic.status : pickedJetwingCombo ? (resolvedJetwingPeriod ? 'season' : travelDate ? 'no-season' : 'no-date') : null;
+  const statusProblem = roomStatus && roomStatus !== 'season' && roomStatus !== 'flat' ? RATE_PROBLEM_TEXT[roomStatus] : null;
+  const zeroProblem = zeroRateFields.length ? `The selected rate has no price for ${zeroRateFields.join(', ')} occupancy.` : null;
+  const rateProblem = statusProblem || zeroProblem;
+  const pickedRoomName = pickedRoomType ? pickedRoomType.name : pickedJetwingCombo ? pickedJetwingCombo.roomCategory : '';
+
   const confirm = () => {
     if (!pickedHotel || (!pickedRoomType && !pickedJetwingCombo) || subtotal <= 0) return;
+    if (rateProblem && !ackUnverified) return;
     onConfirm({
+      rateWarning: rateProblem ? `${pickedRoomName}: ${rateProblem}` : undefined,
       hotel: pickedHotel._id,
       hotelName: pickedHotel.name,
       roomType: pickedRoomType ? pickedRoomType.name : `${pickedJetwingCombo!.roomCategory} (${pickedJetwingCombo!.supplier} contract rate)`,
@@ -357,6 +385,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
                         {combo.mealPlan}
                         {period && <span className="ml-1 rounded-full bg-emerald/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald" title="Rate for this day's travel date">{period.periodLabel || 'SEASON'}</span>}
                         {needsReview && <span className="ml-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-semibold text-red-600" title="This rate needs manual review before use">REVIEW</span>}
+                        {travelDate && !period && <span className="ml-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-semibold text-red-600" title="No valid contract period covers this date">NO RATE FOR DATE</span>}
                       </td>
                       {OCCUPANCY_FIELDS.map((f) => <td key={f.key} className="p-2 text-right text-forest/70">{pricing[f.key] == null ? '—' : pricing[f.key]}</td>)}
                       <td className="p-2 text-right">
@@ -375,7 +404,9 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
                       <td className="p-2 text-forest">{rt.name}</td>
                       <td className="p-2 text-forest/60">
                         {rt.mealPlan || '-'}
-                        {rowRate.seasonal && <span className="ml-1 rounded-full bg-emerald/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald" title="Rate for this day's travel date">SEASON</span>}
+                        {rowRate.status === 'season' && <span className="ml-1 rounded-full bg-emerald/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald" title="Rate for this day's travel date">SEASON</span>}
+                        {rowRate.status === 'no-season' && <span data-testid="no-rate-tag" className="ml-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-semibold text-red-600" title="No valid seasonal contract rate covers this date; the default (old) price would be used">NO RATE FOR DATE</span>}
+                        {rowRate.status === 'overlap' && <span data-testid="overlap-tag" className="ml-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-semibold text-red-600" title="Two seasonal rates with different prices cover this date">CONFLICTING RATES</span>}
                         {rowRate.currency !== 'USD' && <span className="ml-1 text-[9px] font-semibold text-forest/40">{rowRate.currency}</span>}
                       </td>
                       {OCCUPANCY_FIELDS.map((f) => <td key={f.key} className="p-2 text-right text-forest/70">{rowRate.pricing[f.key] || 0}</td>)}
@@ -400,6 +431,17 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
             {pickedJetwingCombo && <span className="ml-2 text-xs font-normal text-forest/50">(private {pickedJetwingCombo.supplier} contract rate — internal cost, not shown to customers)</span>}
           </p>
           <p className="mt-1 text-xs text-forest/50">Set how many of each occupancy type to book for this day.</p>
+          {rateProblem &&
+          <div data-testid="rate-warning" className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+              <p className="flex items-center gap-1.5 font-semibold"><TriangleAlertIcon className="h-4 w-4 shrink-0" /> Rate needs verification</p>
+              <p className="mt-1"><strong>{pickedRoomName}</strong>{travelDate ? <> on <strong>{formatDate(travelDate)}</strong></> : null}: {rateProblem}</p>
+              <p className="mt-1">Check the price with the hotel or correct the hotel's rates. A quotation that uses an unverified rate can be saved as a draft but cannot be sent to the customer.</p>
+              <label className="mt-2 flex items-center gap-2 font-semibold">
+                <input data-testid="rate-ack" type="checkbox" checked={ackUnverified} onChange={(e) => setAckUnverified(e.target.checked)} />
+                I have reviewed this price and will verify it before sending
+              </label>
+            </div>
+          }
           {jetwingNeedsReview &&
           <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs text-red-600">
               This rate is flagged for manual review and can't be auto-calculated. Check the exact source excerpt on the Supplier Contract Rates screen before using it.
@@ -436,7 +478,7 @@ export function HotelPickerModal({ open, onClose, destinationOptions, defaultDes
             <button
               type="button"
               onClick={confirm}
-              disabled={subtotal <= 0}
+              disabled={subtotal <= 0 || (!!rateProblem && !ackUnverified)}
               className="rounded-full bg-emerald px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-light disabled:cursor-not-allowed disabled:bg-forest/20 disabled:text-forest/40">
               Use this Room
             </button>

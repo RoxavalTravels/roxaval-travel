@@ -266,6 +266,8 @@ interface HotelOptionEntry {
   roomOccupancy: RoomOccupancy;
   roomCost: number;
   selected: boolean;
+  /** Client-only: set when this room was picked with a rate that could not be verified for the day's date. */
+  rateWarning?: string;
 }
 
 interface ItineraryDayForm {
@@ -934,7 +936,7 @@ export function AdminCustomRequestDetail() {
     { hotel: '', roomType: '', roomTypeId: '', mealPlan: '', numberOfRooms: 1, roomOccupancy: emptyOccupancy(), roomCost: 0 };
   };
 
-  const applyHotelSelection = (sel: { hotel: string; hotelName: string; roomType: string; roomTypeId: string; mealPlan: string; numberOfRooms: number; roomOccupancy: RoomOccupancy; roomCost: number }) => {
+  const applyHotelSelection = (sel: { hotel: string; hotelName: string; roomType: string; roomTypeId: string; mealPlan: string; numberOfRooms: number; roomOccupancy: RoomOccupancy; roomCost: number; rateWarning?: string }) => {
     if (pickerDayIndex === null) return;
     const day = days[pickerDayIndex];
     let option: HotelOptionEntry;
@@ -1994,7 +1996,7 @@ export function AdminCustomRequestDetail() {
                                       const hi = day.hotelOptions.indexOf(ho);
                                       return (
                                         <div key={hi} className="flex items-center justify-between rounded-lg bg-emerald/5 p-2 text-sm text-forest">
-                                          <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} — {ho.roomType}{ho.mealPlan ? ` (${ho.mealPlan})` : ''} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''})</span>
+                                          <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} — {ho.roomType}{ho.mealPlan ? ` (${ho.mealPlan})` : ''} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''}){ho.rateWarning && <span data-testid="day-rate-warning" title={ho.rateWarning} className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700"><AlertTriangleIcon className="h-3 w-3" />Rate unverified - cannot be sent</span>}</span>
                                           <span className="flex items-center gap-2">
                                             <span>${ho.roomCost.toLocaleString()}</span>
                                             <button type="button" onClick={() => removeHotelOption(i, hi)} className="rounded p-2 text-forest/50 hover:text-red-500"><XIcon className="h-4 w-4" /></button>
@@ -2020,7 +2022,7 @@ export function AdminCustomRequestDetail() {
                                     <div key={hi} className={`flex items-center justify-between rounded-lg p-2 text-sm ${ho.selected ? 'bg-emerald/10 text-forest' : 'text-forest/60'}`}>
                                       <label className="flex flex-1 cursor-pointer items-center gap-2">
                                         <input type="radio" checked={ho.selected} onChange={() => setPrimaryHotelOption(i, hi)} className="h-3.5 w-3.5 text-emerald focus:ring-emerald" />
-                                        <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} - {ho.roomType}{ho.mealPlan ? ` (${ho.mealPlan})` : ''} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''}){ho.selected ? '' : ' · alternate'}</span>
+                                        <span>{ho.hotelName || hotelOptions.find((h) => h.value === ho.hotel)?.label} - {ho.roomType}{ho.mealPlan ? ` (${ho.mealPlan})` : ''} ({ho.numberOfRooms} room{ho.numberOfRooms > 1 ? 's' : ''}){ho.selected ? '' : ' · alternate'}{ho.rateWarning && <span data-testid="day-rate-warning" title={ho.rateWarning} className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700"><AlertTriangleIcon className="h-3 w-3" />Rate unverified - cannot be sent</span>}</span>
                                       </label>
                                       <span className="flex items-center gap-2">
                                         <span>${ho.roomCost.toLocaleString()}</span>
