@@ -11,6 +11,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ScrollToTop } from './components/layout/ScrollToTop';
 import { PublicLayout } from './components/layout/PublicLayout';
+import { LanguageWelcome } from './components/layout/LanguageWelcome';
 import { RequireAuth } from './components/layout/RequireAuth';
 
 // Every route below is lazy-loaded: without this, one visitor browsing the
@@ -103,6 +104,8 @@ export function App() {
       <AuthProvider>
       <ToastProvider>
         <ScrollToTop />
+        {/* Outside the route Suspense so the first-visit language popup does not wait for the page's code to load. */}
+        <LanguageWelcome />
         <Suspense fallback={<RouteFallback />}>
         <Routes key={i18n.language}>
         <Route element={<PublicLayout />}>

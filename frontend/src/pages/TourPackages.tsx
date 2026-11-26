@@ -1,13 +1,29 @@
 import { InitialPublicPage, isInitialPublicRoute } from '../components/seo/InitialPublicContent';
 import { copy } from '../i18n';
 import { LocalizedHeading } from '../components/seo/LocalizedHeading';
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { SparklesIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Seo } from '../components/seo/Seo';
 import { breadcrumbSchema } from '../lib/seo';
-import { CustomTourWizard } from '../components/packages/CustomTourWizard';
+// The custom-tour form sits far below the package list and loads ~55 KB of destination/activity data. It is only
+// loaded (code and data) once the visitor scrolls close to it, so the package list and the first-visit popup render first.
+const CustomTourWizard = lazy(() => import('../components/packages/CustomTourWizard').then((m) => ({ default: m.CustomTourWizard })));
+
+function WhenNearViewport({ children, minHeight }: { children: React.ReactNode; minHeight: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    if (near || !ref.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) { setNear(true); observer.disconnect(); }
+    }, { rootMargin: '700px 0px' });
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [near]);
+  return <div ref={ref} style={near ? undefined : { minHeight }}>{near ? children : null}</div>;
+}
 import { useApiList } from '../hooks/useApiList';
 import { PackageCard } from '../components/packages/PackageCard';
 import { BreadcrumbBackRow } from '../components/layout/BreadcrumbBackRow';
@@ -126,7 +142,11 @@ export function TourPackages() {
             <p className="mt-4 text-lg text-cream/90 max-w-2xl mx-auto">{t('customTour.subtitle')}</p>
           </div>
 
-          <CustomTourWizard />
+          <WhenNearViewport minHeight={640}>
+            <Suspense fallback={<div style={{ minHeight: 640 }} />}>
+              <CustomTourWizard />
+            </Suspense>
+          </WhenNearViewport>
         </div>
       </section>
     </main>);
