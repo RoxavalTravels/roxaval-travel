@@ -8,6 +8,7 @@ import { SectionHeading } from '../components/ui/SectionHeading';
 import { Stats } from '../components/sections/Stats';
 import { WhyChoose } from '../components/sections/WhyChoose';
 import { CoreValues } from '../components/sections/CoreValues';
+import { CredentialDocuments } from '../components/sections/CredentialDocuments';
 import { HotelPartners } from '../components/sections/HotelPartners';
 import { TripAdvisorIcon } from '../components/icons/BrandIcons';
 import { Seo } from '../components/seo/Seo';
@@ -159,6 +160,8 @@ export function AboutUs() {
           </div>
         </div>
       </section>
+
+      <CredentialDocuments />
 
       {/* Customer Testimonials */}
       {testimonials.length > 0 &&
