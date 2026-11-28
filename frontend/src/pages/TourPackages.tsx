@@ -63,7 +63,7 @@ export function TourPackages() {
   return (
     <main className="min-h-screen bg-cream pt-24">
       <Seo
-        title="Sri Lanka Tour Packages | Private, Honeymoon & Wildlife Tours | Roxaval Travels"
+        title="Sri Lanka Tour Packages | Private & Honeymoon | Roxaval Travels"
         description="Browse Sri Lanka tour packages built for every kind of traveller — private tours, honeymoon escapes, wildlife safaris and beach holidays, or build a fully custom Sri Lanka tour."
         keywords="Sri Lanka tour packages, private tours Sri Lanka, honeymoon tours Sri Lanka, wildlife tours Sri Lanka, beach holidays Sri Lanka, custom Sri Lanka tours"
         jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Tour Packages', path: '/packages' }])} />

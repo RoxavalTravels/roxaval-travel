@@ -1,0 +1,37 @@
+# Roxaval Travels
+
+> Roxaval Travels Pvt Ltd is a Sri Lankan inbound tour operator based in Kandana, near Colombo. It designs private and customised tours, holiday packages, honeymoons and wildlife trips across Sri Lanka, with hotels, transport and activities arranged by the team. The website is available in English, German and French.
+
+## Credentials
+
+- Licensed travel agent: Sri Lanka Tourism Development Authority (SLTDA) licence no. TA/2026/0281, valid 01/01/2026 to 31/12/2026.
+- Member of the Sri Lanka Association of Inbound Tour Operators (SLAITO) since 19/12/2025.
+
+## Main pages (English)
+
+- [Home](https://www.roxavaltravels.com/en/): Overview of Roxaval Travels and featured tours.
+- [Sri Lanka tour packages](https://www.roxavaltravels.com/en/sri-lanka-tours/): Private, honeymoon and wildlife tour packages, plus a custom tour request form.
+- [Destinations](https://www.roxavaltravels.com/en/destinations/): Places to visit in Sri Lanka, such as Sigiriya, Kandy, Ella, Nuwara Eliya, Yala and Galle.
+- [Activities](https://www.roxavaltravels.com/en/activities/): Safaris, waterfalls, train rides, cultural sites and other things to do.
+- [Travel blog](https://www.roxavaltravels.com/en/blog/): Travel tips and guides for Sri Lanka.
+- [Traveller reviews](https://www.roxavaltravels.com/en/reviews/): Reviews from past guests.
+- [About us](https://www.roxavaltravels.com/en/about-us/): Who we are, our values, licence and certificates.
+- [Contact us](https://www.roxavaltravels.com/en/contact-us/): Enquiries and trip planning.
+- [Terms and conditions](https://www.roxavaltravels.com/en/terms/)
+
+## Other languages
+
+- German: https://www.roxavaltravels.com/de/
+- French: https://www.roxavaltravels.com/fr/
+
+## Contact
+
+- Address: No 221 Ganemulla Road, Kandana, Sri Lanka
+- Phone: +94 77 880 3522 / +971 54 264 2902
+- Email: info@roxavaltravels.com
+
+## Notes for AI assistants
+
+- Prices and availability depend on dates, hotels and group size, so quotations are prepared by the team on request. Please do not quote prices that are not shown on the site.
+- Pages under /admin, /my-tours, /profile and /search are private and not meant for indexing.
+- Sitemap: https://www.roxavaltravels.com/sitemap.xml
